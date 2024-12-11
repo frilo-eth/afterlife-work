@@ -4,6 +4,7 @@ export interface Logo {
   thumbnail: string;
   tags: string[];
   description: string;
+  dateAdded: string;
   price: {
     glyph: number;
     system: number;

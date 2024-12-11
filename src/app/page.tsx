@@ -1,107 +1,58 @@
 'use client'
 
-import React from "react"
-import { Button, Link } from "@nextui-org/react"
-import { LogoCard } from "../components/logo/LogoCard"
-import { FilterBar } from "../components/filters/FilterBar"
+import React, { Suspense } from "react"
+import { Button } from "@nextui-org/react"
+import { SplineScene } from "../components/spline/SplineScene"
+import { CollectionLayout } from "../components/collection/CollectionLayout"
+import { DesignerSection } from "@/components/sections/DesignerSection"
 
 export default function HomePage() {
   return (
     <>
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center">
-        <div className="absolute inset-0 overflow-hidden opacity-10">
-          <div 
-            className="absolute inset-0" 
-            style={{
-              backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-              backgroundSize: '40px 40px'
-            }}
-          />
+      <section className="relative min-h-screen">
+        {/* Spline Background */}
+        <div className="absolute inset-0 z-0">
+          <Suspense fallback={<div className="w-full h-full bg-black" />}>
+            <SplineScene scene="https://prod.spline.design/7jLFqGqX7efOXqtR/scene.splinecode" />
+          </Suspense>
         </div>
         
-        <div className="container mx-auto px-4 text-center z-10">
-          <span className="font-mono text-sm tracking-wider opacity-50 mb-4 block">
-            Welcome to
-          </span>
-          <h1 className="text-7xl font-bold mb-6 tracking-tight bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent">
-            The Graveyard
-          </h1>
-          <p className="text-xl mb-8 max-w-2xl mx-auto text-white/60 font-light">
-            Where rejected logos find new life. Each design tells a story of what could have been—and what still could be.
-          </p>
-          <Button
-            as={Link}
-            href="#collection"
-            variant="bordered"
-            size="lg"
-            className="font-mono"
-            endContent={
-              <svg 
-                width="20" 
-                height="20" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2"
-              >
-                <path d="M12 5v14M19 12l-7 7-7-7"/>
-              </svg>
-            }
-          >
-            Explore Collection
-          </Button>
+        {/* Content */}
+        <div className="relative z-10 flex items-center justify-center min-h-screen">
+          <div className="container mx-auto px-4 text-center">
+            <span className="font-mono text-sm tracking-wider opacity-50 mb-4 block">
+              Resurrection Time
+            </span>
+            <h1 className="text-7xl font-bold mb-6 tracking-tight bg-gradient-to-b from-white to-white/50 bg-clip-text text-transparent">
+              Save time by saving souls
+            </h1>
+            <p className="text-xl mb-8 max-w-2xl mx-auto text-white/60 font-light">
+              Unique, ready-to-use logos that died before seeing the light of day, waiting to be brought back.
+            </p>
+            <Button
+              size="lg"
+              className="font-mono bg-white text-black hover:bg-white/90"
+            >
+              Summon a Logo
+            </Button>
+          </div>
         </div>
       </section>
 
       {/* Collection Section */}
-      <section id="collection" className="min-h-screen bg-black/50 backdrop-blur-sm">
-        <FilterBar />
-        
-        <div className="container mx-auto px-4 py-24">
-          <div className="flex justify-between items-center mb-16">
-            <div>
-              <h2 className="text-3xl font-bold mb-2">The Collection</h2>
-              <p className="text-white/50 font-mono text-sm">
-                Each logo awaits its resurrection
-              </p>
-            </div>
-            
-            <Button
-              variant="flat"
-              className="font-mono"
-              startContent={
-                <svg 
-                  width="18" 
-                  height="18" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2"
-                >
-                  <path d="M12 5v14M5 12h14"/>
-                </svg>
-              }
-            >
-              Submit Logo
-            </Button>
-          </div>
-
-          {/* Logo Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array(12).fill(0).map((_, i) => (
-              <LogoCard
-                key={i}
-                id={`LOGO${i}`}
-                title={`Logo Design ${i + 1}`}
-                thumbnail=""
-                tags={['Minimal', 'Tech']}
-                onClick={() => {}}
-              />
-            ))}
-          </div>
+      <section id="collection" className="py-24">
+        <div className="container mx-auto px-4">
+          <h2 className="text-4xl font-bold mb-4">The Graveyard</h2>
+          <p className="text-xl text-white/60 mb-12">
+            A collection of souls, waiting for resurrection
+          </p>
+          <CollectionLayout />
         </div>
       </section>
+
+      {/* Designer Section */}
+      <DesignerSection />
     </>
-  );
+  )
 } 
