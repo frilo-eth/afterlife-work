@@ -6,7 +6,6 @@ import { LogoGrid } from "@/components/logo/LogoGrid"
 import { FilterBar } from "@/components/filters/FilterBar"
 import { useRouter } from 'next/navigation'
 import type { Logo } from "@/lib/types"
-import { SeedButton } from "@/components/admin/SeedButton"
 
 export default function HomePage() {
   const [logos, setLogos] = useState<Logo[]>([])
@@ -86,7 +85,7 @@ export default function HomePage() {
             <div>
               <h2 className="text-3xl font-bold mb-2">The Limbo</h2>
               <p className="text-white/50 font-mono text-sm">
-                A collection of souls, waiting its resurrection
+                A collection of logo souls, waiting for resurrection
               </p>
             </div>
             
@@ -108,8 +107,6 @@ export default function HomePage() {
           <LogoGrid logos={logos} onLogoPress={handleLogoPress} />
         </div>
       </section>
-
-      {process.env.NODE_ENV === 'development' && <SeedButton />}
     </>
   )
 } 

@@ -11,6 +11,10 @@ export function SeedButton() {
       setIsLoading(true)
       const response = await fetch('/api/seed/cloudinary', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-vercel-protection-bypass': process.env.NEXT_PUBLIC_SEED_SECRET || ''
+        }
       })
       
       if (!response.ok) {
@@ -19,8 +23,6 @@ export function SeedButton() {
       
       const result = await response.json()
       console.log('Seed result:', result)
-      
-      // Refresh the page to show new logos
       window.location.reload()
     } catch (error) {
       console.error('Seed error:', error)
