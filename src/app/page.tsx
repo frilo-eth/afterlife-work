@@ -6,6 +6,7 @@ import { LogoGrid } from "@/components/logo/LogoGrid"
 import { FilterBar } from "@/components/filters/FilterBar"
 import { useRouter } from 'next/navigation'
 import type { Logo } from "@/lib/types"
+import { SeedButton } from "@/components/admin/SeedButton"
 
 export default function HomePage() {
   const [logos, setLogos] = useState<Logo[]>([])
@@ -107,6 +108,8 @@ export default function HomePage() {
           <LogoGrid logos={logos} onLogoPress={handleLogoPress} />
         </div>
       </section>
+
+      {process.env.NODE_ENV === 'development' && <SeedButton />}
     </>
   )
 } 
