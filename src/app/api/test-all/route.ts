@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
 import { cleanDatabase, createTestLogo, getAllLogos } from '@/lib/db'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     // Step 1: Clean the database
