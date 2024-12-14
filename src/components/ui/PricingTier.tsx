@@ -2,9 +2,24 @@
 
 import React from "react"
 import { Card, CardBody, Button } from "@nextui-org/react"
-import type { PricingTierProps } from "../../lib/types"
 
-export const PricingTier = ({ title, price, features, highlighted }: PricingTierProps) => (
+interface PricingTierProps {
+  title: string
+  price: number | string
+  features: string[]
+  highlighted?: boolean
+  onSelect: () => void
+  loading?: boolean
+}
+
+export const PricingTier = ({ 
+  title, 
+  price, 
+  features, 
+  highlighted, 
+  onSelect,
+  loading 
+}: PricingTierProps) => (
   <Card 
     className={`
       bg-zinc-900/50 backdrop-blur-sm border border-white/10
@@ -28,9 +43,11 @@ export const PricingTier = ({ title, price, features, highlighted }: PricingTier
         className="w-full font-mono"
         color={highlighted ? "primary" : "default"}
         variant={highlighted ? "solid" : "bordered"}
+        onClick={onSelect}
+        isLoading={loading}
       >
-        Select Plan
+        {title === 'Afterlife' ? 'Book a Call' : 'Select Plan'}
       </Button>
     </CardBody>
   </Card>
-); 
+) 

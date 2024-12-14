@@ -9,19 +9,14 @@ interface LogoCardProps {
   title: string;
   thumbnail: string;
   tags: string[];
-  onClick: () => void;
+  onPress: () => void;
 }
 
-export const LogoCard = ({ id, title, thumbnail, tags, onClick }: LogoCardProps) => {
-  // Separate handler to manage the event
-  const handlePress = () => {
-    onClick();
-  };
-
+export const LogoCard = ({ id, title, thumbnail, tags, onPress }: LogoCardProps) => {
   return (
     <Card 
       isPressable
-      onPress={handlePress}
+      onPress={onPress}
       className="group bg-zinc-900/50 backdrop-blur-sm border border-white/10
                  hover:bg-zinc-900/80 transition-all duration-300"
     >

@@ -1,11 +1,33 @@
 'use client'
 
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { Button, Link } from "@nextui-org/react"
-import { LogoCard } from "../components/logo/LogoCard"
-import { FilterBar } from "../components/filters/FilterBar"
+import { LogoGrid } from "@/components/logo/LogoGrid"
+import { FilterBar } from "@/components/filters/FilterBar"
+import { useRouter } from 'next/navigation'
+import type { Logo } from "@/lib/types"
 
 export default function HomePage() {
+  const [logos, setLogos] = useState<Logo[]>([])
+  const router = useRouter()
+
+  useEffect(() => {
+    const fetchLogos = async () => {
+      try {
+        const response = await fetch('/api/logos')
+        const data = await response.json()
+        setLogos(data)
+      } catch (error) {
+        console.error('Error fetching logos:', error)
+      }
+    }
+    fetchLogos()
+  }, [])
+
+  const handleLogoPress = (id: string) => {
+    router.push(`/${id}`)
+  }
+
   return (
     <>
       {/* Hero Section */}
@@ -63,22 +85,17 @@ export default function HomePage() {
             <div>
               <h2 className="text-3xl font-bold mb-2">The Limbo</h2>
               <p className="text-white/50 font-mono text-sm">
-              A collection of souls, waiting its resurrection
+                A collection of souls, waiting its resurrection
               </p>
             </div>
             
             <Button
+              as={Link}
+              href="/upload"
               variant="flat"
               className="font-mono"
               startContent={
-                <svg 
-                  width="18" 
-                  height="18" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2"
-                >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M12 5v14M5 12h14"/>
                 </svg>
               }
@@ -87,21 +104,9 @@ export default function HomePage() {
             </Button>
           </div>
 
-          {/* Logo Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array(12).fill(0).map((_, i) => (
-              <LogoCard
-                key={i}
-                id={`LOGO${i}`}
-                title={`Logo Design ${i + 1}`}
-                thumbnail=""
-                tags={['Minimal', 'Tech']}
-                onClick={() => {}}
-              />
-            ))}
-          </div>
+          <LogoGrid logos={logos} onLogoPress={handleLogoPress} />
         </div>
       </section>
     </>
-  );
+  )
 } 

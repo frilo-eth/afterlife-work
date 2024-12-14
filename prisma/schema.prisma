@@ -1,0 +1,39 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Logo {
+  id          String      @id @default(cuid())
+  title       String
+  description String      @db.Text
+  images      String[]    // Cloudinary URLs
+  thumbnail   String      // Main display image
+  tags        String[]
+  status      LogoStatus  @default(AVAILABLE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  price       Price       @relation(fields: [priceId], references: [id])
+  priceId     String
+}
+
+model Price {
+  id        String   @id @default(cuid())
+  summon    Int      // $1,000
+  revival   Int      // $5,000
+  afterlife String   // "$10,000"
+  logos     Logo[]
+}
+
+enum LogoStatus {
+  AVAILABLE
+  SOLD
+  HIDDEN
+}

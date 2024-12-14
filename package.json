@@ -6,23 +6,30 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "curl -X POST http://localhost:3000/api/seed",
+    "seed:cloudinary": "curl -X POST http://localhost:3000/api/seed/cloudinary"
   },
   "dependencies": {
-    "@nextui-org/react": "^2.2.9",
+    "@nextui-org/react": "^2.6.8",
+    "@prisma/client": "^6.0.1",
+    "@stripe/stripe-js": "^5.3.0",
+    "autoprefixer": "^10.4.16",
+    "cloudinary": "^2.5.1",
     "framer-motion": "^11.5.6",
     "lucide-react": "^0.309.0",
     "next": "14.0.4",
+    "postcss": "^8.4.33",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "tailwindcss": "^3.4.1",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.33"
+    "stripe": "^17.4.0",
+    "tailwindcss": "^3.4.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
-    "@types/react": "^18.2.46",
+    "@types/react": "^18.3.16",
     "@types/react-dom": "^18.2.18",
+    "prisma": "^6.0.1",
     "typescript": "^5.3.3"
   }
 }
