@@ -1,0 +1,12 @@
+{
+  "linter": {
+    "ignore": [
+      "src/components/modals/SubmitLogoModal.tsx"
+    ],
+    "rules": {
+      "a11y": {
+        "useSemanticElements": "off"
+      }
+    }
+  }
+} 

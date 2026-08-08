@@ -1,0 +1,23 @@
+{
+  "$schema": "frilo-os/brand-tokens",
+  "brand": "frilo",
+  "note": "Example brand. Duplicate this file per project and adjust. Semantic slots only; components consume these names, never raw values.",
+  "color": {
+    "bg": { "base": "#0A0C12", "raised": "#12151E", "overlay": "#1A1E2A" },
+    "fg": { "primary": "#F4F6FA", "secondary": "#A3ABC2", "muted": "#5C6478" },
+    "accent": { "base": "#2447FF", "hover": "#3D5BFF", "pressed": "#1B38D6", "fg-on-accent": "#FFFFFF" },
+    "border": { "subtle": "#232838", "strong": "#343B52" },
+    "status": { "success": "#2FBF71", "warning": "#E8A13C", "danger": "#E5484D" }
+  },
+  "font": {
+    "display": "Instrument Serif, serif",
+    "body": "Inter, system-ui, sans-serif",
+    "mono": "JetBrains Mono, monospace"
+  },
+  "voice": {
+    "personality": "kingmaker: confident, precise, zero fluff",
+    "avoid": "exclamation marks, marketing superlatives"
+  },
+  "shape": { "default-radius": "md", "buttons": "lg", "cards": "xl" },
+  "motion-profile": "restrained"
+}

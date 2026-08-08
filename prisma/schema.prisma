@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Logo {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  images        String[]
+  thumbnail     String
+  tags          String[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  priceId       String
+  designerEmail String?
+  designerId    String?
+  status        LogoStatus    @default(HIDDEN)
+  designer      Designer?     @relation("DesignerLogos", fields: [designerId], references: [id])
+  price         Price         @relation(fields: [priceId], references: [id])
+  gallery       LogoGallery[]
+  orders        Order[]
+}
+
+model Price {
+  id        String   @id @default(cuid())
+  summon    Int
+  revival   Int
+  afterlife String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  logos     Logo[]
+}
+
+model Order {
+  id              String   @id @default(cuid())
+  logoId          String
+  tier            String
+  wordmark        String?
+  customerEmail   String
+  amount          Int
+  stripeSessionId String   @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  domain          String?
+  logo            Logo     @relation(fields: [logoId], references: [id])
+}
+
+model CheckoutLog {
+  id        String   @id @default(cuid())
+  type      String
+  logoId    String
+  tier      String
+  amount    Int
+  error     String?
+  sessionId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model LogoGallery {
+  id        String   @id @default(cuid())
+  logoId    String
+  imageUrl  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  logo      Logo     @relation(fields: [logoId], references: [id])
+
+  @@index([logoId])
+}
+
+model LogoSubmission {
+  id           String    @id @default(cuid())
+  designerName String
+  email        String
+  twitter      String?
+  description  String
+  logoUrl      String
+  mockupUrls   String[]
+  status       String    @default("PENDING")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  designerId   String?
+  designer     Designer? @relation(fields: [designerId], references: [id])
+
+  @@map("logo_submissions")
+}
+
+model Designer {
+  id          String           @id @default(cuid())
+  name        String
+  email       String           @unique
+  twitter     String?
+  website     String?
+  bio         String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  logos       Logo[]           @relation("DesignerLogos")
+  submissions LogoSubmission[]
+}
+
+enum LogoStatus {
+  AVAILABLE
+  SOLD
+  HIDDEN
+  REVIEW
+  DRAFT
+}
+
+enum OrderStatus {
+  SUMMONED
+  REVIVED
+}
+
+enum OrderTier {
+  summon
+  revival
+  afterlife
+}
