@@ -20,10 +20,21 @@ model Logo {
   designerEmail String?
   designerId    String?
   status        LogoStatus    @default(HIDDEN)
+
+  // Deliverable archive handed to the buyer. Stored as a Cloudinary public_id
+  // rather than a URL so the file can be uploaded with authenticated access
+  // and served as a short-lived signed link — a plain URL would be shareable
+  // forever once any buyer had it.
+  sourcePackageId   String?
+  sourcePackageName String?
+  sourcePackageAt   DateTime?
+
   designer      Designer?     @relation("DesignerLogos", fields: [designerId], references: [id])
   price         Price         @relation(fields: [priceId], references: [id])
   gallery       LogoGallery[]
   orders        Order[]
+
+  @@index([status, createdAt])
 }
 
 model Price {

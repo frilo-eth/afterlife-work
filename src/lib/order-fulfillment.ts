@@ -1,10 +1,4 @@
 import { db } from '@/lib/db'
-// Import the pre-configured server client rather than the bare SDK.
-// cloudinary.config() mutates a module-level singleton, so importing the raw
-// SDK here only worked when some *other* module had already configured it —
-// which is not the case in the webhook's import graph. On a cold instance
-// that made api.resource() throw "Must supply api_key".
-import { cloudinary } from '@/lib/cloudinary-server'
 import { sendOrderConfirmationEmail } from '@/lib/email'
 import type { Order, Logo } from '@prisma/client'
 
@@ -44,7 +38,7 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
     case 'summon': {
       if (!hasWordmark) {
         // Immediate delivery for SUMMON without wordmark
-        const files = await prepareFileDelivery(logo, 'basic')
+        const files = prepareFileDelivery(logo, order.stripeSessionId)
         await sendOrderConfirmationEmail({
           type: 'customer',
           template: 'OrderConfirmationWithFiles',
@@ -138,51 +132,29 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
   }
 }
 
-async function prepareFileDelivery(logo: Logo, packageType: 'basic' | 'complete'): Promise<FileDelivery[]> {
-  const files: FileDelivery[] = []
-  
-  // Get vector file from Cloudinary
-  const vectorFile = await cloudinary.api.resource(logo.id, {
-    resource_type: 'raw',
-    type: 'upload'
-  })
+/**
+ * Builds what the confirmation email links to.
+ *
+ * This deliberately returns a link to the download page rather than a signed
+ * asset URL. Signed links are minted with a short TTL, and an email is often
+ * read hours later — embedding one would hand the customer a dead link. The
+ * download page re-mints a fresh signed URL on each visit, authorised by the
+ * Stripe session id.
+ *
+ * The previous implementation fetched the logo id as a raw Cloudinary resource
+ * and derived .ai/.pdf URLs by string-replacing the .svg extension. No such
+ * assets existed, so every link it produced was broken.
+ */
+function prepareFileDelivery(logo: Logo, stripeSessionId: string): FileDelivery[] {
+  const baseUrl = process.env.NEXT_PUBLIC_URL ?? 'https://afterlife.work'
 
-  // Basic package (.ai, .pdf, .svg)
-  files.push(
+  return [
     {
-      type: 'ai',
-      url: vectorFile.secure_url.replace('.svg', '.ai'),
-      name: `${logo.title.toLowerCase().replace(/\s+/g, '-')}.ai`
-    },
-    {
-      type: 'pdf',
-      url: vectorFile.secure_url.replace('.svg', '.pdf'),
-      name: `${logo.title.toLowerCase().replace(/\s+/g, '-')}.pdf`
-    },
-    {
-      type: 'svg',
-      url: vectorFile.secure_url,
-      name: `${logo.title.toLowerCase().replace(/\s+/g, '-')}.svg`
+      type: 'package',
+      url: `${baseUrl}/download/${logo.id}?session_id=${encodeURIComponent(stripeSessionId)}`,
+      name: logo.sourcePackageName ?? `${logo.title} — source files`
     }
-  )
-
-  // Additional files for complete package
-  if (packageType === 'complete') {
-    files.push(
-      {
-        type: 'eps',
-        url: vectorFile.secure_url.replace('.svg', '.eps'),
-        name: `${logo.title.toLowerCase().replace(/\s+/g, '-')}.eps`
-      },
-      {
-        type: 'figma',
-        url: `https://www.figma.com/file/${logo.id}`,
-        name: 'Open in Figma'
-      }
-    )
-  }
-
-  return files
+  ]
 }
 
 async function notifyDesigner({

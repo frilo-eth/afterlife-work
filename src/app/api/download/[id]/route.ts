@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { cloudinary } from '@/lib/cloudinary-server'
+
+// Signed links are deliberately short-lived: the URL is the only thing
+// standing between the archive and anyone it gets forwarded to.
+const DOWNLOAD_LINK_TTL_SECONDS = 15 * 60
 
 /**
  * Returns the downloadable assets for a purchased logo.
@@ -44,29 +49,49 @@ export async function GET(
 
     const { logo } = order
 
-    // Assets currently attached to the logo record. Source vectors (.ai/.eps)
-    // are not modelled per logo yet, so a freshly paid order legitimately has
-    // nothing to hand over until a designer attaches the package.
-    const files = [
-      ...(logo.thumbnail ? [{ url: logo.thumbnail, type: 'preview' }] : []),
-      ...logo.images.map(url => ({ url, type: 'image' })),
-      ...logo.gallery.map(item => ({ url: item.imageUrl, type: 'gallery' }))
-    ].map(file => ({
-      ...file,
-      filename: `${logo.title.toLowerCase().replace(/\s+/g, '-')}-${file.type}${
-        file.url.match(/\.[a-z0-9]+$/i)?.[0] ?? ''
-      }`
-    }))
+    // A valid purchase can legitimately predate the designer attaching the
+    // archive. Say so, rather than reporting files that do not exist.
+    if (!logo.sourcePackageId) {
+      return NextResponse.json({
+        orderId: order.id,
+        logoId: logo.id,
+        title: logo.title,
+        tier: order.tier,
+        files: [],
+        sourceFilesPending: true
+      })
+    }
+
+    const expiresAt = Math.floor(Date.now() / 1000) + DOWNLOAD_LINK_TTL_SECONDS
+
+    // The archive is stored with authenticated access, so it has no public
+    // URL; this mints a signed one that stops working after the TTL.
+    const url = cloudinary.utils.private_download_url(
+      logo.sourcePackageId,
+      '',
+      {
+        resource_type: 'raw',
+        type: 'authenticated',
+        expires_at: expiresAt
+      }
+    )
 
     return NextResponse.json({
       orderId: order.id,
       logoId: logo.id,
       title: logo.title,
       tier: order.tier,
-      files,
-      // Signals to the UI that the purchase is valid but the source package
-      // has not been attached, rather than pretending delivery is complete.
-      sourceFilesPending: files.length === 0
+      files: [
+        {
+          url,
+          filename:
+            logo.sourcePackageName ??
+            `${logo.title.toLowerCase().replace(/\s+/g, '-')}.zip`,
+          type: 'package',
+          expiresAt: new Date(expiresAt * 1000).toISOString()
+        }
+      ],
+      sourceFilesPending: false
     })
   } catch (error) {
     console.error('Download lookup failed:', error)
