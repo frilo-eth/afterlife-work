@@ -2,10 +2,18 @@
 
 import React from "react"
 import { LogoCard } from "./LogoCard"
-import type { Logo } from "@/types"
+
+// Only the fields the card actually renders. Kept structural so both the
+// public catalog's trimmed rows and the admin's full Logo records satisfy it.
+interface LogoGridItem {
+  id: string;
+  title: string;
+  thumbnail: string;
+  tags: string[];
+}
 
 interface LogoGridProps {
-  logos: Logo[];
+  logos: LogoGridItem[];
   onLogoPress?: (id: string) => void;
 }
 

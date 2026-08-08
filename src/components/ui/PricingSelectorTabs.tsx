@@ -2,7 +2,6 @@
 
 import React from "react"
 import { Tabs, Tab, Card, CardBody, Button, Switch, Input, Tooltip } from "@nextui-org/react"
-import type { Logo } from '@/lib/types'
 import { motion, AnimatePresence } from "framer-motion"
 import { BookCallModal } from "@/components/modals/BookCallModal"
 import { Info } from "lucide-react"
@@ -15,7 +14,9 @@ interface PricingSelectorTabsProps {
     revival: number
     afterlife: string
   }
-  logo: Logo
+  // Only the identity is needed here; the component renders nothing else from
+  // the logo. Kept narrow so callers are not forced to build a full record.
+  logo: { id: string }
   onSelect: (tier: TierType, options?: {
     wordmark?: string
     domain?: string

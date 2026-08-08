@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 import { Resend } from 'resend'
 import { requireAdmin } from '@/lib/api-utils'
+import { revalidateTag } from 'next/cache'
+import { CATALOG_TAG } from '@/lib/catalog'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -84,6 +86,8 @@ export async function POST(
         text: emailContent
       })
     }
+
+    revalidateTag(CATALOG_TAG)
 
     return NextResponse.json({
       success: true,

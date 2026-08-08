@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { v2 as cloudinary } from 'cloudinary'
+import { cloudinary } from '@/lib/cloudinary-server'
 import { z } from 'zod'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { requireAdmin } from '@/lib/api-utils'
+import { revalidateTag } from 'next/cache'
+import { CATALOG_TAG } from '@/lib/catalog'
 
 // Add better debugging for environment variables
 console.log('Environment check:', {
@@ -54,17 +56,10 @@ async function enhancedLog(message: string, level: 'info' | 'warn' | 'error' = '
   await logToFile(message);
 }
 
-// Configure Cloudinary with fallback values for development
-try {
-  cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dsfmwnf5j',
-    api_key: process.env.CLOUDINARY_API_KEY || '275761549541876',
-    api_secret: process.env.CLOUDINARY_API_SECRET || 'REDACTED'
-  })
-  console.log('Cloudinary configured successfully')
-} catch (error) {
-  console.error('Failed to configure Cloudinary:', error)
-}
+// Cloudinary is configured once in lib/cloudinary-server. Credentials were
+// previously inlined here as `||` fallbacks, which put the live API secret in
+// the source tree; the fallback was also load-bearing because production sets
+// NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME rather than CLOUDINARY_CLOUD_NAME.
 
 // Validation schema
 const LogoCreateSchema = z.object({
@@ -276,7 +271,9 @@ export async function POST(request: Request) {
       });
       
       await enhancedLog(`✅ [${requestId}] Logo created successfully with ID: ${logo.id}`, 'info');
-      
+
+      revalidateTag(CATALOG_TAG);
+
       return NextResponse.json({
         id: logo.id,
         message: 'Logo created successfully'

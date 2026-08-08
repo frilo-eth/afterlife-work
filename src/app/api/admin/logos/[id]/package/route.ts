@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { cloudinary } from '@/lib/cloudinary-server'
 import { requireAdmin } from '@/lib/api-utils'
+import { revalidateTag } from 'next/cache'
+import { CATALOG_TAG } from '@/lib/catalog'
 
 // Deliverable archives are handed out only through signed links, so they must
 // not be world-readable on Cloudinary.
@@ -89,6 +91,8 @@ export async function POST(
       select: { sourcePackageName: true, sourcePackageAt: true }
     })
 
+    revalidateTag(CATALOG_TAG)
+
     return NextResponse.json({
       success: true,
       package: updated
@@ -131,6 +135,8 @@ export async function DELETE(
         sourcePackageAt: null
       }
     })
+
+    revalidateTag(CATALOG_TAG)
 
     return NextResponse.json({ success: true })
   } catch (error) {

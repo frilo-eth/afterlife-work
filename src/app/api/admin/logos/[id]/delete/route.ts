@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { v2 as cloudinary } from 'cloudinary'
 import { requireAdmin } from '@/lib/api-utils'
+import { CATALOG_TAG } from '@/lib/catalog'
 
 // Configure cloudinary
 cloudinary.config({
@@ -129,6 +130,7 @@ export async function DELETE(
     console.log('🔄 Revalidating pages...')
     revalidatePath('/admin/logos')
     revalidatePath(`/${params.id}`)
+    revalidateTag(CATALOG_TAG)
     console.log('✅ Pages revalidated')
 
     return NextResponse.json({ 

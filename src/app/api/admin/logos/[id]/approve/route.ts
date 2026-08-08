@@ -2,6 +2,8 @@ import { errorResponse, requireAdmin, successResponse } from '@/lib/api-utils'
 import { prisma } from '@/lib/prisma'
 import { sendLogoApprovalNotification } from '@/lib/notifications'
 import type { Logo, LogoStatus } from '@/types/index'
+import { revalidateTag } from 'next/cache'
+import { CATALOG_TAG } from '@/lib/catalog'
 
 export async function POST(
   req: Request,
@@ -36,6 +38,9 @@ export async function POST(
     }
 
     await sendLogoApprovalNotification(transformedLogo)
+
+    revalidateTag(CATALOG_TAG)
+
     return successResponse({ logo: transformedLogo })
   } catch (error) {
     return errorResponse({
