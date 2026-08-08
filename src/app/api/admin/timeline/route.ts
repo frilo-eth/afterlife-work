@@ -1,7 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/api-utils'
 
 export async function GET() {
+  const denied = await requireAdmin()
+  if (denied) return denied
+
   try {
     const [recentOrders, recentSubmissions] = await prisma.$transaction([
       prisma.order.findMany({

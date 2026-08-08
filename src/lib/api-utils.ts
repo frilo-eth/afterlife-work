@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { headers } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { verifySession } from './auth'
 
 export type ApiError = {
@@ -52,6 +52,39 @@ export function errorResponse(error: ApiError, status = 400) {
     },
     { status: safeStatus }
   )
+}
+
+/**
+ * Guard for admin-only route handlers.
+ *
+ * Returns a 401 response when the caller is not an authenticated admin, or
+ * `null` when the request may proceed. Route handlers must check the return
+ * value and bail out before doing any work:
+ *
+ *   const denied = await requireAdmin()
+ *   if (denied) return denied
+ *
+ * This is enforced per route on purpose. Middleware alone is not sufficient —
+ * its matcher previously excluded `/api`, which left every admin endpoint
+ * publicly callable while the admin pages appeared protected.
+ */
+export async function requireAdmin(): Promise<NextResponse | null> {
+  const session = cookies().get('session')?.value
+
+  if (!session) {
+    return errorResponse({ message: 'Unauthorized', code: 'UNAUTHORIZED' }, 401)
+  }
+
+  try {
+    const isValid = await verifySession(session)
+    if (!isValid) {
+      return errorResponse({ message: 'Invalid session', code: 'UNAUTHORIZED' }, 401)
+    }
+  } catch {
+    return errorResponse({ message: 'Unauthorized', code: 'UNAUTHORIZED' }, 401)
+  }
+
+  return null
 }
 
 export const protectApiRoute = (handler: ApiHandler) => async (req: Request) => {

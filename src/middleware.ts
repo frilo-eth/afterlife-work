@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { verifySession } from '@/lib/auth'
-import { checkRateLimit } from '@/lib/rate-limit'
 
 export async function middleware(request: NextRequest) {
-  const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? 'unknown'
   const { pathname } = request.nextUrl
 
   // Special handling for the teaser route
@@ -17,21 +15,24 @@ export async function middleware(request: NextRequest) {
   if (pathname.match(/^\/teaser$/)) {
     return NextResponse.next()
   }
-  
-  // Apply rate limiting to all API routes
-  if (pathname.startsWith('/api')) {
-    if (!checkRateLimit(ip)) {
-      return NextResponse.json(
-        { error: 'Too many requests' },
-        { status: 429 }
-      )
+
+  // Secure the admin API. Route handlers each call requireAdmin() as well —
+  // this is the outer layer, so a handler that forgets the guard still fails
+  // closed. Unauthenticated callers get a 401 rather than an HTML redirect.
+  if (pathname.startsWith('/api/admin')) {
+    const session = request.cookies.get('session')
+
+    if (!session || !(await verifySession(session.value))) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    return NextResponse.next()
   }
 
   // Secure admin routes
   if (pathname.startsWith('/admin')) {
     const session = request.cookies.get('session')
-    
+
     if (!session) {
       return NextResponse.redirect(new URL('/login', request.url))
     }
@@ -65,6 +66,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // Pages: everything except Next internals, static assets, and /api.
     '/((?!api|_next/static|_next/image|favicon.ico|logo.svg|fonts|images).*)',
+    // The admin API is matched explicitly. The pattern above deliberately
+    // excludes /api, which previously left these endpoints unguarded.
+    '/api/admin/:path*',
   ],
-} 
+}

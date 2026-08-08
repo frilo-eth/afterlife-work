@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/api-utils'
 
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const denied = await requireAdmin()
+  if (denied) return denied
+
   // Generate a unique ID for this request for tracking across logs
   // or use the one from the request headers if available
   let requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;

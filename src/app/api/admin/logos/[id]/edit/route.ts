@@ -4,6 +4,7 @@ import { v2 as cloudinary } from 'cloudinary'
 import { z } from 'zod'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { requireAdmin } from '@/lib/api-utils'
 
 // Add better debugging for environment variables
 console.log('Environment check:', {
@@ -181,6 +182,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const denied = await requireAdmin()
+  if (denied) return denied
+
   // Generate a unique ID for this request for tracking across logs
   const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
   const logPrefix = `[API-LOGO-EDIT][${requestId}]`;

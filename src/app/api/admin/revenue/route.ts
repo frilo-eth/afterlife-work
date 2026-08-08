@@ -1,7 +1,10 @@
-import { errorResponse, successResponse } from '@/lib/api-utils'
+import { errorResponse, requireAdmin, successResponse } from '@/lib/api-utils'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(req: Request) {
+  const denied = await requireAdmin()
+  if (denied) return denied
+
   try {
     const { searchParams } = new URL(req.url)
     const start = searchParams.get('start')

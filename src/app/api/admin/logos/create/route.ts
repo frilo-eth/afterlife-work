@@ -4,6 +4,7 @@ import { v2 as cloudinary } from 'cloudinary'
 import { z } from 'zod'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { requireAdmin } from '@/lib/api-utils'
 
 // Add better debugging for environment variables
 console.log('Environment check:', {
@@ -144,6 +145,9 @@ async function uploadToCloudinary(file: File, publicId: string): Promise<string>
 }
 
 export async function POST(request: Request) {
+  const denied = await requireAdmin()
+  if (denied) return denied
+
   const requestId = `req-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   await enhancedLog(`📥 [${requestId}] Received logo creation request`, 'info');
   

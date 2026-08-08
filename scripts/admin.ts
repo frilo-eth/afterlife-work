@@ -3,6 +3,7 @@ import { program } from 'commander';
 import { prisma } from '../src/lib/prisma';
 import { v2 as cloudinary } from 'cloudinary';
 import { getCacheStats } from '../src/lib/redis';
+import { seedFromCloudinary } from '../src/lib/test-utils';
 
 // Configure cloudinary
 cloudinary.config({
@@ -18,14 +19,23 @@ program
 program
   .command('seed')
   .description('Seed database with logos from Cloudinary')
-  .action(async () => {
+  .option('-f, --force', 'seed even if the database already contains logos')
+  .action(async (options: { force?: boolean }) => {
     try {
       console.log('Seeding database from Cloudinary...');
-      // Implementation here
+      const result = await seedFromCloudinary(options.force ?? false);
+
+      if (!result.success && result.reason === 'DATABASE_NOT_EMPTY') {
+        console.error('Database already contains logos. Re-run with --force to seed anyway.');
+        process.exit(1);
+      }
+
       console.log('Database seeded successfully');
     } catch (error) {
       console.error('Failed to seed database:', error);
       process.exit(1);
+    } finally {
+      await prisma.$disconnect();
     }
   });
 

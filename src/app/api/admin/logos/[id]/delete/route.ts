@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 import { v2 as cloudinary } from 'cloudinary'
+import { requireAdmin } from '@/lib/api-utils'
 
 // Configure cloudinary
 cloudinary.config({
@@ -14,6 +15,9 @@ export async function DELETE(
   request: Request,
   { params }: { params: { id: string } }
 ) {
+  const denied = await requireAdmin()
+  if (denied) return denied
+
   console.log('🗑️ Starting logo deletion process for ID:', params.id)
   
   try {

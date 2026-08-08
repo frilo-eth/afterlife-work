@@ -1,4 +1,4 @@
-import { errorResponse, successResponse } from '@/lib/api-utils'
+import { errorResponse, requireAdmin, successResponse } from '@/lib/api-utils'
 import { prisma } from '@/lib/prisma'
 import { sendLogoApprovalNotification } from '@/lib/notifications'
 import type { Logo, LogoStatus } from '@/types/index'
@@ -7,6 +7,9 @@ export async function POST(
   req: Request,
   { params }: { params: { id: string } }
 ) {
+  const denied = await requireAdmin()
+  if (denied) return denied
+
   try {
     const logo = await prisma.logo.update({
       where: { id: params.id },
