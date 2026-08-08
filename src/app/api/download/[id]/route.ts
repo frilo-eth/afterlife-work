@@ -1,70 +1,78 @@
 import { NextResponse } from 'next/server'
-import { v2 as cloudinary } from 'cloudinary'
+import { prisma } from '@/lib/prisma'
 
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
-
+/**
+ * Returns the downloadable assets for a purchased logo.
+ *
+ * Authorization is the Stripe checkout session id, passed as `session_id`.
+ * It is unguessable and already in the customer's possession after checkout,
+ * which avoids requiring accounts. The session must correspond to a recorded
+ * Order for this specific logo — holding a session id for one purchase does
+ * not grant access to another logo's files.
+ */
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
-  try {
-    // Here you would:
-    // 1. Verify the user has access to these files
-    // 2. Get the file details from your database
-    // 3. Generate signed URLs if needed
+  const sessionId = new URL(request.url).searchParams.get('session_id')
 
-    // Mock response for now
-    return NextResponse.json({
-      logoId: params.id,
-      title: "Logo Name",
-      files: [
-        {
-          url: "url_to_ai_file",
-          filename: "logo.ai",
-          type: "ai"
-        },
-        {
-          url: "url_to_pdf_file",
-          filename: "logo.pdf",
-          type: "pdf"
-        },
-        {
-          url: "url_to_svg_file",
-          filename: "logo.svg",
-          type: "svg"
+  if (!sessionId) {
+    return NextResponse.json(
+      { error: 'A session_id is required to access downloads.' },
+      { status: 400 }
+    )
+  }
+
+  try {
+    const order = await prisma.order.findUnique({
+      where: { stripeSessionId: sessionId },
+      include: {
+        logo: {
+          include: { gallery: true }
         }
-      ]
+      }
+    })
+
+    // Same response for "no such order" and "order is for a different logo",
+    // so this cannot be used to probe which sessions or logos exist.
+    if (!order || order.logoId !== params.id) {
+      return NextResponse.json(
+        { error: 'No purchase found for this download.' },
+        { status: 404 }
+      )
+    }
+
+    const { logo } = order
+
+    // Assets currently attached to the logo record. Source vectors (.ai/.eps)
+    // are not modelled per logo yet, so a freshly paid order legitimately has
+    // nothing to hand over until a designer attaches the package.
+    const files = [
+      ...(logo.thumbnail ? [{ url: logo.thumbnail, type: 'preview' }] : []),
+      ...logo.images.map(url => ({ url, type: 'image' })),
+      ...logo.gallery.map(item => ({ url: item.imageUrl, type: 'gallery' }))
+    ].map(file => ({
+      ...file,
+      filename: `${logo.title.toLowerCase().replace(/\s+/g, '-')}-${file.type}${
+        file.url.match(/\.[a-z0-9]+$/i)?.[0] ?? ''
+      }`
+    }))
+
+    return NextResponse.json({
+      orderId: order.id,
+      logoId: logo.id,
+      title: logo.title,
+      tier: order.tier,
+      files,
+      // Signals to the UI that the purchase is valid but the source package
+      // has not been attached, rather than pretending delivery is complete.
+      sourceFilesPending: files.length === 0
     })
   } catch (error) {
+    console.error('Download lookup failed:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch download details' },
+      { error: 'Could not load your download.' },
       { status: 500 }
     )
   }
 }
-
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { filename } = await request.json()
-    
-    // Here you would:
-    // 1. Verify the user has access
-    // 2. Generate a signed download URL
-    // 3. Return the file or redirect to download URL
-
-    // For now, return mock response
-    return NextResponse.json({ url: 'download_url' })
-  } catch (error) {
-    return NextResponse.json(
-      { error: 'Download failed' },
-      { status: 500 }
-    )
-  }
-} 

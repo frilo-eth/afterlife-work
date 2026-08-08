@@ -1,9 +1,5 @@
 import { errorResponse, successResponse } from '@/lib/api-utils'
-import Stripe from 'stripe'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
-  apiVersion: '2025-02-24.acacia'
-})
+import { stripe } from '@/lib/stripe'
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
@@ -18,7 +14,28 @@ export async function GET(req: Request) {
 
   try {
     const session = await stripe.checkout.sessions.retrieve(sessionId)
-    return successResponse({ verified: true, session })
+
+    // Only acknowledge sessions that were actually paid. Retrieving a session
+    // is not proof of purchase — an abandoned or expired checkout resolves
+    // here too.
+    if (session.payment_status !== 'paid') {
+      return errorResponse({
+        message: 'Payment not completed',
+        code: 'PAYMENT_INCOMPLETE'
+      }, 402)
+    }
+
+    const { logoId, tier, wordmark, domain } = session.metadata || {}
+
+    // Return only the fields the confirmation page renders. The full Stripe
+    // session was previously echoed back, which exposed the customer's email,
+    // billing address, and payment details to anyone holding a session id.
+    return successResponse({
+      logoId,
+      tier,
+      wordmark: Boolean(wordmark),
+      domain: domain ?? null
+    })
   } catch (error) {
     return errorResponse({
       message: 'Invalid session',
@@ -26,4 +43,4 @@ export async function GET(req: Request) {
       details: error instanceof Error ? error.message : 'Unknown error'
     }, 400)
   }
-} 
+}

@@ -1,5 +1,10 @@
 import { db } from '@/lib/db'
-import { v2 as cloudinary } from 'cloudinary'
+// Import the pre-configured server client rather than the bare SDK.
+// cloudinary.config() mutates a module-level singleton, so importing the raw
+// SDK here only worked when some *other* module had already configured it —
+// which is not the case in the webhook's import graph. On a cold instance
+// that made api.resource() throw "Must supply api_key".
+import { cloudinary } from '@/lib/cloudinary-server'
 import { sendOrderConfirmationEmail } from '@/lib/email'
 import type { Order, Logo } from '@prisma/client'
 
