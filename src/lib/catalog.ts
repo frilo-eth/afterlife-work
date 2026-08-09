@@ -76,14 +76,23 @@ export const getLogoDetail = unstable_cache(
         thumbnail: true,
         tags: true,
         description: true,
-        images: true,
         status: true,
         price: { select: { summon: true, revival: true, afterlife: true } },
-        gallery: { select: { id: true, imageUrl: true } }
+        gallery: { select: { id: true, imageUrl: true }, orderBy: { id: 'asc' } }
       }
     })
 
-    return logo as LogoDetail | null
+    if (!logo) return null
+
+    // The gallery viewer takes a single ordered list, so the thumbnail leads
+    // and the gallery rows follow. The Logo.images column is deliberately not
+    // used here: it holds only the main image (one entry against six gallery
+    // rows on current records), so reading it directly showed one image of
+    // seven. The endpoint this replaced merged the two the same way.
+    return {
+      ...logo,
+      images: [logo.thumbnail, ...logo.gallery.map(item => item.imageUrl)].filter(Boolean)
+    }
   },
   ['catalog-logo-detail'],
   { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS }
