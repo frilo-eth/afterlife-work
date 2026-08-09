@@ -25,9 +25,6 @@ export async function POST(
     const transformedLogo: Logo = {
       ...logo,
       status: logo.status as LogoStatus,
-      // Use optional chaining to safely access designerEmail if it exists
-      // or remove the property if it doesn't belong in the Logo type
-      // @ts-ignore - We know this property exists at runtime
       designerEmail: logo.designerEmail || undefined,
       price: {
         id: logo.price.id,

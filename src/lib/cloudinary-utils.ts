@@ -1,12 +1,7 @@
-import { v2 as cloudinary } from 'cloudinary'
+import { cloudinary } from './cloudinary-server'
 import { UploadApiResponse, UploadApiOptions } from 'cloudinary'
 
 // Configure cloudinary
-cloudinary.config({
-  cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-})
 
 interface CloudinaryImage {
   public_id: string
@@ -92,7 +87,7 @@ export async function uploadToCloudinary(
     // but that's outside the scope of this server-side function
     const uploadData = file
     
-    // @ts-ignore - Cloudinary types don't properly handle all input types
+    // @ts-expect-error - Cloudinary types don't properly handle all input types
     const result = await cloudinary.uploader.upload(uploadData, uploadOptions)
     return result
   } catch (error) {

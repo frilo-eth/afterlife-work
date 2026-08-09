@@ -101,7 +101,7 @@ export default function EmailPreview() {
 
     setSending(true)
     try {
-      const response = await fetch('/api/test-email', {
+      const response = await fetch('/api/admin/send-test-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -1,17 +1,10 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { v2 as cloudinary } from 'cloudinary'
+import { cloudinary } from '@/lib/cloudinary-server'
 import { z } from 'zod'
 import type { LogoStatus, LogoWithDetails, LogoGalleryItem } from '@/types'
 import { getFromCache, setCacheWithTTL, CACHE_KEYS, warmUpCache } from '@/lib/redis'
 import type { Logo } from '@prisma/client'
-
-// Configure cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-})
 
 // Validation schema
 const LogoUpdateSchema = z.object({

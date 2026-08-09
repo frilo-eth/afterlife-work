@@ -1,12 +1,53 @@
 {
+  "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
+  "files": {
+    "includes": [
+      "**",
+      "!**/node_modules/**",
+      "!**/.next/**",
+      "!**/prisma/migrations/**"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
   "linter": {
-    "ignore": [
-      "src/components/modals/SubmitLogoModal.tsx"
+    "enabled": true,
+    "includes": [
+      "**",
+      "!src/components/modals/SubmitLogoModal.tsx"
     ],
     "rules": {
+      "recommended": true,
       "a11y": {
-        "useSemanticElements": "off"
+        "useSemanticElements": "off",
+        "noLabelWithoutControl": "warn",
+        "noStaticElementInteractions": "warn",
+        "useAriaPropsSupportedByRole": "warn"
+      },
+      "suspicious": {
+        "noUnknownAtRules": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "warn"
+      },
+      "performance": {
+        "noImgElement": "warn"
       }
     }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "semicolons": "asNeeded"
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
   }
-} 
+}

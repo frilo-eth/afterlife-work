@@ -23,13 +23,13 @@ export function BookCallModal({ isOpen, onClose }: BookCallModalProps) {
         script.async = true
         script.onload = () => {
           // Initialize Cal with namespace
-          // @ts-ignore - Cal is injected by the script
+          // @ts-expect-error - Cal is injected by the script
           window.Cal?.("init", CAL_NAMESPACE, {
             origin: "https://cal.com"
           })
 
           // Configure UI and open inline embed
-          // @ts-ignore - Cal is injected by the script
+          // @ts-expect-error - Cal is injected by the script
           window.Cal?.ns[CAL_NAMESPACE]("inline", {
             elementOrSelector: '#cal-booking-place',
             calLink: CAL_LINK,
@@ -51,7 +51,6 @@ export function BookCallModal({ isOpen, onClose }: BookCallModalProps) {
 
         return () => {
           document.body.removeChild(script)
-          // @ts-ignore - Cal is injected by the script
           window.Cal = undefined
         }
       } catch (err) {

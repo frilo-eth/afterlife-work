@@ -7,6 +7,7 @@ import { LogoRejectionEmail } from '@/components/emails/LogoRejectionEmail'
 import { LogoChangesRequestedEmail } from '@/components/emails/LogoChangesRequestedEmail'
 import { LogoSoldEmail } from '@/components/emails/LogoSoldEmail'
 import { createEmailClient } from '@/lib/email'
+import { requireAdmin } from '@/lib/api-utils'
 import { WelcomeEmail } from '@/components/emails/WelcomeEmail'
 import { RetainerSaleAlertEmail } from '@/components/emails/RetainerSaleAlertEmail'
 import { DesignerPayoutSummaryEmail } from '@/components/emails/DesignerPayoutSummaryEmail'
@@ -14,6 +15,9 @@ import { DesignerPayoutSummaryEmail } from '@/components/emails/DesignerPayoutSu
 const emailClient = createEmailClient()
 
 export async function POST(request: Request) {
+  const denied = await requireAdmin()
+  if (denied) return denied
+
   try {
     const { to, template = 'order' } = await request.json()
     

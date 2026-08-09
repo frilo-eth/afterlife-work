@@ -1,4 +1,5 @@
-import React, { useState } from "react"
+import type React from "react"
+import { useState } from "react"
 import { Card, CardBody, Input, Button, Textarea } from "@nextui-org/react"
 import { Upload } from "lucide-react"
 import { LOGO_TAGS } from "@/lib/constants"

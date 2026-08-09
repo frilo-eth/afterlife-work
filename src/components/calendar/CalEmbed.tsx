@@ -32,7 +32,7 @@ export function CalEmbed({ calLink }: CalEmbedProps) {
         const cal = C.Cal as CalInstance
         
         if (typeof cal === 'function') {
-          if (!Object.prototype.hasOwnProperty.call(cal, 'loaded')) {
+          if (!Object.hasOwn(cal, 'loaded')) {
             Object.defineProperty(cal, 'ns', { value: {} })
             Object.defineProperty(cal, 'q', { value: [] })
             d.head.appendChild(d.createElement('script')).src = A
