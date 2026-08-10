@@ -9,8 +9,9 @@
  *
  * Idempotent — safe to run repeatedly.
  */
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { execSync } from 'node:child_process'
+import { join } from 'node:path'
 
 const UTILS = 'src/lib/utils.ts'
 const ICONS = 'src/lib/icon-context.tsx'
@@ -86,6 +87,26 @@ let changed = false
   if (source !== before) {
     writeFileSync(ICONS, source)
     changed = true
+  }
+}
+
+// 3. Registry components import siblings from a flat @/components root, but
+//    this project keeps them under @/components/ui. Rewrite those specifiers.
+{
+  const uiDir = 'src/components/ui'
+  for (const file of readdirSync(uiDir)) {
+    if (!file.endsWith('.tsx')) continue
+    const path = join(uiDir, file)
+    const source = readFileSync(path, 'utf8')
+    const rewritten = source.replace(
+      /from "@\/components\/(?!ui\/)([a-z0-9-]+)"/g,
+      'from "@/components/ui/$1"'
+    )
+    if (rewritten !== source) {
+      writeFileSync(path, rewritten)
+      console.log(`  corrected sibling import path in ${file}`)
+      changed = true
+    }
   }
 }
 
