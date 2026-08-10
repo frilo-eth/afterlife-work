@@ -34,7 +34,7 @@ export function SuccessScreen({ onClose, onSubmitAnother }: SuccessScreenProps) 
       size="full"
       hideCloseButton
       classNames={{
-        base: "bg-black/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]",
+        base: "bg-background/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]",
         wrapper: "p-0 h-[100dvh] m-0",
         backdrop: "opacity-100",
         body: "p-0 h-full"
@@ -51,19 +51,19 @@ export function SuccessScreen({ onClose, onSubmitAnother }: SuccessScreenProps) 
             priority
           />
           <h2 className="text-3xl font-bold mb-4">Submission Successful!</h2>
-          <div className="text-center text-white/80 mt-4 mb-10">
+          <div className="text-center text-foreground mt-4 mb-10">
             We&apos;ve received your submission! Our team will review it shortly.
           </div>
           <div className="flex gap-4">
             <Button
               variant="bordered"
-              className="border-white/10 hover:bg-white/5 h-12"
+              className="border-border hover:bg-secondary h-12"
               onPress={handleClose}
             >
               Back Home
             </Button>
             <Button
-              className="bg-white text-black hover:bg-white/90 h-12"
+              className="bg-foreground text-background hover:bg-foreground/90 h-12"
               onPress={onSubmitAnother}
             >
               Submit Another Logo

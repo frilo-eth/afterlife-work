@@ -39,19 +39,19 @@ export function CatalogSection({ logos }: CatalogSectionProps) {
 
   return (
     <>
-      <FilterBar onFiltersChange={setFilters} />
+      <FilterBar onFiltersChange={setFilters} resultCount={visibleLogos.length} />
 
       <div className="container mx-auto px-4 py-24">
-        <div className="space-y-4 mb-16">
-          <span className="font-mono text-sm tracking-wider opacity-50 block uppercase">
+        <div className="mb-12 space-y-3">
+          <span className="block font-mono text-metadata uppercase text-foreground-subtle">
             The Collection
           </span>
 
-          <h2 className="text-3xl font-bold">
+          <h2 className="text-title text-balance">
             Give new life to a forgotten symbol
           </h2>
 
-          <p className="text-sm text-white/60">
+          <p className="text-body text-foreground-muted">
             Lost logos waiting for resurrection
           </p>
         </div>
@@ -62,7 +62,7 @@ export function CatalogSection({ logos }: CatalogSectionProps) {
             onLogoPress={id => router.push(`/${id}`)}
           />
         ) : (
-          <p className="text-sm text-white/60">
+          <p className="text-sm text-foreground-muted">
             Nothing matches those filters. Try a different style or search term.
           </p>
         )}

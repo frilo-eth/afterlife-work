@@ -158,7 +158,7 @@ type TabsListProps = ComponentPropsWithoutRef<typeof TabsPrimitive.List>;
 
 const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
   ({ children, className, ...props }, ref) => {
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const isMouseInside = useRef(false);
     const shape = useShape();
     const substrate = useSurface();
@@ -412,7 +412,7 @@ interface TabItemProps
 
 const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(
   ({ value, icon: Icon, label, _index = 0, className, onClick, ...props }, ref) => {
-    const internalRef = useRef<HTMLButtonElement>(null);
+    const internalRef = useRef<HTMLButtonElement | null>(null);
     const { registerTab, hoveredIndex, selectedValue, setOptimisticIdx } = useTabsList();
 
     useEffect(() => {

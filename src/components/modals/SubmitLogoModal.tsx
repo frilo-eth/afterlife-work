@@ -93,20 +93,20 @@ const FilePreview = ({ preview, loading, error, onRemove, file, className }: Fil
       {isImage ? (
         <img src={preview} alt="Preview" className="max-w-full h-auto rounded-lg" />
       ) : (
-        <div className="bg-black/20 backdrop-blur-sm rounded-lg p-4 text-center">
-          <FileIcon className="mx-auto mb-2 text-white/60" size={24} />
-          <p className="text-sm text-white/60 truncate">{preview}</p>
+        <div className="bg-background/20 backdrop-blur-sm rounded-lg p-4 text-center">
+          <FileIcon className="mx-auto mb-2 text-foreground-muted" size={24} />
+          <p className="text-sm text-foreground-muted truncate">{preview}</p>
         </div>
       )}
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+      <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
         {onRemove && (
           <Button
             isIconOnly
             variant="light"
             onPress={onRemove}
-            className="bg-white/10 backdrop-blur-sm"
+            className="bg-accent backdrop-blur-sm"
           >
-            <Trash className="text-white" size={20} />
+            <Trash className="text-foreground" size={20} />
           </Button>
         )}
       </div>
@@ -550,7 +550,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
       size="full"
       hideCloseButton
       classNames={{
-        base: "bg-black/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]",
+        base: "bg-background/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]",
         wrapper: "p-0 h-[100dvh] m-0",
         backdrop: "opacity-100",
         body: "p-0 h-full"
@@ -560,7 +560,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
         <div className="relative h-[100dvh] overflow-y-auto">
           <Button
             isIconOnly
-            className="fixed right-4 top-4 z-[101] bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+            className="fixed right-4 top-4 z-[101] bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
             size="sm"
             onPress={onClose}
           >
@@ -575,7 +575,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
               <h2 className="text-4xl md:text-5xl font-bold">
                 Share your creation
               </h2>
-              <p className="text-sm text-white/60 max-w-xl mx-auto">
+              <p className="text-sm text-foreground-muted max-w-xl mx-auto">
                 Give your unused logo a second chance at life. And get paid generously for it.
               </p>
             </div>
@@ -591,13 +591,13 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                 errorMessage={errors.designerName}
                 isInvalid={!!errors.designerName}
                 classNames={{
-                  label: "text-white/60 text-sm",
+                  label: "text-foreground-muted text-sm",
                   input: "bg-transparent text-sm",
                   inputWrapper: [
-                    "bg-black/20",
+                    "bg-background/20",
                     "backdrop-blur-sm",
-                    "border border-white/10",
-                    "hover:border-white/20",
+                    "border border-border",
+                    "hover:border-border-strong",
                     "px-3",
                     "!rounded-lg",
                   ]
@@ -614,13 +614,13 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                 errorMessage={errors.email}
                 isInvalid={!!errors.email}
                 classNames={{
-                  label: "text-white/60 text-sm",
+                  label: "text-foreground-muted text-sm",
                   input: "bg-transparent text-sm",
                   inputWrapper: [
-                    "bg-black/20",
+                    "bg-background/20",
                     "backdrop-blur-sm",
-                    "border border-white/10",
-                    "hover:border-white/20",
+                    "border border-border",
+                    "hover:border-border-strong",
                     "px-3",
                     "!rounded-lg",
                   ]
@@ -635,16 +635,16 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                   value={twitter}
                   onChange={(e) => setTwitter(e.target.value.replace('@', ''))}
                   startContent={
-                    <span className="text-white/40">@</span>
+                    <span className="text-foreground-subtle">@</span>
                   }
                   classNames={{
-                    label: "text-white/60 text-sm",
+                    label: "text-foreground-muted text-sm",
                     input: "bg-transparent text-sm pl-1",
                     inputWrapper: [
-                      "bg-black/20",
+                      "bg-background/20",
                       "backdrop-blur-sm",
-                      "border border-white/10",
-                      "hover:border-white/20",
+                      "border border-border",
+                      "hover:border-border-strong",
                       "px-3",
                       "!rounded-lg",
                     ],
@@ -663,13 +663,13 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                 errorMessage={errors.logoTitle}
                 isInvalid={!!errors.logoTitle}
                 classNames={{
-                  label: "text-white/60 text-sm",
+                  label: "text-foreground-muted text-sm",
                   input: "bg-transparent text-sm",
                   inputWrapper: [
-                    "bg-black/20",
+                    "bg-background/20",
                     "backdrop-blur-sm",
-                    "border border-white/10",
-                    "hover:border-white/20",
+                    "border border-border",
+                    "hover:border-border-strong",
                     "px-3",
                     "!rounded-lg",
                   ]
@@ -685,13 +685,13 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                 errorMessage={errors.description}
                 isInvalid={!!errors.description}
                 classNames={{
-                  label: "text-white/60 text-sm",
+                  label: "text-foreground-muted text-sm",
                   input: "bg-transparent text-sm",
                   inputWrapper: [
-                    "bg-black/20",
+                    "bg-background/20",
                     "backdrop-blur-sm",
-                    "border border-white/10",
-                    "hover:border-white/20",
+                    "border border-border",
+                    "hover:border-border-strong",
                     "px-3",
                     "!rounded-lg",
                   ]
@@ -699,7 +699,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
               />
 
               <div>
-                <label className="block text-sm font-medium text-white/60 mb-2">
+                <label className="block text-sm font-medium text-foreground-muted mb-2">
                   Logo
                 </label>
                 <input
@@ -714,7 +714,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                 <div
                   className={cn(
                     "relative transition-all duration-300 rounded-xl",
-                    dragState.logo ? "ring-2 ring-white/40 scale-[0.99]" : "",
+                    dragState.logo ? "ring-2 ring-foreground/40 scale-[0.99]" : "",
                     errors.logo ? "ring-2 ring-red-500/50" : "",
                     showSuccess ? "ring-2 ring-green-500/50" : ""
                   )}
@@ -726,7 +726,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                   role="button"
                   aria-label="Upload logo"
                 >
-                  <div className="relative w-full p-8 rounded-xl bg-black/20 backdrop-blur-sm border border-white/10 hover:border-white/20">
+                  <div className="relative w-full p-8 rounded-xl bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong">
                     {logoPreview ? (
                       <FilePreview
                         preview={logoPreview.preview}
@@ -744,11 +744,11 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                         "text-center transition-all",
                         dragState.logo ? "scale-105" : ""
                       )}>
-                        <Upload className="mx-auto text-white/60" size={24} />
-                        <p className="text-white/60">
+                        <Upload className="mx-auto text-foreground-muted" size={24} />
+                        <p className="text-foreground-muted">
                           {dragState.logo ? "Drop to upload logo" : "Drop your logo file or click to browse"}
                         </p>
-                        <p className="text-xs text-white/40 mt-1">Supported formats: AI, EPS, SVG, PDF</p>
+                        <p className="text-xs text-foreground-subtle mt-1">Supported formats: AI, EPS, SVG, PDF</p>
                       </div>
                     )}
                   </div>
@@ -768,16 +768,16 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                 <div
                   className={`
                     group relative transition-all
-                    ${dragState.mockup ? 'ring-2 ring-white/20 scale-[0.99]' : ''}
+                    ${dragState.mockup ? 'ring-2 ring-foreground/20 scale-[0.99]' : ''}
                   `}
                   onDragEnter={(e) => handleDrag(e, 'mockup')}
                   onDragLeave={(e) => handleDrag(e, 'mockup')}
                   onDragOver={(e) => handleDrag(e, 'mockup')}
                   onDrop={(e) => handleDrop(e, 'mockup')}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-foreground/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div 
-                    className="relative w-full p-8 rounded-xl bg-black/20 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-colors text-center"
+                    className="relative w-full p-8 rounded-xl bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong transition-colors text-center"
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && mockupInputRef.current?.click()}
@@ -788,7 +788,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                         {mockupPreviews.map((preview) => (
                           <div 
                             key={preview.id} 
-                            className="relative aspect-square bg-black/20 rounded-lg overflow-hidden group"
+                            className="relative aspect-square bg-background/20 rounded-lg overflow-hidden group"
                           >
                             <div className="absolute inset-0 flex items-center justify-center">
                               <img
@@ -802,22 +802,22 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                                 }}
                               />
                             </div>
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                               <Button
                                 isIconOnly
                                 variant="light"
                                 onPress={() => setPreviewOpen(preview.preview)}
-                                className="bg-white/10 backdrop-blur-sm"
+                                className="bg-accent backdrop-blur-sm"
                               >
-                                <Eye className="text-white" size={20} />
+                                <Eye className="text-foreground" size={20} />
                               </Button>
                               <Button
                                 isIconOnly
                                 variant="light"
                                 onPress={() => handleDelete('mockup', preview.id)}
-                                className="bg-white/10 backdrop-blur-sm"
+                                className="bg-accent backdrop-blur-sm"
                               >
-                                <Trash className="text-white" size={20} />
+                                <Trash className="text-foreground" size={20} />
                               </Button>
                             </div>
                           </div>
@@ -825,19 +825,19 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
                         
                         {mockupPreviews.length < 6 && (
                           <Button
-                            className="aspect-square rounded-lg border-2 border-dashed border-white/10 hover:border-white/20 flex items-center justify-center bg-transparent"
+                            className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-border-strong flex items-center justify-center bg-transparent"
                             onPress={() => mockupInputRef.current?.click()}
                           >
-                            <Plus size={24} className="text-white/60" />
+                            <Plus size={24} className="text-foreground-muted" />
                           </Button>
                         )}
                       </div>
                     ) : (
                       <>
-                        <Upload className="mx-auto text-white/60" size={24} />
+                        <Upload className="mx-auto text-foreground-muted" size={24} />
                         <div>
-                          <p className="text-white/60">Drop up to 6 mockup images or click to browse</p>
-                          <p className="text-xs text-white/40 mt-1">Supported formats: PNG, JPG, WEBP, GIF</p>
+                          <p className="text-foreground-muted">Drop up to 6 mockup images or click to browse</p>
+                          <p className="text-xs text-foreground-subtle mt-1">Supported formats: PNG, JPG, WEBP, GIF</p>
                         </div>
                       </>
                     )}
@@ -847,7 +847,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
 
               <Button
                 type="submit"
-                className="w-full bg-white text-black hover:bg-white/90 h-12 text-sm font-medium"
+                className="w-full bg-foreground text-background hover:bg-foreground/90 h-12 text-sm font-medium"
                 isLoading={loading}
               >
                 Submit Logo
@@ -863,7 +863,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
         size="2xl"
         hideCloseButton
         classNames={{
-          base: "bg-black/95 backdrop-blur-xl",
+          base: "bg-background/95 backdrop-blur-xl",
           wrapper: "p-4"
         }}
       >
@@ -871,7 +871,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
           <div className="relative">
             <Button
               isIconOnly
-              className="absolute right-4 top-4 z-10 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+              className="absolute right-4 top-4 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
               size="sm"
               onPress={() => setPreviewOpen(null)}
             >
@@ -882,7 +882,7 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
               <>
                 <Button
                   isIconOnly
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
                   size="sm"
                   onPress={handlePreviousImage}
                 >
@@ -891,14 +891,14 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
 
                 <Button
                   isIconOnly
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
                   size="sm"
                   onPress={handleNextImage}
                 >
                   <ChevronRight size={18} />
                 </Button>
 
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-foreground-muted text-sm">
                   {currentMockupIndex + 1} / {mockupPreviews.length}
                 </div>
               </>
@@ -920,14 +920,14 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
           {uploadProgress.map((progress) => (
             <div key={progress.id} className="relative">
               <div className="flex justify-between text-sm mb-1">
-                <span className="text-white/60">{progress.fileName}</span>
-                <span className="text-white/40">
+                <span className="text-foreground-muted">{progress.fileName}</span>
+                <span className="text-foreground-subtle">
                   {progress.status === 'completed' 
                     ? 'Completed' 
                     : `${progress.progress}%`}
                 </span>
               </div>
-              <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+              <div className="h-1 bg-accent rounded-full overflow-hidden">
                 <div 
                   className={`h-full transition-all duration-200 ${
                     progress.status === 'error' 

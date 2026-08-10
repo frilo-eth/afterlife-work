@@ -35,7 +35,7 @@ interface TableProps extends HTMLAttributes<HTMLTableElement> {
 
 const Table = forwardRef<HTMLTableElement, TableProps>(
   ({ children, className, ...props }, ref) => {
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
     const {
       activeIndex,
@@ -140,7 +140,7 @@ interface TableRowProps extends HTMLAttributes<HTMLTableRowElement> {
 
 const TableRow = forwardRef<HTMLTableRowElement, TableRowProps>(
   ({ index, className, style, ...props }, ref) => {
-    const internalRef = useRef<HTMLTableRowElement>(null);
+    const internalRef = useRef<HTMLTableRowElement | null>(null);
     const ctx = useContext(TableContext);
 
     useEffect(() => {

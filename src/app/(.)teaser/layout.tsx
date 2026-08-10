@@ -12,7 +12,7 @@ export default function TeaserLayout({
   // This is a completely isolated layout that creates its own html/body structure
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-black`}>
+      <body className={`${inter.className} bg-background`}>
         <Providers>{children}</Providers>
       </body>
     </html>

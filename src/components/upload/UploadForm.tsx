@@ -62,7 +62,7 @@ export const UploadForm = ({ onSuccess }: UploadFormProps) => {
   }
 
   return (
-    <Card className="bg-zinc-900/50 backdrop-blur-sm border border-white/10">
+    <Card className="bg-zinc-900/50 backdrop-blur-sm border border-border">
       <CardBody className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
@@ -92,15 +92,15 @@ export const UploadForm = ({ onSuccess }: UploadFormProps) => {
               <label
                 htmlFor="logo-upload"
                 className="flex flex-col items-center justify-center w-full h-64 border-2 
-                         border-dashed border-white/20 rounded-lg cursor-pointer
-                         hover:border-white/40 transition-colors"
+                         border-dashed border-border-strong rounded-lg cursor-pointer
+                         hover:border-border-strong transition-colors"
               >
                 {preview ? (
                   <img src={preview} alt="Preview" className="h-full object-contain" />
                 ) : (
                   <div className="flex flex-col items-center">
                     <Upload className="w-8 h-8 mb-2 opacity-50" />
-                    <span className="text-sm text-white/50">Click to upload logo</span>
+                    <span className="text-sm text-foreground-subtle">Click to upload logo</span>
                   </div>
                 )}
               </label>

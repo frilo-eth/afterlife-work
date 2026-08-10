@@ -110,4 +110,26 @@ let changed = false
   }
 }
 
+// 4. The registry is typed against React 19, where RefObject.current is
+//    mutable. On React 18, `useRef<T>(null)` yields a readonly current, so
+//    every internal assignment fails to compile. Widening the type argument
+//    restores a mutable ref without touching the runtime behaviour.
+{
+  const uiDir = 'src/components/ui'
+  for (const file of readdirSync(uiDir)) {
+    if (!file.endsWith('.tsx')) continue
+    const path = join(uiDir, file)
+    const source = readFileSync(path, 'utf8')
+    const rewritten = source.replace(
+      /useRef<((?:[^<>()]|<[^<>]*>|\([^()]*\))+?)>\(null\)/g,
+      (match, type: string) => (type.includes('| null') ? match : `useRef<${type} | null>(null)`)
+    )
+    if (rewritten !== source) {
+      writeFileSync(path, rewritten)
+      console.log(`  widened ref types in ${file}`)
+      changed = true
+    }
+  }
+}
+
 console.log(changed ? '  fluid install repaired' : '  nothing to repair')

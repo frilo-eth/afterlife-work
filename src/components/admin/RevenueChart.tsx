@@ -39,13 +39,13 @@ export function RevenueChart({ data }: RevenueChartProps) {
         <NextUITooltip 
           content={
             <div className="py-2 px-4 text-sm">
-              <div className="text-white/60">{format(new Date(label || ''), 'MMM dd')}</div>
+              <div className="text-foreground-muted">{format(new Date(label || ''), 'MMM dd')}</div>
               <div className="font-mono">${payload[0].value}</div>
             </div>
           }
           placement="top"
         >
-          <div className="bg-black/80 border border-white/10 rounded-lg p-2" />
+          <div className="bg-background/80 border border-border rounded-lg p-2" />
         </NextUITooltip>
       )
     }

@@ -29,13 +29,13 @@ export function CostAnalysis({ metrics, burnRate, estimatedAnnual }: CostAnalysi
   return (
     <div className="space-y-6">
       {/* Monthly Burn Rate */}
-      <div className="rounded-lg bg-black/40">
+      <div className="rounded-lg bg-background/40">
         <div className="flex items-center gap-2 mb-2">
-          <DollarSign className="w-4 h-4 text-white/60" />
-          <h3 className="text-sm font-medium text-white/80">Monthly Burn Rate</h3>
+          <DollarSign className="w-4 h-4 text-foreground-muted" />
+          <h3 className="text-sm font-medium text-foreground">Monthly Burn Rate</h3>
         </div>
         <p className="text-2xl font-bold">{formatCurrency(burnRate)}</p>
-        <p className="text-xs text-white/40 mt-1">
+        <p className="text-xs text-foreground-subtle mt-1">
           Estimated Annual: {formatCurrency(estimatedAnnual)}
         </p>
       </div>
@@ -45,10 +45,10 @@ export function CostAnalysis({ metrics, burnRate, estimatedAnnual }: CostAnalysi
         {metrics.map((metric) => (
           <div 
             key={metric.name}
-            className="rounded-lg bg-black/40"
+            className="rounded-lg bg-background/40"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm text-white/80">{metric.name}</span>
+              <span className="text-sm text-foreground">{metric.name}</span>
               <div className="flex items-center gap-1">
                 {metric.trend > 0 ? (
                   <TrendingUp className="w-4 h-4 text-red-500" />
@@ -69,7 +69,7 @@ export function CostAnalysis({ metrics, burnRate, estimatedAnnual }: CostAnalysi
                   : `${metric.current}${metric.unit}`
                 }
               </p>
-              <p className="text-sm text-white/40">
+              <p className="text-sm text-foreground-subtle">
                 vs {metric.unit === 'currency'
                   ? formatCurrency(metric.previous)
                   : `${metric.previous}${metric.unit}`

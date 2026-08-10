@@ -52,17 +52,17 @@ export const Hero = () => {
       </div>
 
       <div className="container mx-auto px-4">
-        <div className="mx-auto max-w-3xl space-y-8 text-center">
-          <div className="space-y-6">
-            <span className="block font-mono text-sm uppercase tracking-wider opacity-50">
+        <div className="mx-auto max-w-3xl space-y-10 text-center">
+          <div className="space-y-4">
+            <span className="block font-mono text-metadata uppercase text-foreground-subtle">
               Revive a lost mark
             </span>
 
-            <h1 className="bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text pb-2 text-5xl font-bold leading-[1.4] text-transparent md:text-6xl">
+            <h1 className="text-display text-balance">
               Save logos, save time
             </h1>
 
-            <p className="mx-auto max-w-xl text-xl text-muted-foreground">
+            <p className="mx-auto max-w-xl text-lede text-foreground-muted">
               Unique, ready-to-use logos that died before seeing the light of day,
               waiting to be brought back.
             </p>
@@ -70,7 +70,7 @@ export const Hero = () => {
 
           <div className="relative mx-auto max-w-md">
             <form onSubmit={handleSubscribe} className="flex w-full items-end gap-2 text-left">
-              <InputGroup className="flex-1">
+              <InputGroup className="flex-1 [&_label]:sr-only">
                 <InputField
                   index={0}
                   label="Email"

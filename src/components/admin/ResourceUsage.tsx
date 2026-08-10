@@ -60,10 +60,10 @@ export function ResourceUsage({ metrics }: ResourceUsageProps) {
           <div key={metric.name} className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Icon className="w-4 h-4 text-white/40" />
-                <span className="text-sm text-white/80">{metric.name}</span>
+                <Icon className="w-4 h-4 text-foreground-subtle" />
+                <span className="text-sm text-foreground">{metric.name}</span>
               </div>
-              <span className="text-xs text-white/40">
+              <span className="text-xs text-foreground-subtle">
                 {metric.used}/{metric.total} {metric.unit}
               </span>
             </div>
@@ -73,8 +73,8 @@ export function ResourceUsage({ metrics }: ResourceUsageProps) {
               radius="sm"
               classNames={{
                 base: "max-w-full",
-                track: "bg-white/5",
-                indicator: "bg-white/20"
+                track: "bg-secondary",
+                indicator: "bg-accent"
               }}
             />
           </div>

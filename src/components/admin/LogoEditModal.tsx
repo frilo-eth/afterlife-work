@@ -90,7 +90,7 @@ const FilePreview = ({ preview, loading, error, onRemove, className }: FilePrevi
   if (loading) {
     return (
       <div className={`flex items-center justify-center ${className}`}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
       </div>
     )
   }
@@ -101,7 +101,7 @@ const FilePreview = ({ preview, loading, error, onRemove, className }: FilePrevi
       {onRemove && (
         <Button
           isIconOnly
-          className="absolute top-2 right-2 bg-black/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+          className="absolute top-2 right-2 bg-background/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
           size="sm"
           onPress={onRemove}
         >
@@ -1380,7 +1380,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
       isOpen={isOpen} 
       onClose={handleClose}
       classNames={{
-        base: "bg-black/95 backdrop-blur-xl",
+        base: "bg-background/95 backdrop-blur-xl",
         wrapper: "p-0 max-w-full h-[100dvh] max-h-[100dvh] overflow-hidden",
         body: "p-0 max-h-[100dvh] overflow-hidden",
         closeButton: "hidden",
@@ -1394,7 +1394,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
           {/* Close Button */}
           <Button
             isIconOnly
-            className="fixed right-4 top-4 z-[101] bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+            className="fixed right-4 top-4 z-[101] bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
             size="sm"
             onPress={handleClose}
             aria-label="Close modal"
@@ -1425,13 +1425,13 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   value={displayTitle}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   classNames={{
-                    label: "text-white/60 text-sm",
+                    label: "text-foreground-muted text-sm",
                     input: "bg-transparent text-sm",
                     inputWrapper: [
-                      "bg-black/20",
+                      "bg-background/20",
                       "backdrop-blur-sm",
-                      "border border-white/10",
-                      "hover:border-white/20",
+                      "border border-border",
+                      "hover:border-border-strong",
                       "px-3",
                       "!rounded-lg",
                     ]
@@ -1443,7 +1443,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
               <div className="space-y-2">
                 <span 
                   id="status-group-label" 
-                  className="block text-sm font-medium text-white/60"
+                  className="block text-sm font-medium text-foreground-muted"
                 >
                   Status
                 </span>
@@ -1461,8 +1461,8 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                       className={`
                         rounded-full px-4 h-10 text-sm transition-all
                         ${status === statusKey
-                          ? 'bg-white text-black hover:bg-white/90'
-                          : 'bg-black/20 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white'
+                          ? 'bg-foreground text-background hover:bg-foreground/90'
+                          : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
                         }
                       `}
                       onPress={() => handleStatusChange(statusKey as LogoStatus)}
@@ -1491,15 +1491,15 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                       alt="Logo preview" 
                       className="w-full rounded-lg"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <Button
                         isIconOnly
                         variant="light"
                         onPress={triggerFileInput}
-                        className="bg-white/10 backdrop-blur-sm"
+                        className="bg-accent backdrop-blur-sm"
                         aria-label="Replace main image"
                       >
-                        <Upload className="text-white" size={20} />
+                        <Upload className="text-foreground" size={20} />
                       </Button>
                     </div>
                   </div>
@@ -1510,15 +1510,15 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                       alt="Logo preview" 
                       className="w-full rounded-lg"
                     />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <Button
                         isIconOnly
                         variant="light"
                         onPress={triggerFileInput}
-                        className="bg-white/10 backdrop-blur-sm"
+                        className="bg-accent backdrop-blur-sm"
                         aria-label="Replace main image"
                       >
-                        <Upload className="text-white" size={20} />
+                        <Upload className="text-foreground" size={20} />
                       </Button>
                     </div>
                   </div>
@@ -1528,8 +1528,8 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                     onPress={triggerFileInput}
                     aria-label="Upload image"
                   >
-                    <Upload className="text-white/60" size={24} />
-                    <p className="text-white/60">Drop your image or click to browse</p>
+                    <Upload className="text-foreground-muted" size={24} />
+                    <p className="text-foreground-muted">Drop your image or click to browse</p>
                   </Button>
                 )}
               </div>
@@ -1551,11 +1551,11 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                     id="gallery-images-label" 
                     aria-label="Gallery images count"
                     role="status"
-                    className="block text-sm font-medium text-white/60"
+                    className="block text-sm font-medium text-foreground-muted"
                   >
                     Gallery Images ({visibleGalleryCount}/{MAX_GALLERY_IMAGES})
                     {deletedGalleryIds.length > 0 && (
-                      <span className="ml-2 text-xs text-white/40">
+                      <span className="ml-2 text-xs text-foreground-subtle">
                         ({deletedGalleryIds.length} marked for deletion)
                       </span>
                     )}
@@ -1573,18 +1573,18 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                 >
                   {/* Existing gallery images */}
                   {galleryPreviews.filter(item => !deletedGalleryIds.includes(item.id)).map((item) => (
-                    <div key={item.id} className="relative aspect-square bg-black/20 rounded-lg overflow-hidden group">
+                    <div key={item.id} className="relative aspect-square bg-background/20 rounded-lg overflow-hidden group">
                       <img
                         src={item.preview}
                         alt={`Gallery pic ${item.id}`}
                         className="w-full h-full object-cover"
                       />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                         <Button
                           isIconOnly
                           variant="light"
                           onPress={() => handlePreviewOpen(item.preview)}
-                          className="bg-white/10 backdrop-blur-sm"
+                          className="bg-accent backdrop-blur-sm"
                           aria-label={`Preview gallery image ${item.id}`}
                         >
                           <Eye size={20} />
@@ -1593,7 +1593,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                           isIconOnly
                           variant="light"
                           onPress={() => item.fileInfo ? handleDeleteNewGalleryImage(item.id) : handleDeleteGalleryImage(item.id)}
-                          className="bg-white/10 backdrop-blur-sm"
+                          className="bg-accent backdrop-blur-sm"
                           aria-label={`Delete gallery image ${item.id}`}
                         >
                           <Trash2 size={20} />
@@ -1605,10 +1605,10 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   {/* Upload button - show if we have less than MAX_GALLERY_IMAGES visible images */}
                   {visibleGalleryCount < MAX_GALLERY_IMAGES && (
                     <Button
-                      className="aspect-square rounded-lg border-2 border-dashed border-white/10 hover:border-white/20 flex items-center justify-center bg-transparent"
+                      className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-border-strong flex items-center justify-center bg-transparent"
                       onPress={triggerGalleryInput}
                     >
-                      <Plus size={24} className="text-white/60" />
+                      <Plus size={24} className="text-foreground-muted" />
                     </Button>
                   )}
                 </div>
@@ -1617,7 +1617,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
               {/* Tags */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span id="tags-group-label" className="block text-sm font-medium text-white/60">
+                  <span id="tags-group-label" className="block text-sm font-medium text-foreground-muted">
                     Tags (max 2)
                   </span>
                 </div>
@@ -1635,8 +1635,8 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                       className={`
                         rounded-full px-4 h-10 text-sm transition-all
                         ${selectedTags.includes(tag)
-                          ? 'bg-white text-black hover:bg-white/90'
-                          : 'bg-black/20 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white'
+                          ? 'bg-foreground text-background hover:bg-foreground/90'
+                          : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
                         }
                       `}
                       endContent={selectedTags.includes(tag) && 
@@ -1659,13 +1659,13 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   value={description}
                   onChange={(e) => handleDescriptionChange(e.target.value)}
                   classNames={{
-                    label: "text-white/60 text-sm",
+                    label: "text-foreground-muted text-sm",
                     input: "bg-transparent text-sm",
                     inputWrapper: [
-                      "bg-black/20",
+                      "bg-background/20",
                       "backdrop-blur-sm",
-                      "border border-white/10",
-                      "hover:border-white/20",
+                      "border border-border",
+                      "hover:border-border-strong",
                       "px-3",
                       "!rounded-lg",
                     ]
@@ -1678,7 +1678,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                 {/* Auto-refresh UI is hidden but functionality remains enabled */}
                 <Button
                   type="submit"
-                  className="w-full bg-white text-black hover:bg-white/90 h-12"
+                  className="w-full bg-foreground text-background hover:bg-foreground/90 h-12"
                   isLoading={isLoading}
                   aria-label="Save changes"
                 >
@@ -1696,7 +1696,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
           size="2xl"
           hideCloseButton
           classNames={{
-            base: "bg-black/95 backdrop-blur-xl",
+            base: "bg-background/95 backdrop-blur-xl",
             wrapper: "p-4"
           }}
         >
@@ -1704,7 +1704,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
             <div className="relative">
               <Button
                 isIconOnly
-                className="absolute right-4 top-4 z-10 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+                className="absolute right-4 top-4 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
                 size="sm"
                 onPress={() => setPreviewOpen(null)}
               >
@@ -1716,7 +1716,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                 <>
                   <Button
                     isIconOnly
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
                     size="sm"
                     onPress={handlePreviousImage}
                   >
@@ -1725,7 +1725,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
 
                   <Button
                     isIconOnly
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
                     size="sm"
                     onPress={handleNextImage}
                   >

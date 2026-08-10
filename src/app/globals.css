@@ -41,6 +41,21 @@
 
     --radius: 0.5rem;
 
+    /*
+     * Foreground ladder. The codebase carried sixteen ad-hoc alpha steps
+     * (white/60 alone appeared 106 times); these are the three that actually
+     * carry meaning, so hierarchy stops depending on whichever opacity a
+     * component happened to pick.
+     */
+    --foreground-muted: 0 0% 63%;
+    --foreground-subtle: 0 0% 40%;
+
+    /* Borders: the resting weight, and the one hover/selection raises it to. */
+    --border-strong: 0 0% 100% / 0.2;
+
+    /* Destructive keeps the red it already had — the one hue in a monochrome
+     * identity, reserved for irreversible actions. */
+
   /*
    * Fluid Functionalism surfaces: eight elevation levels with matching
    * shadows. Dark elevation is built from inset highlights and rings rather
@@ -160,12 +175,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-white/20 rounded-full;
+  @apply bg-accent rounded-full;
 }
 
 /* Custom selection */
 ::selection {
-  @apply bg-white/20 text-white;
+  @apply bg-accent text-foreground;
 }
 
 /* Add this to your existing globals.css */

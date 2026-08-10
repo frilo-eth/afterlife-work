@@ -59,7 +59,7 @@ function AdminDashboardContent() {
     return (
       <div className="p-6 text-center">
         <h2 className="text-xl text-red-500">Failed to load admin dashboard</h2>
-        <p className="text-white/60">{error}</p>
+        <p className="text-foreground-muted">{error}</p>
       </div>
     )
   }
@@ -109,17 +109,17 @@ function AdminDashboardContent() {
 
       {/* Second Row */}
       <div className="grid grid-cols-2 gap-6">
-        <Card className="p-6 bg-black/20 backdrop-blur-sm border border-white/10">
+        <Card className="p-6 bg-background/20 backdrop-blur-sm border border-border">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-white/60">Recent Orders</p>
-            <span className="text-xs text-white/60">Last 30 Days</span>
+            <p className="text-sm text-foreground-muted">Recent Orders</p>
+            <span className="text-xs text-foreground-muted">Last 30 Days</span>
           </div>
           <RecentOrders orders={data.recentOrders} />
         </Card>
-        <Card className="p-6 bg-black/20 backdrop-blur-sm border border-white/10">
+        <Card className="p-6 bg-background/20 backdrop-blur-sm border border-border">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-white/60">Revenue Growth</p>
-            <span className="text-xs text-white/60">This Month</span>
+            <p className="text-sm text-foreground-muted">Revenue Growth</p>
+            <span className="text-xs text-foreground-muted">This Month</span>
           </div>
           <RevenueChart data={data.revenueData} />
         </Card>
@@ -127,27 +127,27 @@ function AdminDashboardContent() {
 
       {/* Third Row - Analytics */}
       <div className="grid grid-cols-2 gap-6">
-        <Card className="p-6 bg-black/20 backdrop-blur-sm border border-white/10">
+        <Card className="p-6 bg-background/20 backdrop-blur-sm border border-border">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm text-white/60">Traffic Overview</h4>
-            <span className="text-xs text-white/60">Live</span>
+            <h4 className="text-sm text-foreground-muted">Traffic Overview</h4>
+            <span className="text-xs text-foreground-muted">Live</span>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1">
               <div className="text-2xl font-bold">{analyticsData.visitors}</div>
-              <p className="text-sm text-white/60">Total Visitors</p>
+              <p className="text-sm text-foreground-muted">Total Visitors</p>
             </div>
             <div className="space-y-1">
               <div className="text-2xl font-bold">{analyticsData.pageViews}</div>
-              <p className="text-sm text-white/60">Page Views</p>
+              <p className="text-sm text-foreground-muted">Page Views</p>
             </div>
             <div className="space-y-1">
               <div className="text-2xl font-bold">32%</div>
-              <p className="text-sm text-white/60">Bounce Rate</p>
+              <p className="text-sm text-foreground-muted">Bounce Rate</p>
             </div>
             <div className="space-y-1">
               <div className="text-2xl font-bold">127</div>
-              <p className="text-sm text-white/60">Live Users</p>
+              <p className="text-sm text-foreground-muted">Live Users</p>
             </div>
           </div>
         </Card>
@@ -174,8 +174,8 @@ function AdminDashboardContent() {
               { name: 'Search', value: 25 }
             ]}
           ].map(({ title, data }: AnalyticsSection) => (
-            <Card key={title} className="p-4 bg-black/20 backdrop-blur-sm border border-white/10">
-              <h4 className="text-sm text-white/60 mb-2">{title}</h4>
+            <Card key={title} className="p-4 bg-background/20 backdrop-blur-sm border border-border">
+              <h4 className="text-sm text-foreground-muted mb-2">{title}</h4>
               <div className="space-y-2">
                 {data.map((item: AnalyticsItem) => (
                   <div key={item.name} className="space-y-1">
@@ -188,8 +188,8 @@ function AdminDashboardContent() {
                       size="sm"
                       classNames={{
                         base: "max-w-full",
-                        track: "bg-white/10",
-                        indicator: "bg-white/20"
+                        track: "bg-accent",
+                        indicator: "bg-accent"
                       }}
                     />
                   </div>
@@ -202,9 +202,9 @@ function AdminDashboardContent() {
 
       {/* Fourth Row */}
       <div className="grid grid-cols-4 gap-6">
-        <Card className="p-6 bg-black/20 backdrop-blur-sm border border-white/10">
+        <Card className="p-6 bg-background/20 backdrop-blur-sm border border-border">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm text-white/40">System Health</h4>
+            <h4 className="text-sm text-foreground-subtle">System Health</h4>
             <div className="flex items-center gap-2">
               <span className="bg-green-500/20 text-green-400 text-[10px] px-3 py-1 rounded-full">
                 OPERATIONAL
@@ -225,38 +225,38 @@ function AdminDashboardContent() {
                   />
                   <span className="text-sm">{service.name}</span>
                 </div>
-                <span className="text-xs text-white/60">{service.latency}ms</span>
+                <span className="text-xs text-foreground-muted">{service.latency}ms</span>
               </div>
             ))}
           </div>
         </Card>
         
-        <Card className="p-6 bg-black/20 backdrop-blur-sm border border-white/10">
+        <Card className="p-6 bg-background/20 backdrop-blur-sm border border-border">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm text-white/60">Resource Usage</h4>
-            <span className="text-xs text-white/60">Real-time</span>
+            <h4 className="text-sm text-foreground-muted">Resource Usage</h4>
+            <span className="text-xs text-foreground-muted">Real-time</span>
           </div>
           <ResourceUsage metrics={resourceMetrics} />
         </Card>
         
-        <Card className="p-6 bg-black/20 backdrop-blur-sm border border-white/10">
+        <Card className="p-6 bg-background/20 backdrop-blur-sm border border-border">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-white/60">Cost Analysis</p>
-            <span className="text-xs text-white/60">Monthly</span>
+            <p className="text-sm text-foreground-muted">Cost Analysis</p>
+            <span className="text-xs text-foreground-muted">Monthly</span>
           </div>
           <div className="w-full">
             <CostAnalysis metrics={costMetrics} burnRate={12500} estimatedAnnual={150000} />
           </div>
         </Card>
         
-        <Card className="p-6 bg-black/20 backdrop-blur-sm border border-white/10">
+        <Card className="p-6 bg-background/20 backdrop-blur-sm border border-border">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm text-white/60">Socials</h4>
-            <span className="text-xs text-white/60">Overview</span>
+            <h4 className="text-sm text-foreground-muted">Socials</h4>
+            <span className="text-xs text-foreground-muted">Overview</span>
           </div>
           <div className="space-y-6">
             <div>
-              <p className="text-sm text-white/60">Active Designers</p>
+              <p className="text-sm text-foreground-muted">Active Designers</p>
               <div className="text-2xl font-bold mt-1">{data.totalDesigners}</div>
               <div className="flex items-center text-xs text-green-400 mt-1">
                 <TrendingUp className="w-3 h-3 mr-0.5" />
@@ -264,7 +264,7 @@ function AdminDashboardContent() {
               </div>
             </div>
             <div>
-              <p className="text-sm text-white/60">Twitter Audience</p>
+              <p className="text-sm text-foreground-muted">Twitter Audience</p>
               <div className="text-2xl font-bold mt-1">2.1k</div>
               <div className="flex items-center text-xs text-green-400 mt-1">
                 <TrendingUp className="w-3 h-3 mr-0.5" />

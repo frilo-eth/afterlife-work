@@ -17,7 +17,7 @@ export function RecentOrders({ orders }: { orders: OrderWithLogo[] }) {
         {orders.map((order) => (
           <div key={order.id} className="flex items-center justify-between group">
             <div className="flex items-center gap-4">
-              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-black/20 border border-white/5">
+              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-background/20 border border-border">
                 <img 
                   src={order.logo.thumbnail} 
                   alt={order.wordmark}
@@ -26,19 +26,19 @@ export function RecentOrders({ orders }: { orders: OrderWithLogo[] }) {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-medium text-white/90">
+                  <h3 className="text-lg font-medium text-foreground">
                     {order.wordmark}
                   </h3>
-                  <span className="text-sm text-white/40">
+                  <span className="text-sm text-foreground-subtle">
                     {generatePublicReference(order.logoId)}
                   </span>
                 </div>
-                <p className="text-sm text-white/40">{getOrderStatus(order)}</p>
+                <p className="text-sm text-foreground-subtle">{getOrderStatus(order)}</p>
               </div>
             </div>
             <div className="flex items-center gap-6">
-              <span className="text-sm text-white/60">{order.tier}</span>
-              <span className="text-lg font-medium text-white/90">
+              <span className="text-sm text-foreground-muted">{order.tier}</span>
+              <span className="text-lg font-medium text-foreground">
                 ${(order.amount / 100).toLocaleString()}
               </span>
             </div>

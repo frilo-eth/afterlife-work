@@ -66,7 +66,7 @@ interface DropdownProps extends HTMLAttributes<HTMLDivElement> {
 
 const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
   ({ children, checkedIndex, className, ...props }, ref) => {
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const {
       activeIndex,
       setActiveIndex,
@@ -390,7 +390,7 @@ const DropdownContent = forwardRef<HTMLDivElement, DropdownContentProps>(
     ref
   ) => {
     const { open } = useDropdownMenuContext();
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
     const {
       activeIndex,

@@ -39,7 +39,7 @@ interface InputGroupProps extends HTMLAttributes<HTMLDivElement> {
 
 const InputGroup = forwardRef<HTMLDivElement, InputGroupProps>(
   ({ children, className, ...props }, ref) => {
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
     const { activeIndex, handlers, registerItem, measureItems } =
       useProximityHover(containerRef);
@@ -109,7 +109,7 @@ const InputField = forwardRef<HTMLDivElement, InputFieldProps>(
     },
     ref
   ) => {
-    const internalRef = useRef<HTMLDivElement>(null);
+    const internalRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLElement | null>(null);
     const { registerItem, activeIndex } = useInputGroup();
     const [isFocused, setIsFocused] = useState(false);

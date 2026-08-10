@@ -25,7 +25,7 @@ export default function EmailPreviewPage() {
             variant="bordered"
             classNames={{
               trigger: "bg-default-100",
-              value: "text-white"
+              value: "text-foreground"
             }}
           >
             {templates.map((template) => (
@@ -37,7 +37,7 @@ export default function EmailPreviewPage() {
 
           <Button
             variant="flat"
-            className="bg-default-100 text-white"
+            className="bg-default-100 text-foreground"
             isDisabled={!selectedTemplate}
             onPress={() => {
               window.open(`/api/email/preview?template=${selectedTemplate}`, '_blank')

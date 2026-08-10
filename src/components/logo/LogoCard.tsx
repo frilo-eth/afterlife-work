@@ -56,11 +56,9 @@ export function LogoCard({
         // no entrance animation here — a fade-in would hide the catalog until
         // hydration and carries no information anyway. Only the proximity
         // signal moves, and it degrades to "no lift" if JS never arrives.
-        'bg-card will-change-transform',
-        'transition-[transform,border-color] duration-quick ease-settle',
-        isNearest
-          ? 'border-foreground/25 -translate-y-1 scale-[1.01]'
-          : 'border-border translate-y-0 scale-100'
+        'bg-card',
+        'transition-[border-color,background-color] duration-quick ease-settle',
+        isNearest ? 'border-border-strong bg-secondary' : 'border-border'
       )}
     >
       <div className="relative aspect-square w-full overflow-hidden bg-secondary">
@@ -70,10 +68,7 @@ export function LogoCard({
             alt={label}
             fill
             sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-            className={cn(
-              'object-cover transition-[filter,transform] duration-settled ease-settle',
-              isNearest ? 'scale-[1.03] brightness-110' : 'scale-100 brightness-100'
-            )}
+            className="object-cover" 
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center" aria-hidden="true">
@@ -94,8 +89,8 @@ export function LogoCard({
         */}
         <h3
           className={cn(
-            'mb-2 text-sm transition-[font-weight,color] duration-quick ease-settle',
-            isNearest ? 'font-semibold text-foreground' : 'font-medium text-foreground/90'
+            'mb-2 text-label transition-[color] duration-quick ease-settle',
+            isNearest ? 'font-semibold text-foreground' : 'font-medium text-foreground-muted'
           )}
         >
           {label}
@@ -105,7 +100,7 @@ export function LogoCard({
           {tags.slice(0, 2).map(tag => (
             <span
               key={tag}
-              className="rounded-full bg-foreground/10 px-2 py-1 text-xs text-foreground/80"
+              className="rounded-full bg-secondary px-2 py-0.5 text-metadata text-foreground-muted"
             >
               {tag}
             </span>

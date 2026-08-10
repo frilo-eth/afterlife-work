@@ -15,13 +15,13 @@ export default async function HomePage() {
     <div className="min-h-screen backdrop-blur-sm">
       <Hero />
 
-      <section id="collection" className="min-h-screen bg-black/50">
+      <section id="collection" className="min-h-screen bg-background/50">
         {logos.length > 0 ? (
           <CatalogSection logos={logos} />
         ) : (
           <div className="container mx-auto px-4 py-24">
             <h2 className="text-3xl font-bold mb-2">The collection is empty</h2>
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-foreground-muted">
               No logos are available right now. Check back soon.
             </p>
           </div>

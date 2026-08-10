@@ -82,7 +82,7 @@ export default function DownloadPage() {
       <main className="pt-24 pb-12">
         <div className="container mx-auto px-4 max-w-2xl text-center">
           <h1 className="text-4xl font-bold mb-8">Something went wrong</h1>
-          <p className="text-white/60 mb-8">{error}</p>
+          <p className="text-foreground-muted mb-8">{error}</p>
           <Button onPress={() => router.push('/')}>Return Home</Button>
         </div>
       </main>
@@ -102,7 +102,7 @@ export default function DownloadPage() {
           />
         </div>
         
-        <h1 className="text-5xl font-bold mb-8 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent leading-tight">
+        <h1 className="text-5xl font-bold mb-8 bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent leading-tight">
           Your Files Are Ready
         </h1>
         
@@ -111,7 +111,7 @@ export default function DownloadPage() {
             <Button
               key={file.filename}
               onPress={() => handleDownload(file)}
-              className="w-full bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10"
+              className="w-full bg-secondary backdrop-blur-sm border-border hover:bg-accent"
             >
               Download {file.type.toUpperCase()}
             </Button>
@@ -119,7 +119,7 @@ export default function DownloadPage() {
         </div>
 
         <Button 
-          className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 text-white text-sm h-9"
+          className="bg-secondary backdrop-blur-sm border-border hover:bg-accent text-foreground text-sm h-9"
           size="sm"
           onPress={() => router.push('/')}
         >

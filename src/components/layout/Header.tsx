@@ -97,7 +97,7 @@ export const Header = () => {
               </Button>
 
               <Button
-                variant="tertiary"
+                variant="primary"
                 size="sm"
                 active={isSubmitOpen}
                 onClick={() => setIsSubmitOpen(true)}

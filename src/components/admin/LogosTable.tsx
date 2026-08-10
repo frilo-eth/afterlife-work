@@ -93,7 +93,7 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
         selectedKey={selectedStatus}
         onSelectionChange={(key) => setSelectedStatus(key as LogoStatus)}
         classNames={{
-          tab: "data-[selected=true]:text-white",
+          tab: "data-[selected=true]:text-foreground",
           cursor: "hidden"
         }}
       >

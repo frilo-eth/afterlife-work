@@ -34,8 +34,8 @@ function LoginPage() {
   }
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-black/95 backdrop-blur-xl">
-      <Card className="w-full max-w-md mx-4 p-8 bg-black/20 backdrop-blur-sm border border-white/10">
+    <div className="min-h-[100dvh] flex items-center justify-center bg-background/95 backdrop-blur-xl">
+      <Card className="w-full max-w-md mx-4 p-8 bg-background/20 backdrop-blur-sm border border-border">
         <div className="space-y-4 text-center mb-8">
           <span className="font-mono text-sm tracking-wider opacity-50 uppercase block">
             Admin Access
@@ -53,15 +53,15 @@ function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             errorMessage={error}
             isInvalid={!!error}
-            startContent={<Lock size={18} className="text-white/40" />}
+            startContent={<Lock size={18} className="text-foreground-subtle" />}
             classNames={{
-              label: "text-white/60 text-sm",
+              label: "text-foreground-muted text-sm",
               input: "bg-transparent text-sm",
               inputWrapper: [
-                "bg-black/20",
+                "bg-background/20",
                 "backdrop-blur-sm",
-                "border border-white/10",
-                "hover:border-white/20",
+                "border border-border",
+                "hover:border-border-strong",
                 "px-3",
                 "!rounded-lg",
               ]
@@ -69,7 +69,7 @@ function LoginPage() {
           />
           <Button
             type="submit"
-            className="w-full bg-white text-black hover:bg-white/90 h-12 text-sm font-medium"
+            className="w-full bg-foreground text-background hover:bg-foreground/90 h-12 text-sm font-medium"
             isLoading={loading}
           >
             Login

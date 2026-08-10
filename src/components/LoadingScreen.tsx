@@ -94,10 +94,10 @@ export const LoadingScreen = ({ isLoading = false }: LoadingScreenProps) => {
   }))
 
   return (
-    <div className="fixed inset-0 bg-black z-[200] flex items-center">
+    <div className="fixed inset-0 bg-background z-[200] flex items-center">
       <div className="w-full px-8">
         <div className="font-mono text-xs tracking-[0.2em] flex items-center w-full">
-          <span className="text-white/60">{currentText}</span>
+          <span className="text-foreground-muted">{currentText}</span>
           <div className="flex-1 mx-2 overflow-hidden whitespace-nowrap">
             {progressDots.map((dot) => (
               <span 
@@ -109,7 +109,7 @@ export const LoadingScreen = ({ isLoading = false }: LoadingScreenProps) => {
               </span>
             ))}
           </div>
-          <span className="text-white/60">{progress.toString().padStart(3, '0')}%</span>
+          <span className="text-foreground-muted">{progress.toString().padStart(3, '0')}%</span>
         </div>
       </div>
     </div>

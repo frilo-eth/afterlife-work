@@ -119,7 +119,7 @@ const CardGroup = forwardRef<HTMLDivElement, CardGroupProps>(
     },
     ref
   ) => {
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const shape = useShape();
 
     // >1 column wraps into a grid, where nearest-item must be resolved in two
@@ -286,7 +286,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     },
     ref
   ) => {
-    const internalRef = useRef<HTMLDivElement>(null);
+    const internalRef = useRef<HTMLDivElement | null>(null);
     const shape = useShape();
     const group = useContext(CardGroupContext);
     const XIcon = useIcon("x");

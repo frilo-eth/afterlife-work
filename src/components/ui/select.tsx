@@ -307,7 +307,7 @@ const SelectContent = forwardRef<HTMLDivElement, SelectContentProps>(
   ({ className, children }, ref) => {
     const { open, value, unmount } = useSelectContext();
     const shape = useShape();
-    const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
 
     const {
       activeIndex,
@@ -620,7 +620,7 @@ const SelectItem = forwardRef<HTMLDivElement, SelectItemProps>(
   ) => {
     const selectCtx = useSelectContext();
     const contentCtx = useContext(SelectContentContext);
-    const internalRef = useRef<HTMLDivElement>(null);
+    const internalRef = useRef<HTMLDivElement | null>(null);
     const shape = useShape();
     const hasMounted = useRef(false);
 

@@ -76,11 +76,11 @@ export function TeaserClient() {
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black">
+    <div className="relative w-screen h-screen overflow-hidden bg-background">
       {/* Dots Background */}
       <div className="absolute inset-0 opacity-10">
         <div 
-          className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"
+          className="absolute inset-0 bg-gradient-to-b from-foreground/10 to-transparent"
           style={{
             backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
             backgroundSize: '40px 40px'
@@ -103,18 +103,18 @@ export function TeaserClient() {
                 className="text-sm"
                 showArrow={true}
               >
-                <Link href="#collection" className="text-sm text-white/70 hover:text-white">
+                <Link href="#collection" className="text-sm text-foreground-muted hover:text-foreground">
                   Collection
                 </Link>
               </Tooltip>
               <Button 
-                className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 text-white text-sm h-9"
+                className="bg-secondary backdrop-blur-sm border-border hover:bg-accent text-foreground text-sm h-9"
                 size="sm"
                 onPress={() => setIsSubmitOpen(true)}
               >
                 Submit Logo
               </Button>
-              <Link href="/" className="text-sm text-white/30 hover:text-white">
+              <Link href="/" className="text-sm text-foreground-subtle hover:text-foreground">
                 Visit Main App
               </Link>
             </nav>
@@ -142,7 +142,7 @@ export function TeaserClient() {
         {/* Main Title */}
         <motion.h1
           variants={item}
-          className="text-4xl md:text-6xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60"
+          className="text-4xl md:text-6xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/60"
         >
           Where Forgotten Logos
           <br />
@@ -187,7 +187,7 @@ export function TeaserClient() {
             <Button
               type="submit"
               isLoading={status === 'loading'}
-              className="h-12 px-6 bg-white text-black font-medium hover:opacity-90 transition-opacity"
+              className="h-12 px-6 bg-foreground text-background font-medium hover:opacity-90 transition-opacity"
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
             >
@@ -217,17 +217,17 @@ export function TeaserClient() {
       </motion.div>
 
       {/* Footer */}
-      <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-white/10 py-4">
+      <footer className="fixed bottom-0 left-0 right-0 z-50 border-t border-border py-4">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
-            <div className="text-sm text-white/60">
+            <div className="text-sm text-foreground-muted">
               Afterlife. Where rejected logos find new life. Made by{' '}
-              <a href="https://frilo.io" className="hover:text-white">frilo</a>.
+              <a href="https://frilo.io" className="hover:text-foreground">frilo</a>.
             </div>
             <div className="flex items-center gap-6">
               <Link 
                 href="mailto:hi@afterlife.work"
-                className="text-sm text-white/60 hover:text-white"
+                className="text-sm text-foreground-muted hover:text-foreground"
               >
                 Say hi
               </Link>
@@ -235,7 +235,7 @@ export function TeaserClient() {
                 href="https://x.com/afterlifewrk"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-white/60 hover:text-white"
+                className="text-sm text-foreground-muted hover:text-foreground"
               >
                 Follow us
               </Link>
@@ -243,7 +243,7 @@ export function TeaserClient() {
                 href="https://cal.com/afterlife/30min"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-sm text-white/60 hover:text-white"
+                className="text-sm text-foreground-muted hover:text-foreground"
               >
                 Book a call
               </Link>

@@ -83,7 +83,7 @@ export function LogoDetailView({ logo }: LogoDetailViewProps) {
 
   return (
     <div className="container mx-auto px-4 pt-8 pb-8">
-      <div className="sticky top-16 z-30 bg-gradient-to-b from-black via-black/95 to-transparent pb-4 -mx-4 px-4 pt-4">
+      <div className="sticky top-16 z-30 bg-gradient-to-b from-background via-background/95 to-transparent pb-4 -mx-4 px-4 pt-4">
         <Button
           variant="ghost"
           size="sm"
@@ -99,26 +99,26 @@ export function LogoDetailView({ logo }: LogoDetailViewProps) {
           <ImageGallery images={logo.images} title={formatTitle(logo.title)} />
 
           <div className="space-y-4">
-            <span className="font-mono text-sm tracking-wider uppercase text-white/50">
+            <span className="font-mono text-sm tracking-wider uppercase text-foreground-subtle">
               {generatePublicReference(logo.id)}
             </span>
             <h1 className="text-4xl font-bold">{formatTitle(logo.title)}</h1>
             <div className="flex gap-2">
               {logo.tags?.map(tag => (
-                <span key={tag} className="text-xs px-2 py-1 rounded-full bg-white/10">
+                <span key={tag} className="text-xs px-2 py-1 rounded-full bg-accent">
                   {tag}
                 </span>
               ))}
             </div>
-            <p className="text-white/60">{logo.description}</p>
+            <p className="text-foreground-muted">{logo.description}</p>
           </div>
         </div>
 
         <div>
           {logo.status === 'SOLD' ? (
-            <div className="rounded-lg border border-white/10 bg-white/5 p-6">
+            <div className="rounded-lg border border-border bg-secondary p-6">
               <h2 className="text-lg font-medium mb-1">This one has been revived</h2>
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-foreground-muted">
                 It already found an owner and is no longer for sale.
               </p>
             </div>
@@ -149,14 +149,14 @@ export function LogoDetailView({ logo }: LogoDetailViewProps) {
       {checkoutError && (
         <div
           role="alert"
-          className="fixed bottom-4 right-4 bg-red-500/80 text-white px-4 py-2 rounded-lg"
+          className="fixed bottom-4 right-4 bg-red-500/80 text-foreground px-4 py-2 rounded-lg"
         >
           {checkoutError}
         </div>
       )}
 
       {isRedirecting && (
-        <div className="fixed bottom-4 left-4 bg-white/10 text-white px-4 py-2 rounded-lg text-sm">
+        <div className="fixed bottom-4 left-4 bg-accent text-foreground px-4 py-2 rounded-lg text-sm">
           Taking you to checkout…
         </div>
       )}

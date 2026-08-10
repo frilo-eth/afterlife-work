@@ -89,15 +89,15 @@ const FilePreview = ({ preview, loading, error, onRemove, onPreview, file, class
   return (
     <div className={cn("relative group", className)}>
       <img src={preview} alt="Preview" className="max-w-full h-auto rounded-lg" />
-      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+      <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
         {onPreview && (
           <Button
             isIconOnly
             variant="light"
             onPress={onPreview}
-            className="bg-white/10 backdrop-blur-sm"
+            className="bg-accent backdrop-blur-sm"
           >
-            <Eye className="text-white" size={20} />
+            <Eye className="text-foreground" size={20} />
           </Button>
         )}
         {onRemove && (
@@ -105,9 +105,9 @@ const FilePreview = ({ preview, loading, error, onRemove, onPreview, file, class
             isIconOnly
             variant="light"
             onPress={onRemove}
-            className="bg-white/10 backdrop-blur-sm"
+            className="bg-accent backdrop-blur-sm"
           >
-            <Trash className="text-white" size={20} />
+            <Trash className="text-foreground" size={20} />
           </Button>
         )}
       </div>
@@ -527,7 +527,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
       size="full"
       hideCloseButton
       classNames={{
-        base: "bg-black/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]",
+        base: "bg-background/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]",
         wrapper: "p-0 h-[100dvh] m-0",
         backdrop: "opacity-100",
         body: "p-0 h-full"
@@ -537,7 +537,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
         <div className="relative h-[100dvh] overflow-y-auto">
           <Button
             isIconOnly
-            className="fixed right-4 top-4 z-[101] bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+            className="fixed right-4 top-4 z-[101] bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
             size="sm"
             onPress={handleClose}
           >
@@ -552,7 +552,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
               <h2 className="text-4xl md:text-5xl font-bold">
                 Create new logo
               </h2>
-              <p className="text-sm text-white/60 max-w-xl mx-auto">
+              <p className="text-sm text-foreground-muted max-w-xl mx-auto">
                 Add a new logo to the Afterlife collection.
               </p>
             </div>
@@ -568,13 +568,13 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                 errorMessage={errors.title}
                 isInvalid={!!errors.title}
                 classNames={{
-                  label: "text-white/60 text-sm",
+                  label: "text-foreground-muted text-sm",
                   input: "bg-transparent text-sm",
                   inputWrapper: [
-                    "bg-black/20",
+                    "bg-background/20",
                     "backdrop-blur-sm",
-                    "border border-white/10",
-                    "hover:border-white/20",
+                    "border border-border",
+                    "hover:border-border-strong",
                     "px-3",
                     "!rounded-lg",
                   ]
@@ -587,13 +587,13 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 classNames={{
-                  label: "text-white/60 text-sm",
+                  label: "text-foreground-muted text-sm",
                   input: "bg-transparent text-sm",
                   inputWrapper: [
-                    "bg-black/20",
+                    "bg-background/20",
                     "backdrop-blur-sm",
-                    "border border-white/10",
-                    "hover:border-white/20",
+                    "border border-border",
+                    "hover:border-border-strong",
                     "px-3",
                     "!rounded-lg",
                   ]
@@ -601,7 +601,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
               />
 
               <div>
-                <span id="status-label" className="block text-sm font-medium text-white/60 mb-2">
+                <span id="status-label" className="block text-sm font-medium text-foreground-muted mb-2">
                   Status
                 </span>
                 <div className="flex flex-wrap gap-2" aria-labelledby="status-label" role="radiogroup">
@@ -612,8 +612,8 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                       className={`
                         rounded-full px-4 h-10 text-sm transition-all
                         ${status === statusOption
-                          ? 'bg-white text-black hover:bg-white/90'
-                          : 'bg-black/20 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white'
+                          ? 'bg-foreground text-background hover:bg-foreground/90'
+                          : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
                         }
                       `}
                       onPress={() => handleStatusChange(statusOption)}
@@ -627,7 +627,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
               </div>
 
               <div>
-                <span id="tags-label" className="block text-sm font-medium text-white/60 mb-2">
+                <span id="tags-label" className="block text-sm font-medium text-foreground-muted mb-2">
                   Tags
                 </span>
                 <div className="flex flex-wrap gap-2" aria-labelledby="tags-label" role="group">
@@ -638,8 +638,8 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                       className={`
                         rounded-full px-4 h-10 text-sm transition-all
                         ${selectedTags.includes(tag)
-                          ? 'bg-white text-black hover:bg-white/90'
-                          : 'bg-black/20 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white'
+                          ? 'bg-foreground text-background hover:bg-foreground/90'
+                          : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
                         }
                       `}
                       onPress={() => handleTagToggle(tag)}
@@ -653,7 +653,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
               </div>
 
               <div>
-                <label htmlFor="main-image-upload" className="block text-sm font-medium text-white/60 mb-2">
+                <label htmlFor="main-image-upload" className="block text-sm font-medium text-foreground-muted mb-2">
                   Main Image
                 </label>
                 <input
@@ -676,7 +676,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                   onKeyDown={(e) => e.key === 'Enter' && mainImageInputRef.current?.click()}
                   aria-label="Upload main image"
                 >
-                  <div className="relative w-full p-8 rounded-xl bg-black/20 backdrop-blur-sm border border-white/10 hover:border-white/20">
+                  <div className="relative w-full p-8 rounded-xl bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong">
                     {mainImagePreview ? (
                       <FilePreview
                         preview={mainImagePreview.preview}
@@ -688,11 +688,11 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                       />
                     ) : (
                       <div className="text-center">
-                        <Upload className="mx-auto text-white/60" size={24} />
-                        <p className="text-white/60">
+                        <Upload className="mx-auto text-foreground-muted" size={24} />
+                        <p className="text-foreground-muted">
                           Drop your main image or click to browse
                         </p>
-                        <p className="text-xs text-white/40 mt-1">Supported formats: JPG, PNG, WEBP</p>
+                        <p className="text-xs text-foreground-subtle mt-1">Supported formats: JPG, PNG, WEBP</p>
                       </div>
                     )}
                   </div>
@@ -704,10 +704,10 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label htmlFor="gallery-upload" className="block text-sm font-medium text-white/60">
+                  <label htmlFor="gallery-upload" className="block text-sm font-medium text-foreground-muted">
                     Gallery Images
                   </label>
-                  <span className="text-xs text-white/40">
+                  <span className="text-xs text-foreground-subtle">
                     {galleryPreviews.length} / {MAX_GALLERY_IMAGES} images
                   </span>
                 </div>
@@ -723,9 +723,9 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                 <div
                   className="group relative transition-all"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-foreground/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div 
-                    className="relative w-full p-8 rounded-xl bg-black/20 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-colors text-center"
+                    className="relative w-full p-8 rounded-xl bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong transition-colors text-center"
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && galleryInputRef.current?.click()}
@@ -736,7 +736,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                         {galleryPreviews.map((preview, index) => (
                           <div 
                             key={preview.id} 
-                            className="relative aspect-square bg-black/20 rounded-lg overflow-hidden group"
+                            className="relative aspect-square bg-background/20 rounded-lg overflow-hidden group"
                           >
                             <div className="absolute inset-0 flex items-center justify-center">
                               <img
@@ -750,22 +750,22 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                                 }}
                               />
                             </div>
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                               <Button
                                 isIconOnly
                                 variant="light"
                                 onPress={() => handlePreviewImage(preview.preview, index)}
-                                className="bg-white/10 backdrop-blur-sm"
+                                className="bg-accent backdrop-blur-sm"
                               >
-                                <Eye className="text-white" size={20} />
+                                <Eye className="text-foreground" size={20} />
                               </Button>
                               <Button
                                 isIconOnly
                                 variant="light"
                                 onPress={() => handleGalleryImageDelete(preview.id)}
-                                className="bg-white/10 backdrop-blur-sm"
+                                className="bg-accent backdrop-blur-sm"
                               >
-                                <Trash className="text-white" size={20} />
+                                <Trash className="text-foreground" size={20} />
                               </Button>
                             </div>
                           </div>
@@ -773,19 +773,19 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                         
                         {galleryPreviews.length < MAX_GALLERY_IMAGES && (
                           <Button
-                            className="aspect-square rounded-lg border-2 border-dashed border-white/10 hover:border-white/20 flex items-center justify-center bg-transparent"
+                            className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-border-strong flex items-center justify-center bg-transparent"
                             onPress={() => galleryInputRef.current?.click()}
                           >
-                            <Plus size={24} className="text-white/60" />
+                            <Plus size={24} className="text-foreground-muted" />
                           </Button>
                         )}
                       </div>
                     ) : (
                       <>
-                        <Upload className="mx-auto text-white/60" size={24} />
+                        <Upload className="mx-auto text-foreground-muted" size={24} />
                         <div>
-                          <p className="text-white/60">Drop up to 6 gallery images or click to browse</p>
-                          <p className="text-xs text-white/40 mt-1">Supported formats: JPG, PNG, WEBP</p>
+                          <p className="text-foreground-muted">Drop up to 6 gallery images or click to browse</p>
+                          <p className="text-xs text-foreground-subtle mt-1">Supported formats: JPG, PNG, WEBP</p>
                         </div>
                       </>
                     )}
@@ -795,7 +795,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
               <Button
                 type="submit"
-                className="w-full bg-white text-black hover:bg-white/90 h-12 text-sm font-medium"
+                className="w-full bg-foreground text-background hover:bg-foreground/90 h-12 text-sm font-medium"
                 isLoading={loading}
               >
                 Create Logo
@@ -812,7 +812,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
         size="2xl"
         hideCloseButton
         classNames={{
-          base: "bg-black/95 backdrop-blur-xl",
+          base: "bg-background/95 backdrop-blur-xl",
           wrapper: "p-4"
         }}
       >
@@ -820,7 +820,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
           <div className="relative">
             <Button
               isIconOnly
-              className="absolute right-4 top-4 z-10 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+              className="absolute right-4 top-4 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
               size="sm"
               onPress={() => setPreviewOpen(null)}
             >
@@ -831,7 +831,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
               <>
                 <Button
                   isIconOnly
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
                   size="sm"
                   onPress={handlePreviousImage}
                 >
@@ -840,14 +840,14 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
                 <Button
                   isIconOnly
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
                   size="sm"
                   onPress={handleNextImage}
                 >
                   <ChevronRight size={18} />
                 </Button>
 
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/60 text-sm">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-foreground-muted text-sm">
                   {currentGalleryIndex + 1} / {galleryPreviews.length}
                 </div>
               </>

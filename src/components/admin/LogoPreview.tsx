@@ -46,7 +46,7 @@ export function LogoPreview({
               <button
                 type="button"
                 onClick={() => onRemove(placeholder.id)}
-                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute top-2 right-2 p-1 bg-red-500 text-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
               >
                 ✕
               </button>
@@ -71,7 +71,7 @@ export function LogoPreview({
                   <button
                     type="button"
                     onClick={() => onRemove(preview.id)}
-                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     ✕
                   </button>

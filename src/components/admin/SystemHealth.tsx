@@ -29,19 +29,19 @@ export function SystemHealth({ services }: SystemHealthProps) {
       {services.map((service) => (
         <div 
           key={service.name}
-          className="flex items-center justify-between p-3 rounded-lg bg-white/5"
+          className="flex items-center justify-between p-3 rounded-lg bg-secondary"
         >
           <div className="flex items-center gap-3">
             {getStatusIcon(service.status)}
             <div>
-              <h3 className="text-sm text-white/80">{service.name}</h3>
+              <h3 className="text-sm text-foreground">{service.name}</h3>
               {service.message && (
-                <p className="text-xs text-white/40">{service.message}</p>
+                <p className="text-xs text-foreground-subtle">{service.message}</p>
               )}
             </div>
           </div>
           {service.latency && (
-            <span className="text-xs text-white/40">
+            <span className="text-xs text-foreground-subtle">
               {service.latency}ms
             </span>
           )}

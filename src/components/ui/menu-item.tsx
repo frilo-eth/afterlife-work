@@ -107,7 +107,7 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
     },
     ref
   ) => {
-    const internalRef = useRef<HTMLDivElement>(null);
+    const internalRef = useRef<HTMLDivElement | null>(null);
     const hasMounted = useRef(false);
     const { registerItem, activeIndex, checkedIndex, renderMenuItem } =
       useDropdown();
