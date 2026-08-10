@@ -1,7 +1,7 @@
 'use client'
 
 import React from "react"
-import { Modal, ModalContent, ModalHeader, ModalBody } from "@nextui-org/react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 
 interface BookCallModalProps {
   isOpen: boolean
@@ -63,39 +63,23 @@ export function BookCallModal({ isOpen, onClose }: BookCallModalProps) {
   }, [isOpen, onClose])
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      size="3xl"
-      classNames={{
-        base: "bg-black/60 backdrop-blur-md",
-        header: "border-b border-white/10",
-        body: "py-6"
-      }}
-    >
-      <ModalContent>
-        {(onClose) => (
-          <>
-            <ModalHeader className="flex flex-col gap-1">
-              Book a Consultation
-              {error && (
-                <p className="text-sm text-red-500 mt-2">
-                  {error}
-                </p>
-              )}
-            </ModalHeader>
-            <ModalBody className="h-[600px]">
-              <div 
-                id="cal-booking-place" 
-                className="min-h-[600px]"
-                data-cal-namespace={CAL_NAMESPACE}
-                data-cal-link={CAL_LINK}
-                data-cal-config='{"layout":"month_view"}'
-              />
-            </ModalBody>
-          </>
-        )}
-      </ModalContent>
-    </Modal>
+    <Dialog open={isOpen} onOpenChange={next => { if (!next) onClose() }}>
+      <DialogContent className="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Book a Consultation</DialogTitle>
+          {error && (
+            <DialogDescription className="text-destructive">{error}</DialogDescription>
+          )}
+        </DialogHeader>
+
+        <div
+          id="cal-booking-place"
+          className="min-h-[600px]"
+          data-cal-namespace={CAL_NAMESPACE}
+          data-cal-link={CAL_LINK}
+          data-cal-config='{"layout":"month_view"}'
+        />
+      </DialogContent>
+    </Dialog>
   )
-} 
+}

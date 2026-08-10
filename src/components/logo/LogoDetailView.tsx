@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Button } from '@nextui-org/react'
+import { Button } from '@/components/ui/button'
 import { ChevronLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
@@ -85,10 +85,10 @@ export function LogoDetailView({ logo }: LogoDetailViewProps) {
     <div className="container mx-auto px-4 pt-8 pb-8">
       <div className="sticky top-16 z-30 bg-gradient-to-b from-black via-black/95 to-transparent pb-4 -mx-4 px-4 pt-4">
         <Button
-          startContent={<ChevronLeft />}
-          onPress={() => router.push('/')}
-          className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 text-white text-sm h-9"
+          variant="ghost"
           size="sm"
+          leadingIcon={ChevronLeft}
+          onClick={() => router.push('/')}
         >
           Back to Collection
         </Button>

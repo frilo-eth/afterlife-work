@@ -1,12 +1,17 @@
 'use client'
 
-import React from "react"
-import { Tabs, Tab, Card, CardBody, Button, Switch, Input, Tooltip } from "@nextui-org/react"
-import { motion, AnimatePresence } from "framer-motion"
-import { BookCallModal } from "@/components/modals/BookCallModal"
-import { Info } from "lucide-react"
+import { useMemo, useState } from 'react'
+import { Info } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { InputGroup, InputField } from '@/components/ui/input-group'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsList, TabItem, TabPanel } from '@/components/ui/tabs'
+import { Tooltip } from '@/components/ui/tooltip'
 
 type TierType = 'summon' | 'revival' | 'afterlife'
+
+const WORDMARK_PRICE = 1500
 
 interface PricingSelectorTabsProps {
   price: {
@@ -17,310 +22,186 @@ interface PricingSelectorTabsProps {
   // Only the identity is needed here; the component renders nothing else from
   // the logo. Kept narrow so callers are not forced to build a full record.
   logo: { id: string }
-  onSelect: (tier: TierType, options?: {
-    wordmark?: string
-    domain?: string
-  }) => void
+  onSelect: (
+    tier: TierType,
+    options?: {
+      wordmark?: string
+      domain?: string
+    }
+  ) => void
 }
 
-export const PricingSelectorTabs = ({ price, logo, onSelect }: PricingSelectorTabsProps) => {
-  console.log('Component rendered with props:', { price, logo }) // Debug initial render
+const money = (value: number) => `$${value.toLocaleString()}`
 
-  const [selectedTier, setSelectedTier] = React.useState<TierType>("revival")
-  const [withWordmark, setWithWordmark] = React.useState(false)
-  const [wordmarkText, setWordmarkText] = React.useState("")
-  const [isCallModalOpen, setIsCallModalOpen] = React.useState(false)
-  const [isLoading, setIsLoading] = React.useState(false)
-  const [orderSummary, setOrderSummary] = React.useState({
-    base: 0,
-    wordmark: 0,
-    total: 0
-  })
+export const PricingSelectorTabs = ({ price, onSelect }: PricingSelectorTabsProps) => {
+  const [selectedTier, setSelectedTier] = useState<TierType>('revival')
+  const [withWordmark, setWithWordmark] = useState(false)
+  const [wordmarkText, setWordmarkText] = useState('')
 
-  // Debug state changes
-  React.useEffect(() => {
-    console.log('State changed:', {
-      selectedTier,
-      withWordmark,
-      wordmarkText,
-      isCallModalOpen
-    })
-  }, [selectedTier, withWordmark, wordmarkText, isCallModalOpen])
+  const isCustomTier = selectedTier === 'afterlife'
 
-  React.useEffect(() => {
-    const base = selectedTier === 'summon' ? price.summon : 
-                 selectedTier === 'revival' ? price.revival : 0
-    const wordmarkCost = withWordmark ? 1500 : 0
-
-    setOrderSummary({
-      base,
-      wordmark: wordmarkCost,
-      total: base + wordmarkCost
-    })
+  // Derived rather than mirrored into state. The previous version recomputed
+  // the same figures inside an effect and stored them, which meant the summary
+  // could render one interaction behind the controls that produced it.
+  const summary = useMemo(() => {
+    const base = selectedTier === 'summon' ? price.summon : selectedTier === 'revival' ? price.revival : 0
+    const wordmark = withWordmark ? WORDMARK_PRICE : 0
+    return { base, wordmark, total: base + wordmark }
   }, [selectedTier, withWordmark, price])
 
-  const handlePurchase = (e: React.MouseEvent) => {
-    e.preventDefault() // Prevent any default behavior
-    console.log('1. Button clicked') // Debug click
-
-    try {
-      console.log('2. Current state:', {
-        selectedTier,
-        withWordmark,
-        wordmarkText,
-        orderSummary
-      })
-
-      if (!selectedTier) {
-        console.error('No tier selected')
-        return
-      }
-
-      if (selectedTier === 'afterlife') {
-        console.log('3a. Opening modal')
-        setIsCallModalOpen(true)
-        return
-      }
-
-      console.log('3b. Preparing purchase options')
-      const options = {
-        ...(withWordmark && wordmarkText && { wordmark: wordmarkText })
-      }
-
-      console.log('4. Calling onSelect with:', {
-        tier: selectedTier,
-        options
-      })
-
-      // Check if onSelect is a function
-      if (typeof onSelect !== 'function') {
-        throw new Error(`onSelect is not a function, got ${typeof onSelect}`)
-      }
-
-      onSelect(selectedTier, options)
-      console.log('5. onSelect called successfully')
-
-    } catch (error) {
-      console.error('ERROR in handlePurchase:', error)
-      console.error('Full error details:', {
-        error,
-        stack: error instanceof Error ? error.stack : 'No stack trace',
-        state: {
-          selectedTier,
-          withWordmark,
-          wordmarkText,
-          orderSummary
-        }
-      })
-    }
+  const handlePurchase = () => {
+    onSelect(
+      selectedTier,
+      withWordmark && wordmarkText ? { wordmark: wordmarkText } : undefined
+    )
   }
 
-  // Debug render
-  console.log('Rendering with:', {
-    selectedTier,
-    withWordmark,
-    wordmarkText,
-    isCallModalOpen
-  })
-
   return (
-    <>
-      <Card className="bg-zinc-900/50 backdrop-blur-sm border border-white/10">
-        <CardBody className="p-6 space-y-6">
-          <Tabs 
-            selectedKey={selectedTier}
-            onSelectionChange={(key) => setSelectedTier(key as TierType)}
-            variant="underlined"
-            classNames={{
-              tabList: "w-full relative rounded-none p-0 border-b border-white/20",
-              cursor: "w-full bg-white",
-              tab: "flex-1 h-12",
-              tabContent: "w-full group-data-[selected=true]:text-white"
-            }}
-          >
-            <Tab 
-              key="summon" 
-              title={
-                <span className="font-mono text-sm tracking-wider">SUMMON</span>
-              }
-            >
-              <div className="mt-4 space-y-6">
-                <div>
-                  <span className="font-mono text-xs tracking-wider opacity-50 uppercase block mb-2">BASIC PACKAGE</span>
-                  <p className="text-sm text-white/60 mb-3">Essential files. Instant Delivery.</p>
-                  <span className="text-3xl font-bold">$1,000</span>
-                </div>
-                
-                <motion.ul
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="space-y-2"
-                >
-                  <li className="text-sm text-white/60">• Exclusive use licence</li>
-                  <li className="text-sm text-white/60">• Basic editable formats (.ai, .pdf, .svg)</li>
-                </motion.ul>
-              </div>
-            </Tab>
+    <Card>
+      <CardContent className="space-y-6 p-6">
+        <Tabs value={selectedTier} onValueChange={value => setSelectedTier(value as TierType)}>
+          <TabsList>
+            <TabItem value="summon" label="SUMMON" />
+            <TabItem value="revival" label="REVIVAL" />
+            <TabItem value="afterlife" label="AFTERLIFE" />
+          </TabsList>
 
-            <Tab 
-              key="revival" 
-              title={
-                <div className="flex items-center gap-2 justify-center">
-                  <span className="font-mono text-sm tracking-wider">REVIVAL</span>
-                  <span className="bg-white/10 text-white text-[10px] px-2 py-0.5 rounded-full">
-                    BEST
-                  </span>
-                </div>
-              }
-            >
-              <div className="mt-4 space-y-6">
-                <div>
-                  <span className="font-mono text-xs tracking-wider opacity-50 uppercase block mb-2">ADVANCED BRAND PACKAGE</span>
-                  <p className="text-sm text-white/60 mb-3">
-                    Full editable files. Delivery in {withWordmark ? '5-7 work days' : '2-3 days'}
-                  </p>
-                  <span className="text-3xl font-bold">$5,000</span>
-                </div>
-                
-                <motion.ul
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="space-y-2"
-                >
-                  <li className="text-sm text-white/60">• Exclusive use licence</li>
-                  <li className="text-sm text-white/60">• Complete editable formats (.ai, .pdf, .svg, .eps)</li>
-                  <li className="text-sm text-white/60">• Figma Files</li>
-                  <li className="text-sm text-white/60">• Typography Licence Recommendation</li>
-                </motion.ul>
-              </div>
-            </Tab>
-
-            <Tab 
-              key="afterlife" 
-              title={
-                <span className="font-mono text-sm tracking-wider">AFTERLIFE</span>
-              }
-            >
-              <div className="mt-4 space-y-6">
-                <div>
-                  <span className="font-mono text-xs tracking-wider opacity-50 uppercase block mb-2">CUSTOM BRANDING EXPERIENCE</span>
-                  <p className="text-sm text-white/60 mb-3">Bespoke brand development. 2 weeks sprint.</p>
-                  <span className="text-3xl font-bold">From $10,000</span>
-                </div>
-                
-                <motion.ul
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="space-y-2"
-                >
-                  <li className="text-sm text-white/60">• Personalized Session</li>
-                  <li className="text-sm text-white/60">• Custom Applications</li>
-                  <li className="text-sm text-white/60">• Full Brand Strategy</li>
-                  <li className="text-sm text-white/60">• Frequent updates</li>
-                  <li className="text-sm text-white/60 flex items-center gap-1">
-                    • Renewable white gloves service 
-                    <Tooltip 
-                      content={
-                        <div className="p-2">
-                          <p>$10,000 Monthly Retainer afterwards</p>
-                          <span className="bg-white/20 text-xs px-2 py-0.5 rounded-full">50% Off</span>
-                        </div>
-                      }
-                    >
-                      <Info className="w-4 h-4 opacity-60" />
-                    </Tooltip>
-                  </li>
-                </motion.ul>
-              </div>
-            </Tab>
-          </Tabs>
-
-          {selectedTier !== 'afterlife' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-sm">Add Wordmark (+$1,500)</p>
-                <Switch 
-                  size="sm"
-                  isSelected={withWordmark}
-                  onValueChange={setWithWordmark}
-                  classNames={{
-                    wrapper: "group-data-[selected=true]:bg-white",
-                    thumb: "group-data-[selected=true]:bg-black"
-                  }}
-                />
-              </div>
-              
-              {withWordmark && (
-                <div className="space-y-2">
-                  <Input
-                    type="text"
-                    value={wordmarkText}
-                    onValueChange={setWordmarkText}
-                    placeholder="Insert brand name"
-                    classNames={{
-                      input: "bg-zinc-900/50 text-white border-white/10"
-                    }}
-                  />
-                  <p className="text-xs text-white/60">
-                    We&apos;ll design a custom wordmark to match your logo. Delivery within 48 hours.
-                  </p>
-                </div>
-              )}
-
-              <motion.div
-                key={`summary-${orderSummary.total}`}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <span className="font-mono text-sm tracking-wider opacity-50 uppercase block mb-4">
-                  Order Summary
+          <TabPanel value="summon">
+            <div className="mt-4 space-y-6">
+              <div>
+                <span className="mb-2 block font-mono text-xs uppercase tracking-wider opacity-50">
+                  Basic package
                 </span>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Base Price</span>
-                    <span>${orderSummary.base.toLocaleString()}</span>
-                  </div>
-                  {withWordmark && (
-                    <div className="flex justify-between text-sm">
-                      <span>Wordmark Design</span>
-                      <span>${orderSummary.wordmark.toLocaleString()}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between text-lg font-bold pt-2 border-t border-white/10">
-                    <span>Total</span>
-                    <span>${orderSummary.total.toLocaleString()}</span>
-                  </div>
-                </div>
-              </motion.div>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Essential files. Instant delivery.
+                </p>
+                {/* Figures come from the logo's price record, not from literals. */}
+                <span className="text-3xl font-bold">{money(price.summon)}</span>
+              </div>
+
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Exclusive use licence</li>
+                <li>• Basic editable formats (.ai, .pdf, .svg)</li>
+              </ul>
             </div>
-          )}
+          </TabPanel>
 
-          <Button 
-            className="w-full bg-white text-black hover:bg-white/90"
-            onClick={(e) => {
-              console.log('Button onClick triggered') // Debug button click
-              handlePurchase(e)
-            }}
-          >
-            {selectedTier === 'afterlife' ? 'Book a Call' : 'Buy Now'}
-          </Button>
-        </CardBody>
-      </Card>
+          <TabPanel value="revival">
+            <div className="mt-4 space-y-6">
+              <div>
+                <span className="mb-2 block font-mono text-xs uppercase tracking-wider opacity-50">
+                  Advanced brand package
+                </span>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Full editable files. Delivery in {withWordmark ? '5–7 work days' : '2–3 days'}.
+                </p>
+                <span className="text-3xl font-bold">{money(price.revival)}</span>
+              </div>
 
-      <BookCallModal 
-        isOpen={isCallModalOpen} 
-        onClose={() => {
-          console.log('Modal closing') // Debug modal
-          setIsCallModalOpen(false)
-        }} 
-      />
-    </>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Exclusive use licence</li>
+                <li>• Complete editable formats (.ai, .pdf, .svg, .eps)</li>
+                <li>• Figma files</li>
+                <li>• Typography licence recommendation</li>
+              </ul>
+            </div>
+          </TabPanel>
+
+          <TabPanel value="afterlife">
+            <div className="mt-4 space-y-6">
+              <div>
+                <span className="mb-2 block font-mono text-xs uppercase tracking-wider opacity-50">
+                  Custom branding experience
+                </span>
+                <p className="mb-3 text-sm text-muted-foreground">
+                  Bespoke brand development. Two-week sprint.
+                </p>
+                <span className="text-3xl font-bold">{price.afterlife}</span>
+              </div>
+
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li>• Everything in Revival</li>
+                <li className="flex items-center gap-2">
+                  • Ongoing partnership
+                  <Tooltip
+                    content={
+                      <div className="space-y-1">
+                        <p>$10,000 monthly retainer afterwards</p>
+                        <span className="rounded-full bg-foreground/20 px-2 py-0.5 text-xs">
+                          50% off
+                        </span>
+                      </div>
+                    }
+                  >
+                    {/* Focusable so the tooltip is reachable by keyboard, not hover alone. */}
+                    <button type="button" aria-label="Retainer details" className="inline-flex">
+                      <Info className="h-4 w-4 opacity-60" />
+                    </button>
+                  </Tooltip>
+                </li>
+              </ul>
+            </div>
+          </TabPanel>
+        </Tabs>
+
+        {!isCustomTier && (
+          <div className="space-y-4">
+            <Switch
+              label={`Add wordmark (+${money(WORDMARK_PRICE)})`}
+              checked={withWordmark}
+              onToggle={() => setWithWordmark(current => !current)}
+            />
+
+            {withWordmark && (
+              <div className="space-y-2">
+                <InputGroup>
+                  <InputField
+                    index={0}
+                    label="Brand name"
+                    placeholder="Insert brand name"
+                    value={wordmarkText}
+                    onChange={setWordmarkText}
+                  />
+                </InputGroup>
+                <p className="text-xs text-muted-foreground">
+                  We&apos;ll design a custom wordmark to match your logo. Delivery within
+                  48 hours.
+                </p>
+              </div>
+            )}
+
+            <div>
+              <span className="mb-4 block font-mono text-sm uppercase tracking-wider opacity-50">
+                Order summary
+              </span>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Base price</span>
+                  <span>{money(summary.base)}</span>
+                </div>
+                {withWordmark && (
+                  <div className="flex justify-between text-sm">
+                    <span>Wordmark design</span>
+                    <span>{money(summary.wordmark)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between border-t border-border pt-2 text-lg font-bold">
+                  <span>Total</span>
+                  {/*
+                    Announced politely: the total changes as a consequence of a
+                    control elsewhere, so screen reader users need to hear it.
+                  */}
+                  <span aria-live="polite">{money(summary.total)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <Button variant="primary" size="lg" className="w-full" onClick={handlePurchase}>
+          {isCustomTier ? 'Book a call' : 'Buy now'}
+        </Button>
+      </CardContent>
+    </Card>
   )
-} 
+}

@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback } from "react"
-import { Image, Button } from "@nextui-org/react"
-import { Modal, ModalContent, ModalBody } from "@nextui-org/react"
-import { ChevronLeft, ChevronRight, X } from "lucide-react"
+import { useCallback, useEffect, useState } from 'react'
+import Image from 'next/image'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils'
 
 interface ImageGalleryProps {
   images: string[]
@@ -15,132 +17,142 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [previewIndex, setPreviewIndex] = useState(0)
 
-  // Memoize navigation handlers
   const handleNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % images.length)
+    setCurrentIndex(prev => (prev + 1) % images.length)
   }, [images.length])
 
   const handlePrev = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
+    setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
   }, [images.length])
 
-  // Keyboard navigation with memoized handlers
+  // Arrow keys page through the lightbox. Escape is handled by the dialog.
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return
+    if (!isOpen) return
 
-      switch (e.key) {
-        case 'ArrowLeft':
-          handlePrev()
-          break
-        case 'ArrowRight':
-          handleNext()
-          break
-        case 'Escape':
-          setIsOpen(false)
-          break
-      }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft') handlePrev()
+      if (event.key === 'ArrowRight') handleNext()
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, handleNext, handlePrev])
 
+  if (images.length === 0) return null
+
   return (
     <>
       <div className="space-y-4">
-        <div className="w-full aspect-video rounded-lg overflow-hidden border border-white/10 hover:border-white/20 transition-colors">
-          <Button 
-            className="w-full h-full p-0 bg-transparent min-w-0 rounded-none [transform:none!important]"
-            onPress={() => {
-              setCurrentIndex(previewIndex)
-              setIsOpen(true)
-            }}
-          >
-            <Image
-              src={images[previewIndex]}
-              alt={title}
-              classNames={{
-                wrapper: "w-full h-full rounded-none",
-                img: "w-full h-full object-cover rounded-none [transform:none!important]"
-              }}
-            />
-          </Button>
-        </div>
+        <button
+          type="button"
+          aria-label={`Open ${title} at full size`}
+          onClick={() => {
+            setCurrentIndex(previewIndex)
+            setIsOpen(true)
+          }}
+          className="relative block aspect-video w-full overflow-hidden rounded-lg border border-border transition-colors duration-quick ease-settle hover:border-foreground/20"
+        >
+          <Image
+            src={images[previewIndex]}
+            alt={title}
+            fill
+            priority
+            sizes="(min-width: 1024px) 66vw, 100vw"
+            className="object-cover"
+          />
+        </button>
 
-        <div className="overflow-x-auto">
-          <div className="flex gap-4 pb-4">
-            {images.map((image, index) => (
-              <div 
-                key={image}
-                className={`w-48 aspect-video rounded-lg overflow-hidden flex-shrink-0 transition-colors
-                  ${previewIndex === index 
-                    ? 'border border-white/20' 
-                    : 'border border-white/10 hover:border-white/20'}`}
-              >
-                <Button
-                  className="w-full h-full p-0 min-w-0 bg-transparent rounded-none [transform:none!important]"
-                  onPress={() => setPreviewIndex(index)}
+        {images.length > 1 && (
+          <div className="overflow-x-auto">
+            {/*
+              A tablist-style strip of real buttons. These were NextUI Buttons
+              wrapping images with transform overrides fighting the component's
+              own press animation; plain buttons need none of that.
+            */}
+            <div className="flex gap-4 pb-4">
+              {images.map((image, index) => (
+                <button
+                  key={image}
+                  type="button"
+                  aria-label={`Show image ${index + 1} of ${images.length}`}
+                  aria-current={previewIndex === index}
+                  onClick={() => setPreviewIndex(index)}
+                  className={cn(
+                    'relative aspect-video w-48 flex-shrink-0 overflow-hidden rounded-lg border',
+                    'transition-colors duration-quick ease-settle',
+                    previewIndex === index
+                      ? 'border-foreground/40'
+                      : 'border-border hover:border-foreground/20'
+                  )}
                 >
                   <Image
                     src={image}
-                    alt={`${title} - ${index + 1}`}
-                    classNames={{
-                      wrapper: "w-full h-full rounded-none",
-                      img: "w-full h-full object-cover rounded-none [transform:none!important]"
-                    }}
+                    alt=""
+                    fill
+                    sizes="192px"
+                    className="object-cover"
                   />
-                </Button>
-              </div>
-            ))}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      <Modal 
-        size="full" 
-        isOpen={isOpen} 
-        onClose={() => setIsOpen(false)}
-        hideCloseButton
-        className="bg-black/95 backdrop-blur-xl"
-      >
-        <ModalContent>
-          <ModalBody className="flex items-center justify-center p-0">
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="h-screen w-screen max-w-none border-0 bg-background/95 p-0 backdrop-blur-xl">
+          {/* Named for assistive tech; the lightbox itself is purely visual. */}
+          <DialogTitle className="sr-only">
+            {title} — image {currentIndex + 1} of {images.length}
+          </DialogTitle>
+
+          <div className="relative flex h-full w-full items-center justify-center">
             <Button
-              isIconOnly
-              className="fixed right-4 top-4 z-50 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
-              size="sm"
-              onPress={() => setIsOpen(false)}
+              variant="tertiary"
+              size="icon"
+              aria-label="Close"
+              onClick={() => setIsOpen(false)}
+              className="absolute right-4 top-4 z-50"
             >
-              <X size={18} />
+              <X />
             </Button>
 
-            <Button
-              isIconOnly
-              onPress={handlePrev}
-              className="absolute left-4 z-50 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
-              variant="bordered"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </Button>
-            
-            <Image
-              src={images[currentIndex]}
-              alt={`${title} - Image ${currentIndex + 1}`}
-              className="max-h-screen object-contain"
-            />
-            
-            <Button
-              isIconOnly
-              onPress={handleNext}
-              className="absolute right-4 z-50 bg-black/20 backdrop-blur-sm border border-white/10 hover:bg-white/10"
-              variant="bordered"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </Button>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
+            {images.length > 1 && (
+              <Button
+                variant="tertiary"
+                size="icon-lg"
+                aria-label="Previous image"
+                onClick={handlePrev}
+                className="absolute left-4 z-50"
+              >
+                <ChevronLeft />
+              </Button>
+            )}
+
+            <div className="relative h-full w-full">
+              <Image
+                src={images[currentIndex]}
+                alt={`${title} — image ${currentIndex + 1}`}
+                fill
+                sizes="100vw"
+                className="object-contain"
+              />
+            </div>
+
+            {images.length > 1 && (
+              <Button
+                variant="tertiary"
+                size="icon-lg"
+                aria-label="Next image"
+                onClick={handleNext}
+                className="absolute right-4 z-50"
+              >
+                <ChevronRight />
+              </Button>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   )
-} 
+}
