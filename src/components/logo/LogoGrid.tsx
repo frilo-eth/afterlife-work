@@ -1,9 +1,8 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useEffect, useRef } from 'react'
 import { LogoCard } from './LogoCard'
-import { useProximity } from '@/hooks/useProximity'
-import { list } from '@/lib/motion'
+import { useProximityHover } from '@/hooks/use-proximity-hover'
 
 // Only the fields the card actually renders. Kept structural so both the
 // public catalog's trimmed rows and the admin's full Logo records satisfy it.
@@ -20,30 +19,46 @@ interface LogoGridProps {
 }
 
 export function LogoGrid({ logos, onLogoPress }: LogoGridProps) {
-  const { containerRef, nearestIndex } = useProximity(logos.length)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // axis "xy" resolves the nearest card across rows and columns, which is what
+  // a wrapping grid needs — a single-axis search picks the wrong card as soon
+  // as the pointer sits between two rows.
+  // axis "xy" resolves the nearest card across rows and columns, which is what
+  // a wrapping grid needs — a single-axis search picks the wrong card as soon
+  // as the pointer sits between two rows.
+  const { activeIndex, handlers, registerItem, measureItems } = useProximityHover(
+    containerRef,
+    { axis: 'xy' }
+  )
+
+  // The grid reflows on resize and whenever filters change the item count.
+  useEffect(() => {
+    measureItems()
+  }, [measureItems, logos.length])
 
   if (!logos?.length) {
     return null
   }
 
   return (
-    <motion.div
+    <div
       ref={containerRef}
-      variants={list}
-      initial="hidden"
-      animate="visible"
+      {...handlers}
       className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
     >
       {logos.map((logo, index) => (
         <LogoCard
           key={logo.id}
+          index={index}
+          registerItem={registerItem}
           title={logo.title}
           thumbnail={logo.thumbnail}
           tags={logo.tags}
-          isNearest={index === nearestIndex}
+          isNearest={index === activeIndex}
           onSelect={() => onLogoPress?.(logo.id)}
         />
       ))}
-    </motion.div>
+    </div>
   )
 }

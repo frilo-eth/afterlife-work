@@ -52,6 +52,28 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Interaction states used by the @fluid components.
+        hover: "hsl(var(--hover))",
+        active: "hsl(var(--active))",
+        // Fluid's eight elevation surfaces. Hex values, so no hsl() wrapper.
+        "surface-1": "var(--surface-1)",
+        "surface-2": "var(--surface-2)",
+        "surface-3": "var(--surface-3)",
+        "surface-4": "var(--surface-4)",
+        "surface-5": "var(--surface-5)",
+        "surface-6": "var(--surface-6)",
+        "surface-7": "var(--surface-7)",
+        "surface-8": "var(--surface-8)",
+      },
+      boxShadow: {
+        "surface-1": "var(--shadow-1)",
+        "surface-2": "var(--shadow-2)",
+        "surface-3": "var(--shadow-3)",
+        "surface-4": "var(--shadow-4)",
+        "surface-5": "var(--shadow-5)",
+        "surface-6": "var(--shadow-6)",
+        "surface-7": "var(--shadow-7)",
+        "surface-8": "var(--shadow-8)",
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -1,12 +1,14 @@
 'use client'
 
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { useEffect, useRef } from 'react'
 import { Skull } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { listItem, respond } from '@/lib/motion'
 
 interface LogoCardProps {
+  /** Position in the grid, used to register with proximity tracking. */
+  index: number
+  registerItem: (index: number, element: HTMLElement | null) => void
   title: string
   thumbnail: string
   tags: string[]
@@ -25,6 +27,8 @@ const formatTitle = (title: string) =>
     .join(' ')
 
 export function LogoCard({
+  index,
+  registerItem,
   title,
   thumbnail,
   tags,
@@ -32,22 +36,31 @@ export function LogoCard({
   onSelect
 }: LogoCardProps) {
   const label = formatTitle(title)
+  const ref = useRef<HTMLButtonElement>(null)
+
+  // Register with the grid's proximity tracker so it can measure this card.
+  useEffect(() => {
+    registerItem(index, ref.current)
+    return () => registerItem(index, null)
+  }, [index, registerItem])
 
   return (
-    <motion.button
+    <button
+      ref={ref}
       type="button"
-      variants={listItem}
       onClick={onSelect}
       aria-label={`View ${label}`}
-      // The lift is the proximity signal: the nearest card rises before it is
-      // clicked, so aim is corrected during the approach. Scale is deliberately
-      // tiny — this is a hint, not an event.
-      animate={{ y: isNearest ? -4 : 0, scale: isNearest ? 1.01 : 1 }}
-      transition={respond}
       className={cn(
         'group relative flex flex-col overflow-hidden rounded-lg border text-left',
-        'bg-card transition-colors',
-        isNearest ? 'border-foreground/25' : 'border-border'
+        // Prerendered content must be visible without JavaScript, so there is
+        // no entrance animation here — a fade-in would hide the catalog until
+        // hydration and carries no information anyway. Only the proximity
+        // signal moves, and it degrades to "no lift" if JS never arrives.
+        'bg-card will-change-transform',
+        'transition-[transform,border-color] duration-quick ease-settle',
+        isNearest
+          ? 'border-foreground/25 -translate-y-1 scale-[1.01]'
+          : 'border-border translate-y-0 scale-100'
       )}
     >
       <div className="relative aspect-square w-full overflow-hidden bg-secondary">
@@ -99,6 +112,6 @@ export function LogoCard({
           ))}
         </div>
       </div>
-    </motion.button>
+    </button>
   )
 }

@@ -18,7 +18,8 @@
     "enabled": true,
     "includes": [
       "**",
-      "!src/components/modals/SubmitLogoModal.tsx"
+      "!src/components/modals/SubmitLogoModal.tsx",
+      "!src/components/ui/**"
     ],
     "rules": {
       "recommended": true,

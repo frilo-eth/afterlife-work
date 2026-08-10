@@ -15,7 +15,6 @@ import type { DashboardData, OrderTier, LogoStatus, OrderStatus, OrderWithLogo, 
 import { Twitter, Circle, HardDrive as HardDriveIcon, Cpu as CpuIcon, Database as DatabaseIcon, TrendingUp } from 'lucide-react'
 import { Progress } from '@nextui-org/react'
 import { fetchDashboardData } from '../actions/dashboard'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'

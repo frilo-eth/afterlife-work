@@ -280,7 +280,7 @@ export function LogoUploadForm() {
               <Button
                 key={tag}
                 type="button"
-                variant={formData.tags.includes(tag) ? "default" : "ghost"}
+                variant={formData.tags.includes(tag) ? "primary" : "ghost"}
                 onClick={() => toggleTag(tag)}
               >
                 {tag}
@@ -291,7 +291,7 @@ export function LogoUploadForm() {
 
         <Button 
           type="submit" 
-          variant="default"
+          variant="primary"
           disabled={isSubmitting || !formData.placeholder || formData.galleryImages.length < 4}
         >
           {isSubmitting ? 'Uploading...' : 'Upload Logo'}
