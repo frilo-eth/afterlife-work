@@ -1,35 +1,45 @@
 'use client'
 
-import { Card } from '@nextui-org/react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const data = [
   { name: 'Jan', value: 0 },
   { name: 'Feb', value: 0 },
-  { name: 'Mar', value: 0 },
+  { name: 'Mar', value: 0 }
 ]
 
 export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-4xl font-bold">Analytics</h1>
-      
-      <div className="grid grid-cols-1 gap-6">
-        <Card className="p-6 bg-black">
-          <h2 className="text-2xl font-bold mb-4">Revenue Overview</h2>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue overview</CardTitle>
+        </CardHeader>
+        <CardContent>
           <div className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="#8884d8" />
+                {/* Chart colours come from the theme rather than a literal. */}
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <Tooltip
+                  contentStyle={{
+                    background: 'hsl(var(--popover))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: 'var(--radius)',
+                    color: 'hsl(var(--popover-foreground))'
+                  }}
+                />
+                <Bar dataKey="value" fill="hsl(var(--foreground))" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
-} 
+}

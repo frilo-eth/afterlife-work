@@ -1,9 +1,10 @@
-import { Spinner, Card } from '@nextui-org/react'
+import { Card } from '@/components/ui/card'
+import { Spinner } from '@/components/ui/spinner'
 
 export function LoadingState() {
   return (
-    <Card className="w-full h-[300px] flex items-center justify-center bg-default-50">
-      <Spinner size="lg" color="white" />
+    <Card className="flex h-[300px] w-full items-center justify-center">
+      <Spinner className="h-8 w-8" label="Loading dashboard data" />
     </Card>
   )
-} 
+}

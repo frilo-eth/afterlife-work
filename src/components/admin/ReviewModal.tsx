@@ -1,13 +1,16 @@
+'use client'
+
 import { useState } from 'react'
-import { 
-  Modal, 
-  ModalContent, 
-  ModalHeader, 
-  ModalBody, 
-  ModalFooter,
-  Button,
-  Textarea
-} from "@nextui-org/react"
+import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 interface ReviewModalProps {
   isOpen: boolean
@@ -21,33 +24,52 @@ export function ReviewModal({ isOpen, onClose, onSubmit, title, action }: Review
   const [message, setMessage] = useState('')
 
   const handleSubmit = () => {
+    if (!message.trim()) return
     onSubmit(message)
     setMessage('')
     onClose()
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
-      <ModalContent>
-        <ModalHeader>{title}</ModalHeader>
-        <ModalBody>
+    <Dialog
+      open={isOpen}
+      onOpenChange={next => {
+        if (!next) onClose()
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-2">
+          <Label htmlFor="review-message">Message to designer</Label>
           <Textarea
-            label="Message to Designer"
-            placeholder="Enter your feedback..."
+            id="review-message"
+            placeholder="Enter your feedback…"
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            minRows={4}
+            onChange={event => setMessage(event.target.value)}
+            rows={4}
           />
-        </ModalBody>
-        <ModalFooter>
-          <Button color="danger" variant="light" onPress={onClose}>
+        </div>
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
-          <Button color="primary" onPress={handleSubmit} isDisabled={!message.trim()}>
+          {/*
+            Rejection is destructive, so it reads as such rather than as the
+            same neutral "primary" the request-changes flow uses.
+          */}
+          <Button
+            variant={action === 'REJECT' ? 'secondary' : 'primary'}
+            onClick={handleSubmit}
+            disabled={!message.trim()}
+          >
             Send
           </Button>
-        </ModalFooter>
-      </ModalContent>
-    </Modal>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
-} 
+}

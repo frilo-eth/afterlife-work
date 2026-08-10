@@ -1,10 +1,10 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Button, Link } from '@nextui-org/react'
-import { LogOut } from 'lucide-react'
-import NextLink from 'next/link'
+import Link from 'next/link'
 import Image from 'next/image'
+import { LogOut } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export function AdminNav() {
   const router = useRouter()
@@ -19,33 +19,24 @@ export function AdminNav() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 bg-black/80 z-50 backdrop-blur-md border-b border-white/10">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4">
-        <div className="h-16 flex items-center justify-between">
-          <NextLink href="/admin" passHref legacyBehavior>
-            <Link className="flex items-center gap-2">
-              <Image
-                src="/logo.svg"
-                alt="Afterlife Logo"
-                width={32}
-                height={32}
-                priority
-              />
-              <span className="text-white/90 font-semibold">God Mode</span>
-            </Link>
-          </NextLink>
-          
+        <div className="flex h-16 items-center justify-between">
+          <Link href="/admin" className="flex items-center gap-2">
+            <Image src="/logo.svg" alt="" width={32} height={32} priority />
+            <span className="font-semibold text-foreground/90">God Mode</span>
+          </Link>
+
           <Button
-            isIconOnly
-            variant="light"
-            onPress={handleLogout}
-            className="bg-white/5 hover:bg-white/10"
-            aria-label="Logout"
+            variant="ghost"
+            size="icon"
+            aria-label="Log out"
+            onClick={handleLogout}
           >
-            <LogOut size={20} />
+            <LogOut />
           </Button>
         </div>
       </div>
     </header>
   )
-} 
+}

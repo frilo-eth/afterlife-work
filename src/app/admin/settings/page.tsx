@@ -1,14 +1,18 @@
-import { Card } from '@nextui-org/react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-4xl font-bold">Settings</h1>
-      
-      <Card className="p-6">
-        <h2 className="text-2xl font-bold mb-4">General Settings</h2>
-        <p className="text-gray-500">Settings coming soon...</p>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>General</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Settings coming soon.</p>
+        </CardContent>
       </Card>
     </div>
   )
-} 
+}
