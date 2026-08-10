@@ -1,37 +1,49 @@
 'use client'
 
-import React from "react"
-import { LogoCard } from "./LogoCard"
+import { motion } from 'framer-motion'
+import { LogoCard } from './LogoCard'
+import { useProximity } from '@/hooks/useProximity'
+import { list } from '@/lib/motion'
 
 // Only the fields the card actually renders. Kept structural so both the
 // public catalog's trimmed rows and the admin's full Logo records satisfy it.
 interface LogoGridItem {
-  id: string;
-  title: string;
-  thumbnail: string;
-  tags: string[];
+  id: string
+  title: string
+  thumbnail: string
+  tags: string[]
 }
 
 interface LogoGridProps {
-  logos: LogoGridItem[];
-  onLogoPress?: (id: string) => void;
+  logos: LogoGridItem[]
+  onLogoPress?: (id: string) => void
 }
 
 export function LogoGrid({ logos, onLogoPress }: LogoGridProps) {
-  if (!logos || !Array.isArray(logos)) {
-    console.error('Invalid logos data:', logos)
-    return <div>No logos available</div>
+  const { containerRef, nearestIndex } = useProximity(logos.length)
+
+  if (!logos?.length) {
+    return null
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      {logos.map((logo) => (
+    <motion.div
+      ref={containerRef}
+      variants={list}
+      initial="hidden"
+      animate="visible"
+      className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      {logos.map((logo, index) => (
         <LogoCard
           key={logo.id}
-          {...logo}
-          onPress={() => onLogoPress?.(logo.id)}
+          title={logo.title}
+          thumbnail={logo.thumbnail}
+          tags={logo.tags}
+          isNearest={index === nearestIndex}
+          onSelect={() => onLogoPress?.(logo.id)}
         />
       ))}
-    </div>
-  );
-} 
+    </motion.div>
+  )
+}

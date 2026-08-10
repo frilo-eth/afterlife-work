@@ -1,44 +1,57 @@
-import React, { forwardRef } from "react"
-import { Button as NextUIButton, type ButtonProps as NextUIButtonProps } from "@nextui-org/react"
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
 
-// Define shadcn-style variants we want to support
-type ShadcnVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
+import { cn } from "@/lib/utils"
 
-// Extended props to support shadcn-style variants
-export interface ButtonProps extends Omit<NextUIButtonProps, 'variant'> {
-  variant?: ShadcnVariant;
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+        outline:
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+        ghost: "hover:bg-accent hover:text-accent-foreground",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
 }
 
-// Map shadcn variants to NextUI variants
-const variantMap: Record<ShadcnVariant, NextUIButtonProps['variant']> = {
-  default: 'solid',
-  destructive: 'solid', // With custom color
-  outline: 'bordered',
-  secondary: 'flat',
-  ghost: 'ghost',
-  link: 'light'
-};
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
-  const { children, className = "", variant = "default", ...rest } = props;
-  
-  // Map the shadcn variant to NextUI variant
-  const nextUIVariant = variantMap[variant] || 'solid';
-  
-  // Add custom color for destructive variant
-  const color = variant === 'destructive' ? 'danger' : undefined;
-  
-  return (
-    <NextUIButton
-      ref={ref}
-      variant={nextUIVariant}
-      color={color}
-      {...rest}
-      className={`font-mono ${className}`}
-    >
-      {children}
-    </NextUIButton>
-  );
-});
-
-Button.displayName = "Button"; 
+export { Button, buttonVariants }
