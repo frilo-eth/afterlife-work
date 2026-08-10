@@ -1,24 +1,34 @@
 'use client'
 
-import React, { useState } from "react"
-import { Input, Button } from "@nextui-org/react"
-import { ArrowRight, Mail } from "lucide-react"
-import { subscribeToNewsletter } from "@/lib/api"
+import { useState } from 'react'
+import { Mail } from 'lucide-react'
+import { InputGroup, InputField } from '@/components/ui/input-group'
+import { Button } from '@/components/ui/button'
+import { subscribeToNewsletter } from '@/lib/api'
+import { cn } from '@/lib/utils'
+
+type SubscribeStatus = 'idle' | 'loading' | 'success' | 'error'
 
 export const Hero = () => {
-  const [email, setEmail] = useState("")
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
-  const [message, setMessage] = useState("")
+  const [email, setEmail] = useState('')
+  const [status, setStatus] = useState<SubscribeStatus>('idle')
+  const [message, setMessage] = useState('')
 
-  const handleSubscribe = async () => {
-    if (!email) return
-    
+  // A real submit handler rather than a click handler on the button: the field
+  // was previously outside a form, so pressing Enter — which is how most people
+  // finish typing an email — did nothing at all.
+  const handleSubscribe = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (!email || status === 'loading') return
+
     setStatus('loading')
+    setMessage('')
+
     const response = await subscribeToNewsletter(email)
-    
+
     if (response.success) {
       setStatus('success')
-      setMessage('Thanks for subscribing!')
+      setMessage('Thanks for subscribing.')
       setEmail('')
     } else {
       setStatus('error')
@@ -27,73 +37,70 @@ export const Hero = () => {
   }
 
   return (
-    <div className="relative min-h-[60vh] flex items-center justify-center">
-      {/* Restore original structure but fixed overflow */}
-      <div className="absolute top-0 inset-x-0 h-screen overflow-hidden opacity-10" 
-           style={{
-             marginTop: '-64px' // Original value, keeps position but constrains overflow
-           }}>
-        <div 
-          className="absolute inset-0 bg-gradient-to-b from-white/10 to-transparent"
+    <div className="relative flex min-h-[60vh] items-center justify-center">
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 -mt-16 h-screen overflow-hidden opacity-10"
+      >
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-foreground/10 to-transparent"
           style={{
             backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
             backgroundSize: '40px 40px'
           }}
         />
       </div>
-      
+
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center space-y-8">
+        <div className="mx-auto max-w-3xl space-y-8 text-center">
           <div className="space-y-6">
-            <span className="font-mono text-sm tracking-wider opacity-50 block uppercase">
+            <span className="block font-mono text-sm uppercase tracking-wider opacity-50">
               Revive a lost mark
             </span>
-            
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r 
-                         from-white to-white/60 bg-clip-text text-transparent 
-                         leading-[1.4] pb-2">
+
+            <h1 className="bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text pb-2 text-5xl font-bold leading-[1.4] text-transparent md:text-6xl">
               Save logos, save time
             </h1>
-            
-            <p className="text-xl text-white/60 max-w-xl mx-auto">
-              Unique, ready-to-use logos that died before seeing the light of day, 
+
+            <p className="mx-auto max-w-xl text-xl text-muted-foreground">
+              Unique, ready-to-use logos that died before seeing the light of day,
               waiting to be brought back.
             </p>
           </div>
-          
-          <div className="max-w-md mx-auto relative">
-            <div className="flex w-full gap-2 isolate">
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                startContent={
-                  <Mail className="text-white/50" size={16} />
-                }
-                classNames={{
-                  input: "bg-transparent text-sm",
-                  inputWrapper: [
-                    "bg-black",
-                    "border border-white/10",
-                    "hover:border-white/20",
-                    "h-10",
-                    "px-3",
-                    "!rounded-lg",
-                  ]
-                }}
-              />
-              <Button
-                className="bg-white text-black font-medium hover:bg-white/90 text-sm h-10 px-4 rounded-lg"
-                onPress={handleSubscribe}
-                size="sm"
-                isLoading={status === 'loading'}
-              >
+
+          <div className="relative mx-auto max-w-md">
+            <form onSubmit={handleSubscribe} className="flex w-full items-end gap-2 text-left">
+              <InputGroup className="flex-1">
+                <InputField
+                  index={0}
+                  label="Email"
+                  type="email"
+                  placeholder="Enter your email"
+                  icon={Mail}
+                  value={email}
+                  onChange={setEmail}
+                  disabled={status === 'loading'}
+                  error={status === 'error' ? message : undefined}
+                />
+              </InputGroup>
+
+              <Button type="submit" variant="primary" size="lg" loading={status === 'loading'}>
                 Subscribe
               </Button>
-            </div>
-            {message && (
-              <p className={`text-sm mt-2 ${status === 'error' ? 'text-red-500' : 'text-green-500'}`}>
+            </form>
+
+            {/*
+              Announced politely so the outcome reaches screen readers; the
+              error text is already bound to the field itself.
+            */}
+            {message && status !== 'error' && (
+              <p
+                role="status"
+                className={cn(
+                  'mt-2 text-sm',
+                  status === 'success' ? 'text-foreground' : 'text-muted-foreground'
+                )}
+              >
                 {message}
               </p>
             )}
@@ -102,4 +109,4 @@ export const Hero = () => {
       </div>
     </div>
   )
-} 
+}

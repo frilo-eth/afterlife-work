@@ -1,154 +1,131 @@
 'use client'
 
-import React, { useState, useCallback, useEffect } from "react"
-import { Input, Button } from "@nextui-org/react"
-import { Search, X, Filter } from "lucide-react"
-import { debounce } from "lodash"
-import { LOGO_TAGS } from "@/lib/constants"
-
-interface FilterBarProps {
-  onFiltersChange: (filters: FilterState) => void;
-}
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Filter, Search, X } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { InputGroup, InputField } from '@/components/ui/input-group'
+import { LOGO_TAGS } from '@/lib/constants'
+import { cn } from '@/lib/utils'
 
 interface FilterState {
-  styles: string[];
-  search: string;
+  styles: string[]
+  search: string
 }
 
-export const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
-  const [selectedStyles, setSelectedStyles] = useState<Set<string>>(new Set([]))
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const [showFilters, setShowFilters] = useState(true)
+interface FilterBarProps {
+  onFiltersChange: (filters: FilterState) => void
+}
 
-  // Modified scroll behavior
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.innerWidth < 768) { // mobile only
-        const scrolled = window.scrollY > 50 // Reduced threshold
-        setIsCollapsed(scrolled)
-        if (scrolled) {
-          setTimeout(() => setShowFilters(false), 300)
-        } else {
-          setShowFilters(true)
-          setIsCollapsed(false) // Ensure we reset collapse state
-        }
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  // Toggle filters visibility on mobile
-  const toggleFilters = () => {
-    setShowFilters(!showFilters)
-  }
-
-  const handleSearch = (value: string) => {
-    setSearchQuery(value)
-    updateFilters(selectedStyles, value)
-  }
-
-  const toggleFilter = (filter: string) => {
-    const newSet = new Set(selectedStyles)
-    
-    if (newSet.has(filter)) {
-      newSet.delete(filter)
-    } else {
-      newSet.add(filter)
-    }
-    
-    setSelectedStyles(newSet)
-    updateFilters(newSet, searchQuery)
-  }
-
-  const updateFilters = (styles: Set<string>, search: string) => {
-    onFiltersChange({
-      styles: Array.from(styles),
-      search: search
-    })
-  }
-
-  const FilterPill = ({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) => (
+// Defined at module scope. It previously lived inside FilterBar, which gave it
+// a new identity on every render — React unmounted and remounted every pill on
+// each keystroke, discarding focus and any in-flight transition.
+function FilterPill({
+  label,
+  active,
+  onToggle
+}: {
+  label: string
+  active: boolean
+  onToggle: () => void
+}) {
+  return (
     <Button
-      size="sm"
-      variant={active ? "solid" : "bordered"}
-      className={`
-        rounded-full px-4 h-10 text-sm transition-all
-        ${active 
-          ? 'bg-white text-black hover:bg-white/90' 
-          : 'bg-black/20 backdrop-blur-sm border border-white/10 hover:border-white/20 text-white'
-        }
-      `}
-      endContent={active && <X size={14} className="ml-1" />}
-      onPress={onPress}
+      variant={active ? 'primary' : 'tertiary'}
+      size="md"
+      aria-pressed={active}
+      onClick={onToggle}
+      trailingIcon={active ? X : undefined}
+      className="rounded-full"
     >
       {label}
     </Button>
   )
+}
 
-  const debouncedSearch = useCallback(
-    debounce((value: string) => {
-      handleSearch(value)
-    }, 300),
-    []
-  )
+export const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
+  const [selectedStyles, setSelectedStyles] = useState<Set<string>>(new Set())
+  const [searchInput, setSearchInput] = useState('')
+  const [search, setSearch] = useState('')
+  const [showFilters, setShowFilters] = useState(true)
+
+  // Debounce the search term itself rather than the callback. The previous
+  // version memoised a debounced function with an empty dependency array, so it
+  // captured the styles from first render and reported stale filters whenever a
+  // search followed a style change.
+  useEffect(() => {
+    const id = setTimeout(() => setSearch(searchInput), 250)
+    return () => clearTimeout(id)
+  }, [searchInput])
+
+  const styles = useMemo(() => Array.from(selectedStyles), [selectedStyles])
+
+  // Report upward whenever either half of the filter state settles.
+  const onFiltersChangeRef = useRef(onFiltersChange)
+  onFiltersChangeRef.current = onFiltersChange
+
+  useEffect(() => {
+    onFiltersChangeRef.current({ styles, search })
+  }, [styles, search])
+
+  const toggleFilter = useCallback((filter: string) => {
+    setSelectedStyles(previous => {
+      const next = new Set(previous)
+      if (next.has(filter)) {
+        next.delete(filter)
+      } else {
+        next.add(filter)
+      }
+      return next
+    })
+  }, [])
 
   return (
-    <div className="sticky top-16 z-10 backdrop-blur-md border-b border-white/10 bg-black/50">
+    <div className="sticky top-16 z-10 border-b border-border bg-background/50 backdrop-blur-md">
       <div className="container mx-auto px-4">
         <div className="py-4">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex items-center gap-2 w-full md:w-auto">
-              <Input
-                classNames={{
-                  input: "bg-transparent text-sm",
-                  inputWrapper: [
-                    "bg-transparent",
-                    "border border-white/10",
-                    "h-10",
-                    "px-3",
-                    "!rounded-lg"
-                  ]
-                }}
-                placeholder="Search"
-                value={searchQuery}
-                onValueChange={debouncedSearch}
-                startContent={<Search size={16} className="text-white/50" />}
-                className="w-full md:w-48"
-              />
-              
+          <div className="flex flex-col gap-4 md:flex-row md:items-end">
+            <div className="flex w-full items-end gap-2 md:w-auto">
+              <InputGroup className="w-full md:w-56">
+                <InputField
+                  index={0}
+                  label="Search"
+                  placeholder="Search logos"
+                  icon={Search}
+                  value={searchInput}
+                  onChange={setSearchInput}
+                />
+              </InputGroup>
+
               <Button
-                className="md:hidden h-10 px-3 bg-transparent border border-white/10 hover:bg-white/10"
-                onPress={toggleFilters}
-                style={{ 
-                  opacity: isCollapsed ? 1 : showFilters ? 0 : 1
-                }}
+                variant="tertiary"
+                size="lg"
+                className="md:hidden"
+                aria-expanded={showFilters}
+                aria-controls="style-filters"
+                leadingIcon={Filter}
+                onClick={() => setShowFilters(current => !current)}
               >
-                <Filter size={16} className="text-white/50" />
-                {selectedStyles.size > 0 && (
-                  <span className="ml-1 text-sm">
-                    {selectedStyles.size}
-                  </span>
-                )}
+                {selectedStyles.size > 0 ? String(selectedStyles.size) : 'Filters'}
               </Button>
             </div>
-            
-            <div 
-              className={`
-                flex flex-wrap gap-2
-                md:!flex md:!opacity-100 md:!h-auto
-                ${showFilters ? 'opacity-100 h-auto' : 'opacity-0 h-0'}
-                transition-all duration-300 ease-in-out
-              `}
+
+            {/*
+              Hidden with the hidden attribute rather than zero opacity. The
+              previous version faded the row out but left it in the layout and
+              in the tab order, so keyboard users could still reach controls
+              they could not see.
+            */}
+            <div
+              id="style-filters"
+              hidden={!showFilters}
+              className={cn('flex-wrap gap-2', showFilters ? 'flex' : 'hidden', 'md:!flex')}
             >
-              {LOGO_TAGS.map((style) => (
+              {LOGO_TAGS.map(style => (
                 <FilterPill
                   key={style}
                   label={style}
                   active={selectedStyles.has(style)}
-                  onPress={() => toggleFilter(style)}
+                  onToggle={() => toggleFilter(style)}
                 />
               ))}
             </div>
@@ -157,4 +134,4 @@ export const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
       </div>
     </div>
   )
-} 
+}

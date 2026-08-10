@@ -1,117 +1,106 @@
 'use client'
 
-import React, { useRef, useEffect } from "react"
-import { Button, Link } from "@nextui-org/react"
-import NextLink from 'next/link'
+import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import Image from 'next/image'
-import { PricingModal } from "@/components/modals/PricingModal"
-import { SubmitLogoModal } from "@/components/modals/SubmitLogoModal"
 import { usePathname } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { PricingModal } from '@/components/modals/PricingModal'
+import { SubmitLogoModal } from '@/components/modals/SubmitLogoModal'
+import { cn } from '@/lib/utils'
+
+// Distance and speed at which the header earns its backdrop. Both exist so the
+// bar settles quickly on a flick as well as on a slow read.
+const SCROLL_THRESHOLD = 250
+const VELOCITY_THRESHOLD = 30
 
 export const Header = () => {
-  const [isPricingOpen, setIsPricingOpen] = React.useState(false)
-  const [isSubmitOpen, setIsSubmitOpen] = React.useState(false)
-  const [isScrolled, setIsScrolled] = React.useState(false)
+  const [isPricingOpen, setIsPricingOpen] = useState(false)
+  const [isSubmitOpen, setIsSubmitOpen] = useState(false)
+  const [isScrolled, setIsScrolled] = useState(false)
   const pathname = usePathname()
   const lastScrollY = useRef(0)
-  const scrollVelocity = useRef(0)
-  
-  // For development: Check if we're in dev mode
-  const isDev = process.env.NODE_ENV === 'development'
-  
+  const lastTimestamp = useRef(0)
+
   const isLogoDetailPage = pathname !== '/'
 
   useEffect(() => {
-    const SCROLL_THRESHOLD = 250; // Fixed pixel threshold instead of percentage
-    const VELOCITY_THRESHOLD = 30; // Pixel movement between frames to detect fast scrolls
-    
-    let lastTimestamp = 0;
-    
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      const currentTime = Date.now();
-      
-      // Calculate velocity if we have previous values
-      if (lastTimestamp) {
-        const deltaTime = currentTime - lastTimestamp;
-        const deltaY = Math.abs(currentScrollY - lastScrollY.current);
-        scrollVelocity.current = deltaY / deltaTime * 1000; // pixels per second
-      }
-      
-      lastScrollY.current = currentScrollY;
-      lastTimestamp = currentTime;
-      
-      if (isLogoDetailPage) {
-        setIsScrolled(true);
-      } else {
-        // Show blur if either threshold is met
-        setIsScrolled(
-          currentScrollY > SCROLL_THRESHOLD || 
-          scrollVelocity.current > VELOCITY_THRESHOLD
-        );
-      }
-    };
+      const currentScrollY = window.scrollY
+      const now = Date.now()
 
-    // More frequent updates during scrolling
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    // Initial check
-    handleScroll();
-    
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isLogoDetailPage]);
+      let velocity = 0
+      if (lastTimestamp.current) {
+        const deltaTime = now - lastTimestamp.current
+        const deltaY = Math.abs(currentScrollY - lastScrollY.current)
+        if (deltaTime > 0) velocity = (deltaY / deltaTime) * 1000
+      }
+
+      lastScrollY.current = currentScrollY
+      lastTimestamp.current = now
+
+      setIsScrolled(
+        isLogoDetailPage ||
+          currentScrollY > SCROLL_THRESHOLD ||
+          velocity > VELOCITY_THRESHOLD
+      )
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    handleScroll()
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [isLogoDetailPage])
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50">
-        {/* Blur effect - always rendered but opacity changes */}
-        <div 
-          className={`absolute inset-0 transition-opacity duration-75 ${
-            isLogoDetailPage || isScrolled ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md border-b border-white/10" />
-        </div>
-        
-        {/* Header content */}
-        <div className="container mx-auto px-4 relative">
-          <div className="h-16 flex items-center justify-between">
-            <NextLink href="/" passHref legacyBehavior>
-              <Link>
-                <Image
-                  src="/logo.svg"
-                  alt="Afterlife Logo"
-                  width={32}
-                  height={32}
-                  priority
-                />
-              </Link>
-            </NextLink>
-            
-            <nav className="flex items-center gap-6">
-              {isLogoDetailPage ? (
-                <NextLink href="/#collection" passHref legacyBehavior>
-                  <Link className="text-sm text-white/70 hover:text-white">
-                    Collection
-                  </Link>
-                </NextLink>
-              ) : (
-                <NextLink href="#collection" passHref legacyBehavior>
-                  <Link className="text-sm text-white/70 hover:text-white">
-                    Collection
-                  </Link>
-                </NextLink>
-              )}
-              <Link 
-                className="text-sm text-white/70 hover:text-white cursor-pointer"
-                onPress={() => setIsPricingOpen(true)}
+      <header className="fixed inset-x-0 top-0 z-50">
+        {/*
+          The backdrop fades in rather than appearing, because it reports a
+          state change — you have left the top of the page — and a hard cut
+          reads as a glitch.
+        */}
+        <div
+          aria-hidden="true"
+          className={cn(
+            'absolute inset-0 border-b border-border bg-background/80 backdrop-blur-md',
+            'transition-opacity duration-quick ease-settle',
+            isScrolled ? 'opacity-100' : 'opacity-0'
+          )}
+        />
+
+        <div className="container relative mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
+            <Link href="/" aria-label="Afterlife home" className="inline-flex">
+              <Image src="/logo.svg" alt="" width={32} height={32} priority />
+            </Link>
+
+            <nav className="flex items-center gap-2">
+              <Button asChild variant="ghost" size="sm">
+                <Link href={isLogoDetailPage ? '/#collection' : '#collection'}>
+                  Collection
+                </Link>
+              </Button>
+
+              {/*
+                Pricing opens a dialog, so it is a button. It was previously a
+                link with an onPress handler, which reads as navigation to
+                screen readers and cannot be opened in a new tab.
+              */}
+              <Button
+                variant="ghost"
+                size="sm"
+                active={isPricingOpen}
+                onClick={() => setIsPricingOpen(true)}
               >
                 Pricing
-              </Link>
-              <Button 
-                className="bg-white/5 backdrop-blur-sm border-white/10 hover:bg-white/10 text-white text-sm h-9"
+              </Button>
+
+              <Button
+                variant="tertiary"
                 size="sm"
-                onPress={() => setIsSubmitOpen(true)}
+                active={isSubmitOpen}
+                onClick={() => setIsSubmitOpen(true)}
               >
                 Submit Logo
               </Button>
@@ -124,4 +113,4 @@ export const Header = () => {
       <SubmitLogoModal isOpen={isSubmitOpen} onClose={() => setIsSubmitOpen(false)} />
     </>
   )
-} 
+}
