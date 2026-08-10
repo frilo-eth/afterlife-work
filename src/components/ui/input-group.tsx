@@ -148,8 +148,13 @@ const InputField = forwardRef<HTMLDivElement, InputFieldProps>(
       bgClass = "bg-muted/50";
       ringClass = "ring-border";
     } else {
-      bgClass = "bg-transparent";
-      ringClass = "ring-transparent";
+      // Resting state. The registry ships this transparent, which assumes the
+      // field sits on an already-raised surface and is revealed by proximity.
+      // On a pure-black canvas there is nothing to reveal it from, so the
+      // control is simply not visible as a control. It rests on the card
+      // surface with a hairline; hover and focus still raise it from there.
+      bgClass = "bg-card";
+      ringClass = "ring-border";
     }
 
     return (

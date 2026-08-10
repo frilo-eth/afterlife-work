@@ -132,4 +132,24 @@ let changed = false
   }
 }
 
+// 5. The InputField rests transparent, which assumes it sits on a raised
+//    surface and is revealed by proximity. This app puts fields on a pure
+//    black canvas, where that reads as no control at all.
+{
+  const path = 'src/components/ui/input-group.tsx'
+  const source = readFileSync(path, 'utf8')
+  const transparentRest = '      bgClass = "bg-transparent";\n      ringClass = "ring-transparent";'
+  if (source.includes(transparentRest)) {
+    writeFileSync(
+      path,
+      source.replace(
+        transparentRest,
+        '      bgClass = "bg-card";\n      ringClass = "ring-border";'
+      )
+    )
+    console.log('  restored input resting surface in input-group.tsx')
+    changed = true
+  }
+}
+
 console.log(changed ? '  fluid install repaired' : '  nothing to repair')

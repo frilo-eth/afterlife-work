@@ -13,8 +13,6 @@ interface FilterState {
 
 interface FilterBarProps {
   onFiltersChange: (filters: FilterState) => void
-  /** Shown so the effect of a filter is visible without scrolling to the grid. */
-  resultCount?: number
 }
 
 /**
@@ -43,14 +41,14 @@ function FilterPill({
       size="md"
       aria-pressed={active}
       onClick={onToggle}
-      className="rounded-full"
+      className="shrink-0 rounded-full"
     >
       {label}
     </Button>
   )
 }
 
-export const FilterBar = ({ onFiltersChange, resultCount }: FilterBarProps) => {
+export const FilterBar = ({ onFiltersChange }: FilterBarProps) => {
   const [selectedStyles, setSelectedStyles] = useState<Set<string>>(new Set())
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -91,7 +89,7 @@ export const FilterBar = ({ onFiltersChange, resultCount }: FilterBarProps) => {
   return (
     <div className="sticky top-16 z-10 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="container mx-auto px-4 py-4">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
           <InputGroup className="w-full shrink-0 [&_label]:sr-only lg:w-64">
             <InputField
               index={0}
@@ -104,12 +102,11 @@ export const FilterBar = ({ onFiltersChange, resultCount }: FilterBarProps) => {
           </InputGroup>
 
           {/*
-            The full set stays visible. It was previously collapsible on mobile
-            behind a toggle that hid the row with opacity while leaving it in
-            the tab order — reachable but invisible. Wrapping to three rows is
-            cheaper than a control that lies.
+            One line that scrolls, rather than wrapping into extra rows that
+            push the collection down the page. The right edge fades so it is
+            clear there is more, without spending a control on saying so.
           */}
-          <div className="flex flex-wrap gap-2">
+          <div className="filter-scroller flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
             {LOGO_TAGS.map(style => (
               <FilterPill
                 key={style}
@@ -118,27 +115,20 @@ export const FilterBar = ({ onFiltersChange, resultCount }: FilterBarProps) => {
                 onToggle={() => toggleFilter(style)}
               />
             ))}
+
+            {hasFilters && (
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={clearAll}
+                className="shrink-0 rounded-full text-foreground-muted"
+              >
+                Clear
+              </Button>
+            )}
           </div>
         </div>
 
-        {/*
-          The consequence of filtering, stated. Without it the only feedback is
-          the grid changing length somewhere below the fold.
-        */}
-        {hasFilters && (
-          <div className="mt-3 flex items-center gap-3">
-            {resultCount !== undefined && (
-              <p aria-live="polite" className="text-caption text-foreground-muted">
-                {resultCount === 0
-                  ? 'No logos match'
-                  : `${resultCount} ${resultCount === 1 ? 'logo' : 'logos'}`}
-              </p>
-            )}
-            <Button variant="ghost" size="sm" onClick={clearAll}>
-              Clear filters
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   )

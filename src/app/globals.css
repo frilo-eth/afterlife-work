@@ -13,29 +13,29 @@
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
 
-    --card: 0 0% 4%;
+    --card: 0 0% 9%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 4%;
+    --popover: 0 0% 12%;
     --popover-foreground: 0 0% 100%;
 
     /* Inverted: on a black canvas the primary action reads as white. */
     --primary: 0 0% 100%;
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 0 0% 11%;
+    --secondary: 0 0% 14%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 11%;
+    --muted: 0 0% 14%;
     --muted-foreground: 0 0% 63%;
 
-    --accent: 0 0% 15%;
+    --accent: 0 0% 18%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 100% / 0.1;
+    --border: 0 0% 100% / 0.14;
     --input: 0 0% 100% / 0.15;
     --ring: 0 0% 100%;
 
@@ -221,3 +221,37 @@
     @apply bg-background text-foreground;
   }
 } 
+/*
+ * Horizontal filter row.
+ *
+ * The bar stays out of the way until the row is actually being used: a
+ * permanent track under the pills reads as a progress indicator, which is a
+ * meaning nobody asked it to carry. The faded trailing edge already says
+ * there is more to the right.
+ */
+.filter-scroller {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  mask-image: linear-gradient(to right, black calc(100% - 2.5rem), transparent);
+  transition: scrollbar-color 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.filter-scroller:hover,
+.filter-scroller:focus-within {
+  scrollbar-color: hsl(var(--border-strong)) transparent;
+}
+
+.filter-scroller::-webkit-scrollbar {
+  height: 4px;
+}
+
+.filter-scroller::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 9999px;
+  transition: background 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.filter-scroller:hover::-webkit-scrollbar-thumb,
+.filter-scroller:focus-within::-webkit-scrollbar-thumb {
+  background: hsl(var(--border-strong));
+}

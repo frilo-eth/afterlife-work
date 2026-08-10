@@ -39,7 +39,7 @@ export function CatalogSection({ logos }: CatalogSectionProps) {
 
   return (
     <>
-      <FilterBar onFiltersChange={setFilters} resultCount={visibleLogos.length} />
+      <FilterBar onFiltersChange={setFilters} />
 
       <div className="container mx-auto px-4 py-24">
         <div className="mb-12 space-y-3">
