@@ -1,0 +1,71 @@
+{
+  "$schema": "frilo-os/brand-tokens",
+  "brand": "afterlife",
+  "status": "PROPOSAL — slot assignments need confirmation before this is blessed",
+  "note": "Reverse-engineered from the codebase, not invented. The identity is monochrome on pure black; adoption captures what IS. Every value below was already in use — the alpha steps are the de-facto palette (353 uses across 16 steps), and the hex literals are duplicates of those same steps expressed differently.",
+
+  "color": {
+    "bg": {
+      "base": "#000000",
+      "raised": "#0D0D0D",
+      "overlay": "rgba(0, 0, 0, 0.95)"
+    },
+    "fg": {
+      "primary": "#FFFFFF",
+      "secondary": "#999999",
+      "muted": "#666666"
+    },
+    "accent": {
+      "base": "#FFFFFF",
+      "hover": "#E6E6E6",
+      "pressed": "#CCCCCC",
+      "fg-on-accent": "#000000"
+    },
+    "border": {
+      "subtle": "rgba(255, 255, 255, 0.1)",
+      "strong": "rgba(255, 255, 255, 0.2)"
+    },
+    "status": {
+      "success": "#2FBF71",
+      "warning": "#E8A13C",
+      "danger": "#E5484D"
+    }
+  },
+
+  "provenance": {
+    "fg.secondary": "white/60 — 106 uses, the single most common value in the codebase",
+    "border.subtle": "white/10 — 90 uses",
+    "bg.overlay": "black/95 — 10 uses, used for modal and header backdrops",
+    "border.strong": "white/20 — 31 uses, the hover partner of border.subtle",
+    "fg.muted": "white/40 — 21 uses; #666666 (7 literal uses) is the same colour on black",
+    "bg.raised": "white/5 — 13 uses; #222222 (13 literal uses) sits near this and is likely the same intent",
+    "accent": "There is no accent hue. The identity is strictly monochrome, so the primary action is white on black — an inversion, not a colour. Introducing a hue would be a redesign, not an adoption.",
+    "status": "No status colours exist in the codebase beyond #00ff00 used twice as a debug indicator. These are frilo defaults, proposed because order and submission states currently have no visual language at all."
+  },
+
+  "font": {
+    "display": "Inter, system-ui, sans-serif",
+    "body": "Inter, system-ui, sans-serif",
+    "mono": "JetBrains Mono, monospace"
+  },
+
+  "type-scale": {
+    "note": "Flagged as the largest drift. 137 of 222 type-size uses are text-sm, so almost the entire interface renders at one size and hierarchy is carried by weight and opacity alone. The scale below is the set actually present, minus the two sizes used once each.",
+    "observed": ["xs", "sm", "lg", "xl", "2xl", "3xl", "4xl", "5xl"],
+    "dominant": "sm (137 uses — 62% of all type)"
+  },
+
+  "voice": {
+    "personality": "wry, funereal, understated — 'logos that died before seeing the light of day'",
+    "avoid": "exclamation marks, marketing superlatives, cheerfulness that fights the concept"
+  },
+
+  "shape": {
+    "default-radius": "lg",
+    "buttons": "full",
+    "cards": "lg",
+    "note": "rounded-lg (44 uses) and rounded-full (29, pills) dominate. rounded-xl (15) and bare rounded (11) are drift."
+  },
+
+  "motion-profile": "restrained"
+}

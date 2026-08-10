@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import { Providers } from "./providers"
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import { Header } from "../components/layout/Header"
 import { Footer } from "../components/layout/Footer"
 import { LoadingScreen } from "@/components/LoadingScreen"
@@ -9,11 +10,6 @@ import type { Metadata } from 'next'
 import "./globals.css"
 import { ScrollManager } from '@/components/ScrollManager'
 
-const inter = Inter({subsets: ['latin']})
-const jetBrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains'
-})
 
 export const metadata: Metadata = {
   title: {
@@ -84,8 +80,8 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" className='dark'>
-      <body className={`${inter.className} ${jetBrainsMono.variable} min-h-screen bg-background text-foreground`}>
+    <html lang="en" className={`dark ${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <LoadingScreen />
         <ScrollManager />
         <Providers>

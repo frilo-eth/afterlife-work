@@ -107,9 +107,20 @@
     }
   }
 
-  /* A visible, consistent focus ring is a functional requirement. */
-  :focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  /*
+   * Focus is owned by the components, not stamped globally.
+   *
+   * A blanket `:focus-visible { ring-2 ring-offset-2 }` with a pure-white ring
+   * drew a hard box around every focused element — including inputs that
+   * already draw their own focus state, which then showed two rings at once.
+   *
+   * The registry's controls each render a 1px ring in --focus-ring. This rule
+   * now only catches elements that have no focus treatment of their own, so
+   * nothing is left unreachable by keyboard.
+   */
+  :focus-visible:not(:where(button, a, input, textarea, select, [role='button'], [role='tab'], [tabindex])) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
   }
   .dark {
     --surface-1: #171717;

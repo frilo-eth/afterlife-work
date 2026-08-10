@@ -11,9 +11,30 @@ const config = {
   ],
   theme: {
     extend: {
+      // Geist, resolved through the CSS variables next/font puts on <html>.
+      // These previously named the families literally — "JetBrains Mono",
+      // "Inter" — which never matched the scoped family names next/font
+      // generates, so every font-mono element downloaded the webfont and then
+      // rendered in system monospace.
       fontFamily: {
-        mono: ["JetBrains Mono", "monospace"],
-        sans: ["Inter", "sans-serif"],
+        sans: ["var(--font-geist-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono: ["var(--font-geist-mono)", "ui-monospace", "monospace"],
+      },
+      // Published type roles, after Vercel's system: a fixed set with size,
+      // leading and tracking bound together, so hierarchy cannot be improvised.
+      // 62% of this interface previously rendered at a single size, with
+      // weight and opacity doing all the work.
+      fontSize: {
+        display: ["clamp(2.75rem, 6vw, 4.5rem)", { lineHeight: "1.05", letterSpacing: "-0.03em", fontWeight: "600" }],
+        title: ["clamp(2rem, 4vw, 3rem)", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "600" }],
+        "heading-24": ["1.5rem", { lineHeight: "1.25", letterSpacing: "-0.015em", fontWeight: "600" }],
+        "heading-20": ["1.25rem", { lineHeight: "1.3", letterSpacing: "-0.01em", fontWeight: "600" }],
+        "heading-16": ["1rem", { lineHeight: "1.4", letterSpacing: "-0.005em", fontWeight: "600" }],
+        lede: ["1.125rem", { lineHeight: "1.6", letterSpacing: "-0.005em" }],
+        body: ["0.9375rem", { lineHeight: "1.6" }],
+        label: ["0.875rem", { lineHeight: "1.4" }],
+        caption: ["0.8125rem", { lineHeight: "1.45" }],
+        metadata: ["0.75rem", { lineHeight: "1.4", letterSpacing: "0.04em" }],
       },
       // Every colour resolves through a CSS variable so the palette is themed
       // in one place. The previous config hardcoded background/foreground,
