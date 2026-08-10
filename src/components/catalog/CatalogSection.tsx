@@ -52,20 +52,14 @@ export function CatalogSection({ logos }: CatalogSectionProps) {
     <>
       <FilterBar onFiltersChange={setFilters} tagCounts={tagCounts} />
 
-      <div className="container mx-auto px-4 py-24">
-        <div className="mb-12 space-y-3">
-          <span className="block font-mono text-metadata uppercase text-foreground-subtle">
-            The Collection
-          </span>
-
-          <h2 className="text-title text-balance">
-            Give new life to a forgotten symbol
-          </h2>
-
-          <p className="text-body text-foreground-muted">
-            Lost logos waiting for resurrection
-          </p>
-        </div>
+      <div className="container mx-auto px-4 py-10">
+        {/*
+          The grid follows the filters directly. A heading block between them
+          restated what the filter row and the work itself already say, and put
+          three lines of preamble between the control and its result. The
+          heading stays for document structure.
+        */}
+        <h2 className="sr-only">The collection</h2>
 
         {visibleLogos.length > 0 ? (
           <LogoGrid

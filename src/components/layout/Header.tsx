@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 import { PricingModal } from '@/components/modals/PricingModal'
 import { SubmitLogoModal } from '@/components/modals/SubmitLogoModal'
 import { cn } from '@/lib/utils'
@@ -13,6 +12,12 @@ import { cn } from '@/lib/utils'
 // bar settles quickly on a flick as well as on a slow read.
 const SCROLL_THRESHOLD = 250
 const VELOCITY_THRESHOLD = 30
+
+// Navigation is text, not buttons. A row of filled and outlined controls makes
+// every destination look like an action and gives the bar more weight than the
+// work it sits above.
+const navLink =
+  'text-label text-foreground-muted transition-colors duration-quick ease-settle hover:text-foreground'
 
 export const Header = () => {
   const [isPricingOpen, setIsPricingOpen] = useState(false)
@@ -40,9 +45,7 @@ export const Header = () => {
       lastTimestamp.current = now
 
       setIsScrolled(
-        isLogoDetailPage ||
-          currentScrollY > SCROLL_THRESHOLD ||
-          velocity > VELOCITY_THRESHOLD
+        isLogoDetailPage || currentScrollY > SCROLL_THRESHOLD || velocity > VELOCITY_THRESHOLD
       )
     }
 
@@ -70,40 +73,33 @@ export const Header = () => {
         />
 
         <div className="container relative mx-auto px-4">
-          <div className="flex h-16 items-center justify-between">
-            <Link href="/" aria-label="Afterlife home" className="inline-flex">
-              <Image src="/logo.svg" alt="" width={32} height={32} priority />
+          {/*
+            Three columns, so the wordmark is optically centred on the page
+            rather than pushed off-centre by whichever side has more links.
+          */}
+          <div className="grid h-16 grid-cols-[1fr_auto_1fr] items-center gap-4">
+            <nav aria-label="Browse" className="flex items-center gap-6">
+              <Link href={isLogoDetailPage ? '/#collection' : '#collection'} className={navLink}>
+                Collection
+              </Link>
+              <button type="button" className={navLink} onClick={() => setIsPricingOpen(true)}>
+                Pricing
+              </button>
+            </nav>
+
+            <Link
+              href="/"
+              aria-label="Afterlife home"
+              className="flex items-center gap-2 justify-self-center"
+            >
+              <Image src="/logo.svg" alt="" width={24} height={24} priority />
+              <span className="text-label font-medium text-foreground">Afterlife</span>
             </Link>
 
-            <nav className="flex items-center gap-2">
-              <Button asChild variant="ghost" size="sm">
-                <Link href={isLogoDetailPage ? '/#collection' : '#collection'}>
-                  Collection
-                </Link>
-              </Button>
-
-              {/*
-                Pricing opens a dialog, so it is a button. It was previously a
-                link with an onPress handler, which reads as navigation to
-                screen readers and cannot be opened in a new tab.
-              */}
-              <Button
-                variant="ghost"
-                size="sm"
-                active={isPricingOpen}
-                onClick={() => setIsPricingOpen(true)}
-              >
-                Pricing
-              </Button>
-
-              <Button
-                variant="primary"
-                size="sm"
-                active={isSubmitOpen}
-                onClick={() => setIsSubmitOpen(true)}
-              >
-                Submit Logo
-              </Button>
+            <nav aria-label="Contribute" className="flex items-center justify-end gap-6">
+              <button type="button" className={navLink} onClick={() => setIsSubmitOpen(true)}>
+                Submit
+              </button>
             </nav>
           </div>
         </div>

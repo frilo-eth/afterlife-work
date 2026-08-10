@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail } from 'lucide-react'
-import { InputGroup, InputField } from '@/components/ui/input-group'
+import { ArrowRight, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { subscribeToNewsletter } from '@/lib/api'
 import { cn } from '@/lib/utils'
@@ -14,9 +13,6 @@ export const Hero = () => {
   const [status, setStatus] = useState<SubscribeStatus>('idle')
   const [message, setMessage] = useState('')
 
-  // A real submit handler rather than a click handler on the button: the field
-  // was previously outside a form, so pressing Enter — which is how most people
-  // finish typing an email — did nothing at all.
   const handleSubscribe = async (event: React.FormEvent) => {
     event.preventDefault()
     if (!email || status === 'loading') return
@@ -28,7 +24,7 @@ export const Hero = () => {
 
     if (response.success) {
       setStatus('success')
-      setMessage('Thanks for subscribing.')
+      setMessage(response.message || 'Thanks for subscribing.')
       setEmail('')
     } else {
       setStatus('error')
@@ -37,7 +33,7 @@ export const Hero = () => {
   }
 
   return (
-    <div className="relative flex min-h-[60vh] items-center justify-center">
+    <div className="relative flex min-h-[70vh] items-center justify-center">
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-0 -mt-16 h-screen overflow-hidden opacity-10"
@@ -52,53 +48,72 @@ export const Hero = () => {
       </div>
 
       <div className="container mx-auto px-4">
-        <div className="mx-auto max-w-3xl space-y-10 text-center">
-          <div className="space-y-4">
-            <span className="block font-mono text-metadata uppercase text-foreground-subtle">
-              Revive a lost mark
-            </span>
+        <div className="mx-auto max-w-2xl space-y-6 text-center">
+          <h1 className="text-display text-balance">Save logos, save time</h1>
 
-            <h1 className="text-display text-balance">
-              Save logos, save time
-            </h1>
+          <p className="mx-auto max-w-lg text-lede text-foreground-muted text-pretty">
+            Unique, ready-to-use logos that died before seeing the light of day,
+            waiting to be brought back.
+          </p>
 
-            <p className="mx-auto max-w-xl text-lede text-foreground-muted">
-              Unique, ready-to-use logos that died before seeing the light of day,
-              waiting to be brought back.
-            </p>
-          </div>
-
-          <div className="relative mx-auto max-w-md">
-            <form onSubmit={handleSubscribe} className="flex w-full items-end gap-2 text-left">
-              <InputGroup className="flex-1 [&_label]:sr-only">
-                <InputField
-                  index={0}
-                  label="Email"
-                  type="email"
-                  placeholder="Enter your email"
-                  icon={Mail}
-                  value={email}
-                  onChange={setEmail}
-                  disabled={status === 'loading'}
-                  error={status === 'error' ? message : undefined}
-                />
-              </InputGroup>
-
-              <Button type="submit" variant="primary" size="lg" loading={status === 'loading'}>
-                Subscribe
+          <div className="mx-auto max-w-md pt-2">
+            {/*
+              One object rather than a field beside a button. The action lives
+              inside the field it acts on, so the pair reads as a single thing
+              to complete instead of two controls to visit in order.
+            */}
+            <form
+              onSubmit={handleSubscribe}
+              className={cn(
+                'flex items-center gap-2 rounded-full border bg-card p-1.5 pl-4',
+                'transition-colors duration-quick ease-settle',
+                'focus-within:border-border-strong',
+                status === 'error' ? 'border-destructive/50' : 'border-border'
+              )}
+            >
+              <label htmlFor="hero-email" className="sr-only">
+                Email address
+              </label>
+              <input
+                id="hero-email"
+                type="email"
+                value={email}
+                onChange={event => setEmail(event.target.value)}
+                placeholder="Email address"
+                autoComplete="email"
+                disabled={status === 'loading'}
+                aria-invalid={status === 'error'}
+                aria-describedby={message ? 'hero-subscribe-message' : undefined}
+                className="min-w-0 flex-1 bg-transparent text-label text-foreground outline-none placeholder:text-foreground-muted disabled:opacity-60"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                size="icon"
+                loading={status === 'loading'}
+                aria-label="Subscribe"
+                className="shrink-0 rounded-full"
+              >
+                <ArrowRight />
               </Button>
             </form>
 
             {/*
-              Announced politely so the outcome reaches screen readers; the
-              error text is already bound to the field itself.
+              What subscribing costs you, stated before you commit rather than
+              in a confirmation afterwards.
             */}
-            {message && status !== 'error' && (
+            <p className="mt-3 flex items-center justify-center gap-1.5 text-caption text-foreground-subtle">
+              <Send className="h-3 w-3" aria-hidden="true" />
+              One email a week. Unsubscribe anytime.
+            </p>
+
+            {message && (
               <p
-                role="status"
+                id="hero-subscribe-message"
+                role={status === 'error' ? 'alert' : 'status'}
                 className={cn(
-                  'mt-2 text-sm',
-                  status === 'success' ? 'text-foreground' : 'text-muted-foreground'
+                  'mt-2 text-caption',
+                  status === 'error' ? 'text-destructive' : 'text-foreground-muted'
                 )}
               >
                 {message}
