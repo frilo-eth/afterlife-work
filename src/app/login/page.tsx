@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Card, Input, Button } from '@nextui-org/react'
+import { Button, Card, Input } from '@nextui-org/react'
 import { Lock } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 function LoginPage() {
   const router = useRouter()
@@ -18,7 +18,7 @@ function LoginPage() {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ password }),
       })
 
       if (response.ok) {
@@ -40,9 +40,7 @@ function LoginPage() {
           <span className="font-mono text-sm tracking-wider opacity-50 uppercase block">
             Admin Access
           </span>
-          <h2 className="text-3xl font-bold">
-            Enter Password
-          </h2>
+          <h2 className="text-3xl font-bold">Enter Password</h2>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
@@ -55,16 +53,16 @@ function LoginPage() {
             isInvalid={!!error}
             startContent={<Lock size={18} className="text-foreground-subtle" />}
             classNames={{
-              label: "text-foreground-muted text-sm",
-              input: "bg-transparent text-sm",
+              label: 'text-foreground-muted text-sm',
+              input: 'bg-transparent text-sm',
               inputWrapper: [
-                "bg-background/20",
-                "backdrop-blur-sm",
-                "border border-border",
-                "hover:border-border-strong",
-                "px-3",
-                "!rounded-lg",
-              ]
+                'bg-background/20',
+                'backdrop-blur-sm',
+                'border border-border',
+                'hover:border-border-strong',
+                'px-3',
+                '!rounded-lg',
+              ],
             }}
           />
           <Button
@@ -80,4 +78,4 @@ function LoginPage() {
   )
 }
 
-export default LoginPage 
+export default LoginPage

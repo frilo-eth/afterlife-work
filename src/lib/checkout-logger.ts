@@ -10,9 +10,9 @@ export async function logCheckoutEvent(event: {
 }) {
   console.log('[Checkout Event]', {
     timestamp: new Date().toISOString(),
-    ...event
+    ...event,
   })
-  
+
   await prisma.checkoutLog.create({
     data: {
       type: event.type,
@@ -20,7 +20,7 @@ export async function logCheckoutEvent(event: {
       tier: event.tier,
       amount: event.amount,
       error: event.error,
-      sessionId: event.sessionId
-    }
+      sessionId: event.sessionId,
+    },
   })
-} 
+}

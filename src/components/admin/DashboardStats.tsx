@@ -26,38 +26,38 @@ export function DashboardStats({
   submissionCount = 0,
   storageUsed = 0,
   twitterFollowers = 0,
-  dbSize = 0
+  dbSize = 0,
 }: DashboardStatsProps) {
   const stats = [
     {
       label: 'Logo submissions',
       value: String(submissionCount),
       icon: HardDrive,
-      description: 'Total submissions'
+      description: 'Total submissions',
     },
     {
       label: 'Storage used',
       value: formatBytes(storageUsed),
       icon: HardDrive,
-      description: 'Across Cloudinary'
+      description: 'Across Cloudinary',
     },
     {
       label: 'Twitter followers',
       value: String(twitterFollowers),
       icon: Twitter,
-      description: 'Social reach'
+      description: 'Social reach',
     },
     {
       label: 'Database size',
       value: formatBytes(dbSize),
       icon: Database,
-      description: 'Total database size'
-    }
+      description: 'Total database size',
+    },
   ]
 
   return (
     <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map(stat => {
+      {stats.map((stat) => {
         const Icon = stat.icon
         return (
           <Card key={stat.label}>

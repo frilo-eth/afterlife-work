@@ -5,21 +5,17 @@ interface PriceDisplayProps {
 }
 
 export function PriceDisplay({ amount, showCents = false, className = '' }: PriceDisplayProps) {
-  const formatted = showCents 
+  const formatted = showCents
     ? (amount / 100).toLocaleString('en-US', {
         style: 'currency',
-        currency: 'USD'
+        currency: 'USD',
       })
     : Math.floor(amount / 100).toLocaleString('en-US', {
         style: 'currency',
         currency: 'USD',
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0
+        maximumFractionDigits: 0,
       })
 
-  return (
-    <span className={className}>
-      {formatted}
-    </span>
-  )
-} 
+  return <span className={className}>{formatted}</span>
+}

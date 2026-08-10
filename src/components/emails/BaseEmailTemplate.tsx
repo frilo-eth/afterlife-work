@@ -3,12 +3,11 @@ import {
   Container,
   Head,
   Html,
+  Img,
   Link,
   Preview,
   Section,
   Text,
-  Hr,
-  Img,
 } from '@react-email/components'
 
 interface BaseEmailProps {
@@ -30,67 +29,60 @@ export const BaseEmailTemplate = ({
   ctaUrl,
   utmSource = 'email',
   utmMedium = 'transactional',
-  utmCampaign = 'system'
+  utmCampaign = 'system',
 }: BaseEmailProps) => {
   const year = new Date().getFullYear()
   const trackingParams = `utm_source=${utmSource}&utm_medium=${utmMedium}&utm_campaign=${utmCampaign}`
-  
+
   return (
     <Html>
-      <Head>
-        <style>{`
-          @font-face {
-            font-family: 'Inter';
-            font-style: normal;
-            font-weight: 400;
-            src: url(https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2) format('woff2');
-          }
-        `}</style>
-      </Head>
+      <Head />
       <Preview>{previewText}</Preview>
       <Body style={styles.body}>
         <Container style={styles.container}>
           {/* Header with centered logo */}
           <Section style={styles.logoSection}>
+            {/*
+              PNG, not SVG: most clients strip or block SVG images, which leaves
+              a broken mark and looks like phishing to spam filters.
+            */}
             <Img
-              src="https://afterlife.work/logo.svg"
+              src="https://afterlife.work/apple-touch-icon.png"
               width={40}
               height={40}
               alt="Afterlife"
               style={styles.logo}
             />
           </Section>
-          
+
           {/* Main Content */}
           <Section style={styles.content}>
             <Text style={styles.heading}>{heading}</Text>
             {body}
-            
+
             {ctaText && ctaUrl && (
               <Section style={styles.ctaContainer}>
-                <Link
-                  href={`${ctaUrl}?${trackingParams}`}
-                  style={styles.button}
-                >
+                <Link href={`${ctaUrl}?${trackingParams}`} style={styles.button}>
                   {ctaText}
                 </Link>
               </Section>
             )}
           </Section>
-          
-          <Hr style={styles.divider} />
-          
-          {/* Footer */}
+
+          {/*
+            No divider above the footer — the card border already separates
+            content from what follows.
+          */}
           <Section style={styles.footer}>
-            <Text style={styles.footerText}>
-              © {year} Afterlife. All rights reserved.
-            </Text>
+            <Text style={styles.footerText}>© {year} Afterlife. All rights reserved.</Text>
             <Text style={styles.footerLinks}>
-              <Link href="https://afterlife.work/privacy" style={styles.link}>Privacy</Link>
-              {' • '}
-              <Link href="https://afterlife.work/terms" style={styles.link}>Terms</Link>
-              {' • '}
-              <Link href="{{{unsubscribe}}}" style={styles.link}>Unsubscribe</Link>
+              <Link href="https://afterlife.work" style={styles.link}>
+                afterlife.work
+              </Link>
+              {' · '}
+              <Link href="mailto:hi@afterlife.work" style={styles.link}>
+                hi@afterlife.work
+              </Link>
             </Text>
           </Section>
         </Container>
@@ -102,7 +94,8 @@ export const BaseEmailTemplate = ({
 const styles = {
   body: {
     backgroundColor: '#000000',
-    fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+    fontFamily:
+      '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
     WebkitFontSmoothing: 'antialiased',
     margin: 0,
     padding: 0,
@@ -150,14 +143,10 @@ const styles = {
     padding: '16px 24px',
     textDecoration: 'none',
     textAlign: 'center' as const,
-    transition: 'background-color 0.2s',
-  },
-  divider: {
-    borderColor: '#222222',
-    margin: '40px 0',
   },
   footer: {
     textAlign: 'center' as const,
+    marginTop: '32px',
   },
   footerText: {
     color: '#666666',
@@ -174,5 +163,5 @@ const styles = {
   link: {
     color: '#666666',
     textDecoration: 'underline',
-  }
-} 
+  },
+}

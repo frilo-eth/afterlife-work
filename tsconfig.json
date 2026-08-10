@@ -28,7 +28,7 @@
       }
     ],
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
     "types": [
       "node",
@@ -37,9 +37,8 @@
       "@types/babel__generator",
       "@types/babel__template",
       "@types/babel__traverse"
-    ],
-    "baseUrl": "."
+    ]
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
-} 
+}

@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useCallback, useRef, useEffect } from "react"
-import { Modal, ModalContent, Button, Input, Textarea, CircularProgress } from "@nextui-org/react"
-import { X, Upload, ChevronLeft, ChevronRight, Maximize2, XCircle, Plus, Eye, Trash, FileIcon } from "lucide-react"
-import { clsx } from "clsx"
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
+import { Button, CircularProgress, Input, Modal, ModalContent, Textarea } from '@nextui-org/react'
+import { clsx } from 'clsx'
+import { ChevronLeft, ChevronRight, Eye, Plus, Trash, Upload, X, XCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
+import { toast } from 'sonner'
 import { v4 as uuidv4 } from 'uuid'
 
 // Types
@@ -37,7 +37,7 @@ const AVAILABLE_TAGS = [
   'Delicate',
   'Mascot',
   'Counterform',
-  'Pixel'
+  'Pixel',
 ]
 
 const cn = (...classes: (string | undefined)[]) => clsx(classes)
@@ -53,7 +53,7 @@ const createFilePreview = async (file: File): Promise<string> => {
       }
     }
     reader.onerror = () => reject(new Error('Failed to read file'))
-    
+
     reader.readAsDataURL(file)
   })
 }
@@ -68,10 +68,18 @@ interface FilePreviewProps {
   file: File
 }
 
-const FilePreview = ({ preview, loading, error, onRemove, onPreview, file, className }: FilePreviewProps) => {
+const FilePreview = ({
+  preview,
+  loading,
+  error,
+  onRemove,
+  onPreview,
+  file: _file,
+  className,
+}: FilePreviewProps) => {
   if (loading) {
     return (
-      <div className={cn("flex flex-col items-center justify-center p-4", className)}>
+      <div className={cn('flex flex-col items-center justify-center p-4', className)}>
         <CircularProgress aria-label="Loading..." />
       </div>
     )
@@ -79,7 +87,7 @@ const FilePreview = ({ preview, loading, error, onRemove, onPreview, file, class
 
   if (error) {
     return (
-      <div className={cn("flex flex-col items-center justify-center p-4 text-center", className)}>
+      <div className={cn('flex flex-col items-center justify-center p-4 text-center', className)}>
         <XCircle className="text-red-500 mb-2" size={24} />
         <p className="text-sm text-red-500">{error}</p>
       </div>
@@ -87,7 +95,7 @@ const FilePreview = ({ preview, loading, error, onRemove, onPreview, file, class
   }
 
   return (
-    <div className={cn("relative group", className)}>
+    <div className={cn('relative group', className)}>
       <img src={preview} alt="Preview" className="max-w-full h-auto rounded-lg" />
       <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
         {onPreview && (
@@ -117,10 +125,10 @@ const FilePreview = ({ preview, loading, error, onRemove, onPreview, file, class
 
 export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
   const router = useRouter()
-  
+
   const [loading, setLoading] = useState(false)
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [status, setStatus] = useState<LogoStatus>('DRAFT')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [mainImagePreview, setMainImagePreview] = useState<FilePreviewData | null>(null)
@@ -133,17 +141,21 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
   const mainImageInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
 
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB per file
-  const MAX_GALLERY_IMAGES = 6;
-  const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB per file
+  const MAX_GALLERY_IMAGES = 6
+  const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
 
   // Track changes
   useEffect(() => {
     const hasTitle = title.trim() !== ''
     const hasMainImage = mainImagePreview !== null
-    const hasAnyContent = hasTitle || hasMainImage || description.trim() !== '' || 
-                         selectedTags.length > 0 || galleryPreviews.length > 0
-    
+    const hasAnyContent =
+      hasTitle ||
+      hasMainImage ||
+      description.trim() !== '' ||
+      selectedTags.length > 0 ||
+      galleryPreviews.length > 0
+
     setHasChanges(hasAnyContent)
   }, [title, description, selectedTags, mainImagePreview, galleryPreviews])
 
@@ -160,7 +172,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
           }
         }
       }
-      
+
       // Clean up main image preview
       if (mainImagePreview?.preview?.startsWith('blob:')) {
         try {
@@ -169,7 +181,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
           console.error('Failed to revoke URL:', err)
         }
       }
-      
+
       // Clean up preview URL
       if (previewOpen?.startsWith('blob:')) {
         try {
@@ -209,26 +221,26 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
   }, [previewOpen])
 
   const validateFile = (file: File): { isValid: boolean; error?: string } => {
-    const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    
+    const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'))
+
     // Size validation
     if (file.size > MAX_FILE_SIZE) {
       return {
         isValid: false,
-        error: `File ${file.name} is too large. Maximum size is ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(1)}MB`
-      };
+        error: `File ${file.name} is too large. Maximum size is ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(1)}MB`,
+      }
     }
 
     // Type validation
     if (!ALLOWED_EXTENSIONS.includes(fileExt)) {
       return {
         isValid: false,
-        error: `Invalid file type for ${file.name}. Please upload JPG, PNG, WEBP or GIF files.`
-      };
+        error: `Invalid file type for ${file.name}. Please upload JPG, PNG, WEBP or GIF files.`,
+      }
     }
 
-    return { isValid: true };
-  };
+    return { isValid: true }
+  }
 
   const handleMainImageDelete = () => {
     if (window.confirm('Are you sure you want to delete this file?')) {
@@ -236,7 +248,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
       if (mainImageInputRef.current) {
         mainImageInputRef.current.value = ''
       }
-      toast.success("Image deleted successfully")
+      toast.success('Image deleted successfully')
     }
   }
 
@@ -245,19 +257,19 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
       return
     }
 
-    const preview = galleryPreviews.find(p => p.id === id)
-    
+    const preview = galleryPreviews.find((p) => p.id === id)
+
     if (preview?.preview?.startsWith('blob:')) {
       URL.revokeObjectURL(preview.preview)
     }
-    
-    setGalleryPreviews(prev => prev.filter(p => p.id !== id))
-    toast.success("Gallery image deleted successfully")
+
+    setGalleryPreviews((prev) => prev.filter((p) => p.id !== id))
+    toast.success('Gallery image deleted successfully')
   }
 
   const handleGalleryUpload = async (files: FileList | null) => {
     if (!files?.length) return
-    
+
     // Check total number of files
     if (galleryPreviews.length + files.length > MAX_GALLERY_IMAGES) {
       toast.error(`You can only upload up to ${MAX_GALLERY_IMAGES} gallery images`)
@@ -269,7 +281,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
     // Process files with both size and count limits
     const newFiles = Array.from(files)
-    
+
     for (const file of newFiles) {
       const validation = validateFile(file)
       if (!validation.isValid) {
@@ -279,20 +291,23 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
       try {
         const preview = await createFilePreview(file)
-        setGalleryPreviews(prev => {
+        setGalleryPreviews((prev) => {
           // Double-check we don't exceed limit
           if (prev.length >= MAX_GALLERY_IMAGES) {
             toast.error(`Maximum ${MAX_GALLERY_IMAGES} gallery images allowed`)
             return prev
           }
-          return [...prev, {
-            id: uuidv4(),
-            file,
-            preview,
-            loading: false
-          }]
+          return [
+            ...prev,
+            {
+              id: uuidv4(),
+              file,
+              preview,
+              loading: false,
+            },
+          ]
         })
-      } catch (error) {
+      } catch (_error) {
         toast.error(`Error previewing ${file.name}`)
       }
     }
@@ -305,9 +320,9 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
   const handleMainImageUpload = async (files: FileList | null) => {
     if (!files?.length) return
-    
+
     const file = files[0]
-    
+
     const validation = validateFile(file)
     if (!validation.isValid) {
       toast.error(validation.error)
@@ -324,12 +339,12 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
         id: uuidv4(),
         file,
         preview,
-        loading: false
+        loading: false,
       })
-      toast.success("Main image uploaded successfully")
+      toast.success('Main image uploaded successfully')
     } catch (error) {
       console.error('Main image upload error:', error)
-      toast.error("Error previewing file")
+      toast.error('Error previewing file')
     } finally {
       setLoading(false)
       if (mainImageInputRef.current) {
@@ -345,7 +360,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
   const handlePreviousImage = () => {
     const visiblePreviews = galleryPreviews
-    setCurrentGalleryIndex(prev => {
+    setCurrentGalleryIndex((prev) => {
       const newIndex = prev === 0 ? visiblePreviews.length - 1 : prev - 1
       setPreviewOpen(visiblePreviews[newIndex].preview)
       return newIndex
@@ -354,7 +369,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
   const handleNextImage = () => {
     const visiblePreviews = galleryPreviews
-    setCurrentGalleryIndex(prev => {
+    setCurrentGalleryIndex((prev) => {
       const newIndex = prev === visiblePreviews.length - 1 ? 0 : prev + 1
       setPreviewOpen(visiblePreviews[newIndex].preview)
       return newIndex
@@ -362,9 +377,9 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
   }
 
   const handleTagToggle = (tag: string) => {
-    setSelectedTags(prev => {
+    setSelectedTags((prev) => {
       if (prev.includes(tag)) {
-        return prev.filter(t => t !== tag)
+        return prev.filter((t) => t !== tag)
       }
       return [...prev, tag]
     })
@@ -376,11 +391,11 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!validateForm()) {
       return
     }
-    
+
     setLoading(true)
     setErrors({})
 
@@ -390,16 +405,16 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
       formData.append('description', description)
       formData.append('status', status)
       formData.append('tags', JSON.stringify(selectedTags))
-      
+
       // Add main image
       if (mainImagePreview?.file) {
         formData.append('mainImage', mainImagePreview.file)
         // Generate a cloudinary name from the title and a timestamp
-        const timestamp = new Date().getTime()
+        const timestamp = Date.now()
         const cloudinaryName = `${title.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${timestamp}`
         formData.append('cloudinaryName', cloudinaryName)
       }
-      
+
       // Add gallery images - using for...of instead of forEach
       for (const preview of galleryPreviews) {
         formData.append('galleryImages', preview.file)
@@ -412,54 +427,56 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
         status,
         tags: selectedTags,
         hasMainImage: !!mainImagePreview?.file,
-        galleryCount: galleryPreviews.length
+        galleryCount: galleryPreviews.length,
       })
 
       const response = await fetch('/api/admin/logos/create', {
         method: 'POST',
-        body: formData
+        body: formData,
       })
 
       const data = await response.json()
       console.log('📥 Server response:', data)
-      
+
       if (!response.ok) {
         console.error('❌ Logo creation failed:', {
           status: response.status,
           statusText: response.statusText,
           data: data,
-          error: data.error
+          error: data.error,
         })
-        
+
         // Handle validation errors
         if (Array.isArray(data.errors) || Array.isArray(data)) {
           const errors = Array.isArray(data) ? data : data.errors
           const newErrors: Record<string, string> = {}
           const errorMessages: string[] = []
-          
+
           for (const error of errors) {
             if (error.path) {
-              const field = Array.isArray(error.path) ? error.path[error.path.length - 1] : error.path
+              const field = Array.isArray(error.path)
+                ? error.path[error.path.length - 1]
+                : error.path
               // Skip cloudinaryName errors as we handle it automatically
               if (field === 'cloudinaryName') continue
-              
+
               newErrors[field] = error.message
               errorMessages.push(`${field}: ${error.message}`)
             }
           }
-          
+
           setErrors(newErrors)
-          
+
           if (errorMessages.length > 0) {
             throw new Error(`Please fix the following:\n${errorMessages.join('\n')}`)
           }
         }
-        
+
         // Handle server errors
         if (data.error?.includes?.('Cloudinary')) {
           throw new Error('Unable to process images. Please try again or contact support.')
         }
-        
+
         // Handle other errors
         let errorMessage = 'Failed to create logo'
         if (typeof data.error === 'string') {
@@ -470,19 +487,18 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
         } else if (data.message) {
           errorMessage = data.message
         }
-        
+
         throw new Error(errorMessage)
       }
 
       console.log('✅ Logo created successfully:', data)
-      
+
       toast.success('Logo created successfully')
       router.refresh()
       onClose()
-      
     } catch (error) {
       console.error('❌ Submission error:', error)
-      
+
       if (error instanceof Error) {
         toast.error(error.message)
       } else if (error && typeof error === 'object') {
@@ -521,16 +537,16 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
   }
 
   return (
-    <Modal 
-      isOpen={isOpen} 
+    <Modal
+      isOpen={isOpen}
       onClose={handleClose}
       size="full"
       hideCloseButton
       classNames={{
-        base: "bg-background/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]",
-        wrapper: "p-0 h-[100dvh] m-0",
-        backdrop: "opacity-100",
-        body: "p-0 h-full"
+        base: 'bg-background/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]',
+        wrapper: 'p-0 h-[100dvh] m-0',
+        backdrop: 'opacity-100',
+        body: 'p-0 h-full',
       }}
     >
       <ModalContent>
@@ -549,9 +565,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
               <span className="font-mono text-sm tracking-wider opacity-50 uppercase block">
                 Add Logo
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold">
-                Create new logo
-              </h2>
+              <h2 className="text-4xl md:text-5xl font-bold">Create new logo</h2>
               <p className="text-sm text-foreground-muted max-w-xl mx-auto">
                 Add a new logo to the Afterlife collection.
               </p>
@@ -568,16 +582,16 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                 errorMessage={errors.title}
                 isInvalid={!!errors.title}
                 classNames={{
-                  label: "text-foreground-muted text-sm",
-                  input: "bg-transparent text-sm",
+                  label: 'text-foreground-muted text-sm',
+                  input: 'bg-transparent text-sm',
                   inputWrapper: [
-                    "bg-background/20",
-                    "backdrop-blur-sm",
-                    "border border-border",
-                    "hover:border-border-strong",
-                    "px-3",
-                    "!rounded-lg",
-                  ]
+                    'bg-background/20',
+                    'backdrop-blur-sm',
+                    'border border-border',
+                    'hover:border-border-strong',
+                    'px-3',
+                    '!rounded-lg',
+                  ],
                 }}
               />
 
@@ -587,33 +601,41 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 classNames={{
-                  label: "text-foreground-muted text-sm",
-                  input: "bg-transparent text-sm",
+                  label: 'text-foreground-muted text-sm',
+                  input: 'bg-transparent text-sm',
                   inputWrapper: [
-                    "bg-background/20",
-                    "backdrop-blur-sm",
-                    "border border-border",
-                    "hover:border-border-strong",
-                    "px-3",
-                    "!rounded-lg",
-                  ]
+                    'bg-background/20',
+                    'backdrop-blur-sm',
+                    'border border-border',
+                    'hover:border-border-strong',
+                    'px-3',
+                    '!rounded-lg',
+                  ],
                 }}
               />
 
               <div>
-                <span id="status-label" className="block text-sm font-medium text-foreground-muted mb-2">
+                <span
+                  id="status-label"
+                  className="block text-sm font-medium text-foreground-muted mb-2"
+                >
                   Status
                 </span>
-                <div className="flex flex-wrap gap-2" aria-labelledby="status-label" role="radiogroup">
+                <div
+                  className="flex flex-wrap gap-2"
+                  aria-labelledby="status-label"
+                  role="radiogroup"
+                >
                   {(['DRAFT', 'AVAILABLE', 'HIDDEN'] as LogoStatus[]).map((statusOption) => (
                     <Button
                       key={statusOption}
                       size="sm"
                       className={`
                         rounded-full px-4 h-10 text-sm transition-all
-                        ${status === statusOption
-                          ? 'bg-foreground text-background hover:bg-foreground/90'
-                          : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
+                        ${
+                          status === statusOption
+                            ? 'bg-foreground text-background hover:bg-foreground/90'
+                            : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
                         }
                       `}
                       onPress={() => handleStatusChange(statusOption)}
@@ -627,7 +649,10 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
               </div>
 
               <div>
-                <span id="tags-label" className="block text-sm font-medium text-foreground-muted mb-2">
+                <span
+                  id="tags-label"
+                  className="block text-sm font-medium text-foreground-muted mb-2"
+                >
                   Tags
                 </span>
                 <div className="flex flex-wrap gap-2" aria-labelledby="tags-label" role="group">
@@ -637,9 +662,10 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                       size="sm"
                       className={`
                         rounded-full px-4 h-10 text-sm transition-all
-                        ${selectedTags.includes(tag)
-                          ? 'bg-foreground text-background hover:bg-foreground/90'
-                          : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
+                        ${
+                          selectedTags.includes(tag)
+                            ? 'bg-foreground text-background hover:bg-foreground/90'
+                            : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
                         }
                       `}
                       onPress={() => handleTagToggle(tag)}
@@ -653,7 +679,10 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
               </div>
 
               <div>
-                <label htmlFor="main-image-upload" className="block text-sm font-medium text-foreground-muted mb-2">
+                <label
+                  htmlFor="main-image-upload"
+                  className="block text-sm font-medium text-foreground-muted mb-2"
+                >
                   Main Image
                 </label>
                 <input
@@ -664,11 +693,11 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                   className="hidden"
                   id="main-image-upload"
                 />
-                
+
                 <div
                   className={cn(
-                    "relative transition-all duration-300 rounded-xl",
-                    errors.mainImage ? "ring-2 ring-red-500/50" : ""
+                    'relative transition-all duration-300 rounded-xl',
+                    errors.mainImage ? 'ring-2 ring-red-500/50' : '',
                   )}
                   onClick={() => mainImageInputRef.current?.click()}
                   role="button"
@@ -692,7 +721,9 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                         <p className="text-foreground-muted">
                           Drop your main image or click to browse
                         </p>
-                        <p className="text-xs text-foreground-subtle mt-1">Supported formats: JPG, PNG, WEBP</p>
+                        <p className="text-xs text-foreground-subtle mt-1">
+                          Supported formats: JPG, PNG, WEBP
+                        </p>
                       </div>
                     )}
                   </div>
@@ -704,7 +735,10 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
 
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <label htmlFor="gallery-upload" className="block text-sm font-medium text-foreground-muted">
+                  <label
+                    htmlFor="gallery-upload"
+                    className="block text-sm font-medium text-foreground-muted"
+                  >
                     Gallery Images
                   </label>
                   <span className="text-xs text-foreground-subtle">
@@ -720,11 +754,9 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                   className="hidden"
                   id="gallery-upload"
                 />
-                <div
-                  className="group relative transition-all"
-                >
+                <div className="group relative transition-all">
                   <div className="absolute inset-0 bg-gradient-to-b from-foreground/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                  <div 
+                  <div
                     className="relative w-full p-8 rounded-xl bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong transition-colors text-center"
                     role="button"
                     tabIndex={0}
@@ -734,8 +766,8 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                     {galleryPreviews.length > 0 ? (
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {galleryPreviews.map((preview, index) => (
-                          <div 
-                            key={preview.id} 
+                          <div
+                            key={preview.id}
                             className="relative aspect-square bg-background/20 rounded-lg overflow-hidden group"
                           >
                             <div className="absolute inset-0 flex items-center justify-center">
@@ -746,7 +778,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                                 style={{
                                   objectPosition: 'center',
                                   minWidth: '100%',
-                                  minHeight: '100%'
+                                  minHeight: '100%',
                                 }}
                               />
                             </div>
@@ -770,7 +802,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                             </div>
                           </div>
                         ))}
-                        
+
                         {galleryPreviews.length < MAX_GALLERY_IMAGES && (
                           <Button
                             className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-border-strong flex items-center justify-center bg-transparent"
@@ -784,8 +816,12 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
                       <>
                         <Upload className="mx-auto text-foreground-muted" size={24} />
                         <div>
-                          <p className="text-foreground-muted">Drop up to 6 gallery images or click to browse</p>
-                          <p className="text-xs text-foreground-subtle mt-1">Supported formats: JPG, PNG, WEBP</p>
+                          <p className="text-foreground-muted">
+                            Drop up to 6 gallery images or click to browse
+                          </p>
+                          <p className="text-xs text-foreground-subtle mt-1">
+                            Supported formats: JPG, PNG, WEBP
+                          </p>
                         </div>
                       </>
                     )}
@@ -806,14 +842,14 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
       </ModalContent>
 
       {/* Image Preview Modal */}
-      <Modal 
-        isOpen={!!previewOpen} 
+      <Modal
+        isOpen={!!previewOpen}
         onClose={() => setPreviewOpen(null)}
         size="2xl"
         hideCloseButton
         classNames={{
-          base: "bg-background/95 backdrop-blur-xl",
-          wrapper: "p-4"
+          base: 'bg-background/95 backdrop-blur-xl',
+          wrapper: 'p-4',
         }}
       >
         <ModalContent>
@@ -854,11 +890,7 @@ export const LogoAddModal = ({ isOpen, onClose }: LogoAddModalProps) => {
             )}
 
             {previewOpen && (
-              <img 
-                src={previewOpen} 
-                alt="Preview" 
-                className="w-full object-contain"
-              />
+              <img src={previewOpen} alt="Preview" className="w-full object-contain" />
             )}
           </div>
         </ModalContent>

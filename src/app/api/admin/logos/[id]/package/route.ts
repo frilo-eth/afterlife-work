@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { cloudinary } from '@/lib/cloudinary-server'
-import { requireAdmin } from '@/lib/api-utils'
 import { revalidateTag } from 'next/cache'
+import { NextResponse } from 'next/server'
+import { requireAdmin } from '@/lib/api-utils'
 import { CATALOG_TAG } from '@/lib/catalog'
+import { cloudinary } from '@/lib/cloudinary-server'
+import { prisma } from '@/lib/prisma'
 
 // Deliverable archives are handed out only through signed links, so they must
 // not be world-readable on Cloudinary.
@@ -22,30 +22,27 @@ function uploadPackage(buffer: Buffer, publicId: string): Promise<string> {
           // 'authenticated' keeps the object off the public delivery URL, so
           // it can only be fetched through a signed, expiring link.
           type: 'authenticated',
-          overwrite: true
+          overwrite: true,
         },
         (error, result) => {
           if (error) return reject(error)
           if (!result) return reject(new Error('No result from Cloudinary'))
           resolve(result.public_id)
-        }
+        },
       )
       .end(buffer)
   })
 }
 
 /** Attach the deliverable archive that buyers of this logo receive. */
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
   const denied = await requireAdmin()
   if (denied) return denied
 
   try {
     const logo = await prisma.logo.findUnique({
       where: { id: params.id },
-      select: { id: true }
+      select: { id: true },
     })
 
     if (!logo) {
@@ -56,16 +53,13 @@ export async function POST(
     const file = formData.get('file')
 
     if (!(file instanceof File)) {
-      return NextResponse.json(
-        { error: 'Attach the package as a "file" field.' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Attach the package as a "file" field.' }, { status: 400 })
     }
 
     if (file.size > MAX_PACKAGE_BYTES) {
       return NextResponse.json(
         { error: `Package exceeds the ${MAX_PACKAGE_BYTES / 1024 / 1024} MB limit.` },
-        { status: 413 }
+        { status: 413 },
       )
     }
 
@@ -73,8 +67,10 @@ export async function POST(
 
     if (!ALLOWED_EXTENSIONS.includes(extension)) {
       return NextResponse.json(
-        { error: `Unsupported file type ".${extension}". Allowed: ${ALLOWED_EXTENSIONS.join(', ')}.` },
-        { status: 415 }
+        {
+          error: `Unsupported file type ".${extension}". Allowed: ${ALLOWED_EXTENSIONS.join(', ')}.`,
+        },
+        { status: 415 },
       )
     }
 
@@ -86,44 +82,38 @@ export async function POST(
       data: {
         sourcePackageId: publicId,
         sourcePackageName: file.name,
-        sourcePackageAt: new Date()
+        sourcePackageAt: new Date(),
       },
-      select: { sourcePackageName: true, sourcePackageAt: true }
+      select: { sourcePackageName: true, sourcePackageAt: true },
     })
 
     revalidateTag(CATALOG_TAG)
 
     return NextResponse.json({
       success: true,
-      package: updated
+      package: updated,
     })
   } catch (error) {
     console.error('Package upload failed:', error)
-    return NextResponse.json(
-      { error: 'Could not attach the package.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Could not attach the package.' }, { status: 500 })
   }
 }
 
 /** Detach the deliverable archive, leaving the logo unsellable-as-delivered. */
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
   const denied = await requireAdmin()
   if (denied) return denied
 
   try {
     const logo = await prisma.logo.findUnique({
       where: { id: params.id },
-      select: { sourcePackageId: true }
+      select: { sourcePackageId: true },
     })
 
     if (logo?.sourcePackageId) {
       await cloudinary.uploader.destroy(logo.sourcePackageId, {
         resource_type: 'raw',
-        type: 'authenticated'
+        type: 'authenticated',
       })
     }
 
@@ -132,8 +122,8 @@ export async function DELETE(
       data: {
         sourcePackageId: null,
         sourcePackageName: null,
-        sourcePackageAt: null
-      }
+        sourcePackageAt: null,
+      },
     })
 
     revalidateTag(CATALOG_TAG)
@@ -141,9 +131,6 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Package removal failed:', error)
-    return NextResponse.json(
-      { error: 'Could not remove the package.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Could not remove the package.' }, { status: 500 })
   }
 }

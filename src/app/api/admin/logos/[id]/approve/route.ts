@@ -1,14 +1,11 @@
-import { errorResponse, requireAdmin, successResponse } from '@/lib/api-utils'
-import { prisma } from '@/lib/prisma'
-import { sendLogoApprovalNotification } from '@/lib/notifications'
-import type { Logo, LogoStatus } from '@/types/index'
 import { revalidateTag } from 'next/cache'
+import { errorResponse, requireAdmin, successResponse } from '@/lib/api-utils'
 import { CATALOG_TAG } from '@/lib/catalog'
+import { sendLogoApprovalNotification } from '@/lib/notifications'
+import { prisma } from '@/lib/prisma'
+import type { Logo, LogoStatus } from '@/types/index'
 
-export async function POST(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(_req: Request, { params }: { params: { id: string } }) {
   const denied = await requireAdmin()
   if (denied) return denied
 
@@ -17,8 +14,8 @@ export async function POST(
       where: { id: params.id },
       data: { status: 'AVAILABLE' as LogoStatus },
       include: {
-        price: true
-      }
+        price: true,
+      },
     })
 
     // Transform the Prisma result to match our Logo type
@@ -30,8 +27,8 @@ export async function POST(
         id: logo.price.id,
         summon: logo.price.summon,
         revival: logo.price.revival,
-        afterlife: logo.price.afterlife
-      }
+        afterlife: logo.price.afterlife,
+      },
     }
 
     await sendLogoApprovalNotification(transformedLogo)
@@ -43,7 +40,7 @@ export async function POST(
     return errorResponse({
       message: 'Failed to approve logo',
       code: 'LOGO_APPROVE_ERROR',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
     })
   }
-} 
+}

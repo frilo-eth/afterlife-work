@@ -15,6 +15,7 @@ describe('calculatePrice', () => {
   test('returns the base tier price with no add-ons', () => {
     expect(calculatePrice('summon')).toBe(PRICE_TIERS.summon)
     expect(calculatePrice('revival')).toBe(PRICE_TIERS.revival)
+    expect(calculatePrice('afterlife')).toBe(PRICE_TIERS.afterlife)
   })
 
   test('adds the wordmark surcharge when wordmark text is supplied', () => {
@@ -31,11 +32,17 @@ describe('calculatePrice', () => {
 
   test('adds both surcharges together', () => {
     expect(calculatePrice('revival', { wordmark: 'Acme', domain: 'acme.com' })).toBe(
-      PRICE_TIERS.revival + 1500 + 2000
+      PRICE_TIERS.revival + 1500 + 2000,
     )
   })
 
   test('ignores empty-string add-ons rather than charging for them', () => {
     expect(calculatePrice('summon', { wordmark: '', domain: '' })).toBe(PRICE_TIERS.summon)
+  })
+
+  test('does not apply add-ons to the afterlife subscription', () => {
+    expect(calculatePrice('afterlife', { wordmark: 'Acme', domain: 'acme.com' })).toBe(
+      PRICE_TIERS.afterlife,
+    )
   })
 })

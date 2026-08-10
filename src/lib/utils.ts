@@ -1,5 +1,5 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { type ClassValue, clsx } from 'clsx'
+import { twMerge } from 'tailwind-merge'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -11,23 +11,21 @@ export function cn(...inputs: ClassValue[]) {
  */
 export function generatePublicReference(id: string): string {
   // Convert the string id to a number-based hash
-  const numericHash = id
-    .split('')
-    .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  
+  const numericHash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+
   // Use the numeric hash to generate the reference
   const hash = [
     numericHash.toString(36),
     (numericHash * 747).toString(36),
-    (numericHash * 893).toString(36)
-  ].join('');
-  
-  return `#${hash.slice(0, 6).toUpperCase()}`;
+    (numericHash * 893).toString(36),
+  ].join('')
+
+  return `#${hash.slice(0, 6).toUpperCase()}`
 }
 
 /**
  * Validates if a reference number follows the correct format
  */
 export function isValidReference(ref: string): boolean {
-  return /^#[A-Z0-9]{6}$/.test(ref);
-} 
+  return /^#[A-Z0-9]{6}$/.test(ref)
+}

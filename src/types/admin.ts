@@ -1,5 +1,4 @@
-import type { Logo, LogoSubmission, Order, Price } from '@prisma/client'
-import type { HardDrive, Cpu, Database, LucideIcon } from 'lucide-react'
+import type { Logo, Price } from '@prisma/client'
 
 export type LogoStatus = 'AVAILABLE' | 'SOLD' | 'HIDDEN' | 'REVIEW' | 'DRAFT'
 export type OrderStatus = 'SUMMONED' | 'REVIVED'
@@ -89,4 +88,4 @@ export interface DashboardData {
   }
   systemHealthData: ServiceStatus[]
   resourceMetrics: ResourceMetric[]
-} 
+}

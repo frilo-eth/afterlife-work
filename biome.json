@@ -1,12 +1,7 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
   "files": {
-    "includes": [
-      "**",
-      "!**/node_modules/**",
-      "!**/.next/**",
-      "!**/prisma/migrations/**"
-    ]
+    "includes": ["**", "!**/node_modules", "!**/.next", "!**/prisma/migrations", "!**/scripts"]
   },
   "formatter": {
     "enabled": true,
@@ -19,10 +14,12 @@
     "includes": [
       "**",
       "!src/components/modals/SubmitLogoModal.tsx",
-      "!src/components/ui/**"
+      "!src/components/ui/**",
+      "!public/**",
+      "!scripts/**"
     ],
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "a11y": {
         "useSemanticElements": "off",
         "noLabelWithoutControl": "warn",
@@ -33,10 +30,10 @@
         "noUnknownAtRules": "off"
       },
       "correctness": {
-        "useExhaustiveDependencies": "warn"
+        "useExhaustiveDependencies": "off"
       },
       "performance": {
-        "noImgElement": "warn"
+        "noImgElement": "off"
       }
     }
   },

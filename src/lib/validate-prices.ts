@@ -1,5 +1,5 @@
-import { prisma } from './prisma'
 import { PRICE_TIERS } from './price-constants'
+import { prisma } from './prisma'
 
 type LogoWithPrice = {
   id: string
@@ -13,27 +13,25 @@ type LogoWithPrice = {
 
 export async function validatePrices() {
   const logos = await prisma.logo.findMany({
-    include: { price: true }
+    include: { price: true },
   })
 
   const invalidPrices = logos.filter((logo: LogoWithPrice) => {
-    return (
-      logo.price.summon !== PRICE_TIERS.summon ||
-      logo.price.revival !== PRICE_TIERS.revival
-    )
+    return logo.price.summon !== PRICE_TIERS.summon || logo.price.revival !== PRICE_TIERS.revival
   })
 
   if (invalidPrices.length > 0) {
-    console.error('Found logos with mismatched prices:', 
+    console.error(
+      'Found logos with mismatched prices:',
       invalidPrices.map((l: LogoWithPrice) => ({
         id: l.id,
         title: l.title,
         summon: l.price.summon,
-        revival: l.price.revival
-      }))
+        revival: l.price.revival,
+      })),
     )
     return false
   }
 
   return true
-} 
+}

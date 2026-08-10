@@ -21,12 +21,12 @@ export function DesignerPayoutSummaryEmail({
   payoutPeriod,
   totalAmount,
   payoutDate,
-  items
+  items,
 }: DesignerPayoutSummaryEmailProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'USD',
     }).format(amount / 100)
   }
 
@@ -36,14 +36,13 @@ export function DesignerPayoutSummaryEmail({
       heading="Designer Payout Summary"
       body={
         <>
+          <Text style={styles.text}>Hi {designerName},</Text>
+
           <Text style={styles.text}>
-            Hi {designerName},
+            Here&apos;s your payout summary for {payoutPeriod}. The total amount of{' '}
+            {formatCurrency(totalAmount)} will be transferred on {payoutDate}.
           </Text>
-          
-          <Text style={styles.text}>
-            Here&apos;s your payout summary for {payoutPeriod}. The total amount of {formatCurrency(totalAmount)} will be transferred on {payoutDate}.
-          </Text>
-          
+
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>Sales Breakdown</Text>
             {items.map((item) => (
@@ -119,5 +118,5 @@ const styles = {
     borderBottom: '1px solid #222222',
     paddingBottom: '16px',
     marginBottom: '16px',
-  }
-} 
+  },
+}

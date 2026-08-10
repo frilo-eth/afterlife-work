@@ -1,14 +1,14 @@
-import { prisma } from '@/lib/prisma'
 import { OrdersTable } from '@/components/admin/OrdersTable'
+import { prisma } from '@/lib/prisma'
 
 export default async function OrdersPage() {
   const orders = await prisma.order.findMany({
     include: {
-      logo: true
+      logo: true,
     },
     orderBy: {
-      createdAt: 'desc'
-    }
+      createdAt: 'desc',
+    },
   })
 
   return (
@@ -17,4 +17,4 @@ export default async function OrdersPage() {
       <OrdersTable orders={orders} />
     </div>
   )
-} 
+}

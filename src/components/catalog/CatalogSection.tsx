@@ -1,11 +1,10 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { FilterBar } from '@/components/filters/FilterBar'
 import { LogoGrid } from '@/components/logo/LogoGrid'
-import type { FilterState } from '@/lib/types'
 import type { CatalogLogo } from '@/lib/catalog'
+import type { FilterState } from '@/lib/types'
 
 interface CatalogSectionProps {
   logos: CatalogLogo[]
@@ -17,7 +16,6 @@ interface CatalogSectionProps {
  * already on screen, so there is no fetch and no loading state.
  */
 export function CatalogSection({ logos }: CatalogSectionProps) {
-  const router = useRouter()
   const [filters, setFilters] = useState<FilterState>({ styles: [], search: '' })
 
   // Counted from the whole catalog, not the filtered view: a tag's weight is
@@ -34,15 +32,14 @@ export function CatalogSection({ logos }: CatalogSectionProps) {
   const visibleLogos = useMemo(() => {
     const search = filters.search.trim().toLowerCase()
 
-    return logos.filter(logo => {
+    return logos.filter((logo) => {
       const matchesSearch =
         search === '' ||
         logo.title.toLowerCase().includes(search) ||
-        logo.tags.some(tag => tag.toLowerCase().includes(search))
+        logo.tags.some((tag) => tag.toLowerCase().includes(search))
 
       const matchesStyle =
-        filters.styles.length === 0 ||
-        logo.tags.some(tag => filters.styles.includes(tag))
+        filters.styles.length === 0 || logo.tags.some((tag) => filters.styles.includes(tag))
 
       return matchesSearch && matchesStyle
     })
@@ -62,10 +59,7 @@ export function CatalogSection({ logos }: CatalogSectionProps) {
         <h2 className="sr-only">The collection</h2>
 
         {visibleLogos.length > 0 ? (
-          <LogoGrid
-            logos={visibleLogos}
-            onLogoPress={id => router.push(`/${id}`)}
-          />
+          <LogoGrid logos={visibleLogos} />
         ) : (
           <p className="text-sm text-foreground-muted">
             Nothing matches those filters. Try a different style or search term.

@@ -6,10 +6,13 @@ export async function GET(req: Request) {
   const sessionId = searchParams.get('session_id')
 
   if (!sessionId) {
-    return errorResponse({
-      message: 'Session ID is required',
-      code: 'MISSING_SESSION_ID'
-    }, 400)
+    return errorResponse(
+      {
+        message: 'Session ID is required',
+        code: 'MISSING_SESSION_ID',
+      },
+      400,
+    )
   }
 
   try {
@@ -19,10 +22,13 @@ export async function GET(req: Request) {
     // is not proof of purchase — an abandoned or expired checkout resolves
     // here too.
     if (session.payment_status !== 'paid') {
-      return errorResponse({
-        message: 'Payment not completed',
-        code: 'PAYMENT_INCOMPLETE'
-      }, 402)
+      return errorResponse(
+        {
+          message: 'Payment not completed',
+          code: 'PAYMENT_INCOMPLETE',
+        },
+        402,
+      )
     }
 
     const { logoId, tier, wordmark, domain } = session.metadata || {}
@@ -34,13 +40,16 @@ export async function GET(req: Request) {
       logoId,
       tier,
       wordmark: Boolean(wordmark),
-      domain: domain ?? null
+      domain: domain ?? null,
     })
   } catch (error) {
-    return errorResponse({
-      message: 'Invalid session',
-      code: 'INVALID_SESSION',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    }, 400)
+    return errorResponse(
+      {
+        message: 'Invalid session',
+        code: 'INVALID_SESSION',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      400,
+    )
   }
 }

@@ -13,7 +13,7 @@ export async function getAllLogos() {
     const logos = await db.logo.findMany({
       include: { price: true },
       where: { status: 'AVAILABLE' },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     })
     return logos
   } catch (error) {

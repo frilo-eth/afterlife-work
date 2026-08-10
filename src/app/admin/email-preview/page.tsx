@@ -1,12 +1,12 @@
 'use client'
 
+import { Button, Card, Select, SelectItem } from '@nextui-org/react'
 import { useState } from 'react'
-import { Card, Button, Select, SelectItem } from '@nextui-org/react'
 
 const templates = [
   { value: 'order-confirmation', label: 'Order Confirmation' },
   { value: 'logo-approval', label: 'Logo Approval' },
-  { value: 'new-submission', label: 'New Logo Submission' }
+  { value: 'new-submission', label: 'New Logo Submission' },
 ]
 
 export default function EmailPreviewPage() {
@@ -15,17 +15,17 @@ export default function EmailPreviewPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-4xl font-bold">Email Preview</h1>
-      
+
       <Card className="p-6 bg-default-50">
         <div className="space-y-4">
-          <Select 
+          <Select
             label="Select Template"
             value={selectedTemplate}
             onChange={(e) => setSelectedTemplate(e.target.value)}
             variant="bordered"
             classNames={{
-              trigger: "bg-default-100",
-              value: "text-foreground"
+              trigger: 'bg-default-100',
+              value: 'text-foreground',
             }}
           >
             {templates.map((template) => (
@@ -49,4 +49,4 @@ export default function EmailPreviewPage() {
       </Card>
     </div>
   )
-} 
+}

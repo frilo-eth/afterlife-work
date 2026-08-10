@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
-import { Input, Button, Tooltip } from '@nextui-org/react'
-import { Mail, ArrowRight } from 'lucide-react'
+import { Button, Input, Tooltip } from '@nextui-org/react'
 import { motion } from 'framer-motion'
+import { ArrowRight, Mail } from 'lucide-react'
 import Link from 'next/link'
+import { useState } from 'react'
 import { SubmitLogoModal } from '@/components/modals/SubmitLogoModal'
 import { subscribeToNewsletter } from '@/lib/api'
 
@@ -18,9 +18,9 @@ export function TeaserClient() {
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email) return
-    
+
     setStatus('loading')
-    
+
     try {
       // Try to use the API if available
       try {
@@ -35,22 +35,24 @@ export function TeaserClient() {
         // API error, fallback to client-side validation
         console.error('API error, using fallback:', apiError)
       }
-      
+
       // Simple email validation
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         throw new Error('Please enter a valid email address')
       }
-      
+
       // Save email directly without using the API
       console.log('Email subscription:', email)
-      
+
       setStatus('success')
       setMessage('Thanks for subscribing!')
       setEmail('')
     } catch (error) {
       console.error('Error subscribing:', error)
       setStatus('error')
-      setMessage(error instanceof Error ? error.message : 'Failed to subscribe. Please try again later.')
+      setMessage(
+        error instanceof Error ? error.message : 'Failed to subscribe. Please try again later.',
+      )
     } finally {
       setTimeout(() => {
         setStatus('idle')
@@ -65,25 +67,25 @@ export function TeaserClient() {
       opacity: 1,
       transition: {
         staggerChildren: 0.15,
-        delayChildren: 0.3
-      }
-    }
+        delayChildren: 0.3,
+      },
+    },
   }
 
   const item = {
     hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
+    show: { opacity: 1, y: 0 },
   }
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-background">
       {/* Dots Background */}
       <div className="absolute inset-0 opacity-10">
-        <div 
+        <div
           className="absolute inset-0 bg-gradient-to-b from-foreground/10 to-transparent"
           style={{
             backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-            backgroundSize: '40px 40px'
+            backgroundSize: '40px 40px',
           }}
         />
       </div>
@@ -95,7 +97,7 @@ export function TeaserClient() {
             <Link href="/teaser" className="opacity-90">
               <img src="/logo.svg" alt="Afterlife Logo" className="h-8 w-auto" />
             </Link>
-            
+
             <nav className="flex items-center gap-6">
               <Tooltip
                 content="Coming soon"
@@ -103,11 +105,14 @@ export function TeaserClient() {
                 className="text-sm"
                 showArrow={true}
               >
-                <Link href="#collection" className="text-sm text-foreground-muted hover:text-foreground">
+                <Link
+                  href="#collection"
+                  className="text-sm text-foreground-muted hover:text-foreground"
+                >
                   Collection
                 </Link>
               </Tooltip>
-              <Button 
+              <Button
                 className="bg-secondary backdrop-blur-sm border-border hover:bg-accent text-foreground text-sm h-9"
                 size="sm"
                 onPress={() => setIsSubmitOpen(true)}
@@ -123,7 +128,7 @@ export function TeaserClient() {
       </div>
 
       {/* Main Content */}
-      <motion.div 
+      <motion.div
         className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 pb-16"
         variants={container}
         initial="hidden"
@@ -134,9 +139,7 @@ export function TeaserClient() {
           variants={item}
           className="mb-8 px-4 py-2 rounded-full bg-zinc-900/50 border border-zinc-800/50 backdrop-blur-sm"
         >
-          <span className="text-sm text-zinc-400">
-            Coming Soon • Q2 2024
-          </span>
+          <span className="text-sm text-zinc-400">Coming Soon • Q2 2024</span>
         </motion.div>
 
         {/* Main Title */}
@@ -150,12 +153,9 @@ export function TeaserClient() {
         </motion.h1>
 
         {/* Subtitle */}
-        <motion.p
-          variants={item}
-          className="max-w-md text-center mb-12 text-zinc-400"
-        >
-          Join the revolution in logo resurrection. Transform abandoned designs into 
-          timeless brand assets.
+        <motion.p variants={item} className="max-w-md text-center mb-12 text-zinc-400">
+          Join the revolution in logo resurrection. Transform abandoned designs into timeless brand
+          assets.
         </motion.p>
 
         {/* Email Form */}
@@ -173,15 +173,15 @@ export function TeaserClient() {
               startContent={<Mail className="text-zinc-500" size={16} />}
               isDisabled={status === 'loading'}
               classNames={{
-                input: "bg-transparent text-sm",
+                input: 'bg-transparent text-sm',
                 inputWrapper: [
-                  "bg-zinc-900/50",
-                  "backdrop-blur-sm",
-                  "border border-zinc-800",
-                  "hover:border-zinc-700",
-                  "h-12",
-                  "px-4",
-                ]
+                  'bg-zinc-900/50',
+                  'backdrop-blur-sm',
+                  'border border-zinc-800',
+                  'hover:border-zinc-700',
+                  'h-12',
+                  'px-4',
+                ],
               }}
             />
             <Button
@@ -193,10 +193,7 @@ export function TeaserClient() {
             >
               <span className="flex items-center gap-2">
                 Join Waitlist
-                <motion.div
-                  animate={{ x: isHovered ? 4 : 0 }}
-                  transition={{ duration: 0.2 }}
-                >
+                <motion.div animate={{ x: isHovered ? 4 : 0 }} transition={{ duration: 0.2 }}>
                   <ArrowRight size={16} />
                 </motion.div>
               </span>
@@ -222,16 +219,19 @@ export function TeaserClient() {
           <div className="flex items-center justify-between">
             <div className="text-sm text-foreground-muted">
               Afterlife. Where rejected logos find new life. Made by{' '}
-              <a href="https://frilo.io" className="hover:text-foreground">frilo</a>.
+              <a href="https://frilo.io" className="hover:text-foreground">
+                frilo
+              </a>
+              .
             </div>
             <div className="flex items-center gap-6">
-              <Link 
+              <Link
                 href="mailto:hi@afterlife.work"
                 className="text-sm text-foreground-muted hover:text-foreground"
               >
                 Say hi
               </Link>
-              <Link 
+              <Link
                 href="https://x.com/afterlifewrk"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -239,7 +239,7 @@ export function TeaserClient() {
               >
                 Follow us
               </Link>
-              <Link 
+              <Link
                 href="https://cal.com/afterlife/30min"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -255,4 +255,4 @@ export function TeaserClient() {
       <SubmitLogoModal isOpen={isSubmitOpen} onClose={() => setIsSubmitOpen(false)} />
     </div>
   )
-} 
+}

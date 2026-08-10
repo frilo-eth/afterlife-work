@@ -1,12 +1,12 @@
 'use client'
 
 import { Progress } from '@nextui-org/react'
-import { HardDrive, Cpu, Database } from 'lucide-react'
+import { Cpu, Database, HardDrive } from 'lucide-react'
 
 const ICONS = {
   HardDrive,
   Cpu,
-  Database
+  Database,
 }
 
 interface ResourceMetric {
@@ -28,22 +28,22 @@ export function ResourceUsage({ metrics }: ResourceUsageProps) {
       used: 450,
       total: 1000,
       unit: 'GB',
-      icon: 'HardDrive'
+      icon: 'HardDrive',
     },
     {
       name: 'CPU Usage',
       used: 65,
       total: 100,
       unit: '%',
-      icon: 'Cpu'
+      icon: 'Cpu',
     },
     {
       name: 'Database',
       used: 8,
       total: 10,
       unit: 'GB',
-      icon: 'Database'
-    }
+      icon: 'Database',
+    },
   ]
 
   const metricsToShow = metrics.length > 0 ? metrics : mockMetrics
@@ -53,8 +53,8 @@ export function ResourceUsage({ metrics }: ResourceUsageProps) {
       {metricsToShow.map((metric) => {
         const Icon = ICONS[metric.icon]
         const percentage = (metric.used / metric.total) * 100
-        const isWarning = percentage > 70
-        const isDanger = percentage > 90
+        const _isWarning = percentage > 70
+        const _isDanger = percentage > 90
 
         return (
           <div key={metric.name} className="space-y-2">
@@ -72,9 +72,9 @@ export function ResourceUsage({ metrics }: ResourceUsageProps) {
               size="sm"
               radius="sm"
               classNames={{
-                base: "max-w-full",
-                track: "bg-secondary",
-                indicator: "bg-accent"
+                base: 'max-w-full',
+                track: 'bg-secondary',
+                indicator: 'bg-accent',
               }}
             />
           </div>
@@ -82,4 +82,4 @@ export function ResourceUsage({ metrics }: ResourceUsageProps) {
       })}
     </div>
   )
-} 
+}

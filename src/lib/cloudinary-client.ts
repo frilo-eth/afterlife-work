@@ -1,9 +1,9 @@
-"use client"
+'use client'
 
-import { Cloudinary } from "@cloudinary/url-gen"
+import { Cloudinary } from '@cloudinary/url-gen'
 
 export const cloudinary = new Cloudinary({
   cloud: {
-    cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
-  }
-}) 
+    cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+  },
+})

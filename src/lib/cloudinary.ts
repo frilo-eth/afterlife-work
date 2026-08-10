@@ -10,13 +10,10 @@ export const uploadLogo = async (file: File): Promise<string> => {
       throw new Error('Cloudinary cloud name is not configured')
     }
 
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-      {
-        method: 'POST',
-        body: formData,
-      }
-    )
+    const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData,
+    })
 
     if (!response.ok) {
       const error = await response.json()
@@ -30,4 +27,4 @@ export const uploadLogo = async (file: File): Promise<string> => {
     console.error('Upload error:', error)
     throw new Error(error instanceof Error ? error.message : 'Unknown upload error')
   }
-} 
+}

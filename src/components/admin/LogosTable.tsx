@@ -1,29 +1,29 @@
 'use client'
 
-import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableColumn, 
-  TableRow, 
-  TableCell,
+import {
   Button,
-  Tooltip,
   Chip,
-  Tabs,
-  Tab,
   Dropdown,
-  DropdownTrigger,
+  DropdownItem,
   DropdownMenu,
-  DropdownItem
-} from "@nextui-org/react"
-import { Edit2, ExternalLink, Trash2, CheckCircle, XCircle, MessageCircle } from 'lucide-react'
+  DropdownTrigger,
+  Tab,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+  Tabs,
+  Tooltip,
+} from '@nextui-org/react'
 import { format } from 'date-fns'
+import { CheckCircle, Edit2, ExternalLink, MessageCircle, Trash2, XCircle } from 'lucide-react'
 import { useState } from 'react'
-import type { LogoWithDetails, LogoStatus } from '@/types'
-import { generatePublicReference } from '@/lib/utils'
-import LogoEditModal from './LogoEditModal'
 import { useLogos } from '@/hooks/useLogos'
+import { generatePublicReference } from '@/lib/utils'
+import type { LogoStatus, LogoWithDetails } from '@/types'
+import LogoEditModal from './LogoEditModal'
 import { ReviewModal } from './ReviewModal'
 
 interface LogosTableProps {
@@ -37,10 +37,13 @@ const statusColorMap: Record<LogoStatus, string> = {
   SOLD: 'bg-blue-100 text-blue-800',
   REVIEW: 'bg-amber-100 text-amber-800',
   DRAFT: 'bg-gray-100 text-gray-800',
-  HIDDEN: 'bg-red-100 text-red-800'
+  HIDDEN: 'bg-red-100 text-red-800',
 }
 
-export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLogos }: LogosTableProps) {
+export function LogosTable({
+  logos: initialLogos,
+  groupedLogos: initialGroupedLogos,
+}: LogosTableProps) {
   const { updateLogoStatus, deleteLogo, reviewLogo } = useLogos()
   const [selectedStatus, setSelectedStatus] = useState<LogoStatus>('AVAILABLE')
   const [selectedLogo, setSelectedLogo] = useState<LogoWithDetails | null>(null)
@@ -52,13 +55,17 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
   }>({
     isOpen: false,
     logo: null,
-    action: 'REQUEST_CHANGES'
+    action: 'REQUEST_CHANGES',
   })
 
   // Filter logos based on selected status
   const filteredLogos = initialGroupedLogos?.[selectedStatus] || initialLogos
 
-  const handleReviewAction = async (logo: LogoWithDetails, action: 'APPROVE' | 'REQUEST_CHANGES' | 'REJECT', message?: string) => {
+  const handleReviewAction = async (
+    logo: LogoWithDetails,
+    action: 'APPROVE' | 'REQUEST_CHANGES' | 'REJECT',
+    message?: string,
+  ) => {
     try {
       await reviewLogo(logo.id, action, message)
       setReviewModal({ isOpen: false, logo: null, action: 'REQUEST_CHANGES' })
@@ -76,7 +83,11 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
   }
 
   const handleDelete = async (logo: LogoWithDetails) => {
-    if (!window.confirm(`Are you sure you want to delete "${logo.title}"? This action cannot be undone.`)) {
+    if (
+      !window.confirm(
+        `Are you sure you want to delete "${logo.title}"? This action cannot be undone.`,
+      )
+    ) {
       return
     }
 
@@ -89,21 +100,23 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
 
   return (
     <div className="space-y-4">
-      <Tabs 
+      <Tabs
         selectedKey={selectedStatus}
         onSelectionChange={(key) => setSelectedStatus(key as LogoStatus)}
         classNames={{
-          tab: "data-[selected=true]:text-foreground",
-          cursor: "hidden"
+          tab: 'data-[selected=true]:text-foreground',
+          cursor: 'hidden',
         }}
       >
         {Object.entries(initialGroupedLogos || {}).map(([status, statusLogos]) => (
-          <Tab 
-            key={status} 
+          <Tab
+            key={status}
             title={
               <div className="flex items-center gap-2">
                 <span>{status}</span>
-                <span className={`px-2 py-0.5 text-xs rounded-full ${statusColorMap[status as LogoStatus]}`}>
+                <span
+                  className={`px-2 py-0.5 text-xs rounded-full ${statusColorMap[status as LogoStatus]}`}
+                >
                   {statusLogos.length}
                 </span>
               </div>
@@ -122,7 +135,7 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
         </TableHeader>
         <TableBody>
           {filteredLogos.map((logo) => (
-            <TableRow 
+            <TableRow
               key={logo.id}
               className="cursor-pointer hover:bg-default-100"
               onClick={() => {
@@ -132,8 +145,8 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
             >
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <img 
-                    src={logo.thumbnail} 
+                  <img
+                    src={logo.thumbnail}
                     alt={logo.title}
                     className="w-10 h-10 rounded object-cover"
                   />
@@ -145,7 +158,7 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
               </TableCell>
               <TableCell>{generatePublicReference(logo.id)}</TableCell>
               <TableCell>
-                <div 
+                <div
                   onClick={(e) => {
                     e.stopPropagation() // Prevent row click
                   }}
@@ -160,10 +173,7 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
                 >
                   <Dropdown>
                     <DropdownTrigger>
-                      <Chip
-                        className={`cursor-pointer ${statusColorMap[logo.status]}`}
-                        size="sm"
-                      >
+                      <Chip className={`cursor-pointer ${statusColorMap[logo.status]}`} size="sm">
                         {logo.status}
                       </Chip>
                     </DropdownTrigger>
@@ -175,10 +185,7 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
                       {Object.keys(statusColorMap).map((status) => (
                         <DropdownItem key={status}>
                           <div className="flex items-center gap-2">
-                            <Chip
-                              className={statusColorMap[status as LogoStatus]}
-                              size="sm"
-                            >
+                            <Chip className={statusColorMap[status as LogoStatus]} size="sm">
                               {status}
                             </Chip>
                           </div>
@@ -207,11 +214,13 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
                         <Button
                           isIconOnly
                           variant="light"
-                          onPress={() => setReviewModal({
-                            isOpen: true,
-                            logo,
-                            action: 'REQUEST_CHANGES'
-                          })}
+                          onPress={() =>
+                            setReviewModal({
+                              isOpen: true,
+                              logo,
+                              action: 'REQUEST_CHANGES',
+                            })
+                          }
                           className="text-warning"
                         >
                           <MessageCircle size={20} />
@@ -221,11 +230,13 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
                         <Button
                           isIconOnly
                           variant="light"
-                          onPress={() => setReviewModal({
-                            isOpen: true,
-                            logo,
-                            action: 'REJECT'
-                          })}
+                          onPress={() =>
+                            setReviewModal({
+                              isOpen: true,
+                              logo,
+                              action: 'REJECT',
+                            })
+                          }
                           className="text-danger"
                         >
                           <XCircle size={20} />
@@ -235,8 +246,8 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
                   ) : (
                     <>
                       <Tooltip content="Edit logo">
-                        <Button 
-                          isIconOnly 
+                        <Button
+                          isIconOnly
                           variant="light"
                           onPress={() => {
                             setSelectedLogo(logo)
@@ -280,11 +291,12 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
         <LogoEditModal
           logo={{
             ...selectedLogo,
-            gallery: selectedLogo.gallery?.map((item, index: number) => ({
-              id: item.id || `gallery-${index}`,
-              imageUrl: item.imageUrl,
-              logoId: selectedLogo.id
-            })) || []
+            gallery:
+              selectedLogo.gallery?.map((item, index: number) => ({
+                id: item.id || `gallery-${index}`,
+                imageUrl: item.imageUrl,
+                logoId: selectedLogo.id,
+              })) || [],
           }}
           isOpen={isEditModalOpen}
           onClose={() => {
@@ -307,4 +319,4 @@ export function LogosTable({ logos: initialLogos, groupedLogos: initialGroupedLo
       />
     </div>
   )
-} 
+}

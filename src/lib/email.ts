@@ -1,22 +1,29 @@
 import { Resend } from 'resend'
-import type { FileDelivery } from './order-fulfillment'
 import { OrderConfirmationWithFiles } from '@/components/emails/OrderConfirmationWithFiles'
-import type { Tag } from 'resend'
+import type { FileDelivery } from './order-fulfillment'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export function createEmailClient() {
   return {
-    send: async ({ type, to, subject, react, html, text, tags = [] }: {
-      type?: EmailType;
-      to: string;
-      subject: string;
-      react?: React.ReactNode;
-      html?: string;
-      text?: string;
-      tags?: Array<{ name: string; value: string }>;
+    send: async ({
+      type,
+      to,
+      subject,
+      react,
+      html,
+      text,
+      tags = [],
+    }: {
+      type?: EmailType
+      to: string
+      subject: string
+      react?: React.ReactNode
+      html?: string
+      text?: string
+      tags?: Array<{ name: string; value: string }>
     }) => {
-      const from = type ? EmailConfig[type] : EmailConfig.system;
+      const from = type ? EmailConfig[type] : EmailConfig.system
       return resend.emails.send({
         from,
         to,
@@ -24,14 +31,24 @@ export function createEmailClient() {
         react,
         html,
         text,
-        tags
-      });
-    }
-  };
+        // A reachable reply address is a stronger trust signal than a bare
+        // no-reply-looking transactional address — and designers do reply.
+        reply_to: 'hi@afterlife.work',
+        tags,
+      })
+    },
+  }
 }
 
-export type EmailType = 'customer' | 'designer' | 'submissions' | 'orders' | 'system' | 'admin' | 'payouts'
-export type EmailTemplate = 
+export type EmailType =
+  | 'customer'
+  | 'designer'
+  | 'submissions'
+  | 'orders'
+  | 'system'
+  | 'admin'
+  | 'payouts'
+export type EmailTemplate =
   | 'OrderConfirmationWithFiles'
   | 'OrderConfirmationPendingWordmark'
   | 'OrderConfirmationRevival'
@@ -52,13 +69,13 @@ export type EmailTemplate =
 export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN ?? 'updates.afterlife.work'
 
 export const EmailConfig = {
-  customer: `orders@${EMAIL_DOMAIN}`,
-  designer: `design@${EMAIL_DOMAIN}`,
-  submissions: `submissions@${EMAIL_DOMAIN}`,
-  orders: `orders@${EMAIL_DOMAIN}`,
-  system: `system@${EMAIL_DOMAIN}`,
-  admin: `admin@${EMAIL_DOMAIN}`,
-  payouts: `payouts@${EMAIL_DOMAIN}`,
+  customer: `Afterlife <orders@${EMAIL_DOMAIN}>`,
+  designer: `Afterlife <design@${EMAIL_DOMAIN}>`,
+  submissions: `Afterlife <submissions@${EMAIL_DOMAIN}>`,
+  orders: `Afterlife <orders@${EMAIL_DOMAIN}>`,
+  system: `Afterlife <system@${EMAIL_DOMAIN}>`,
+  admin: `Afterlife <admin@${EMAIL_DOMAIN}>`,
+  payouts: `Afterlife <payouts@${EMAIL_DOMAIN}>`,
 } as const
 
 interface EmailData {
@@ -90,23 +107,24 @@ export async function sendOrderConfirmationEmail({
   type,
   template,
   to,
-  data
+  data,
 }: OrderConfirmationEmailProps) {
   const from = EmailConfig[type]
   const recipient = to || getDefaultRecipient(type)
 
   try {
     const emailComponent = await renderEmailTemplate(template, data)
-    
+
     await resend.emails.send({
       from,
       to: recipient,
       subject: getSubject(template, data),
       react: emailComponent,
+      reply_to: 'hi@afterlife.work',
       tags: [
         { name: 'email_type', value: 'order_confirmation' },
-        { name: 'tier', value: data.tier || 'unknown' }
-      ]
+        { name: 'tier', value: data.tier || 'unknown' },
+      ],
     })
   } catch (error) {
     console.error('Failed to send email:', error)
@@ -129,7 +147,7 @@ function getDefaultRecipient(type: EmailType): string {
 
 function getSubject(template: EmailTemplate, data: EmailData): string {
   const title = data.logoTitle || 'Untitled Logo'
-  
+
   switch (template) {
     case 'OrderConfirmationWithFiles':
       return `Your Logo Files Are Ready - ${title}`
@@ -161,10 +179,10 @@ async function renderEmailTemplate(template: EmailTemplate, data: EmailData) {
         logoTitle: data.logoTitle,
         files: data.files,
         tier: data.tier || 'unknown',
-        amount: data.amount
+        amount: data.amount,
       })
     // TODO: Add other email templates
     default:
       throw new Error(`Email template ${template} not implemented`)
   }
-} 
+}

@@ -4,11 +4,7 @@ import { Providers } from './providers'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default function TeaserLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function TeaserLayout({ children }: { children: React.ReactNode }) {
   // This is a completely isolated layout that creates its own html/body structure
   return (
     <html lang="en" className="dark">
@@ -17,4 +13,4 @@ export default function TeaserLayout({
       </body>
     </html>
   )
-} 
+}

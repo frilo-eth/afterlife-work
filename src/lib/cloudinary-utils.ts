@@ -1,5 +1,4 @@
 import { cloudinary } from './cloudinary-server'
-import { UploadApiResponse, UploadApiOptions } from 'cloudinary'
 
 // Configure cloudinary
 
@@ -26,11 +25,11 @@ export async function getCloudinaryLogos(): Promise<CloudinaryImage[]> {
       prefix: 'logos',
       max_results: 500,
     })
-    
+
     return result.resources.map((resource: CloudinaryResource) => ({
       public_id: resource.public_id,
       secure_url: resource.secure_url,
-      folder: resource.folder
+      folder: resource.folder,
     }))
   } catch (error) {
     console.error('Error fetching Cloudinary logos:', error)
@@ -73,7 +72,7 @@ export async function uploadToCloudinary(
     folder?: string
     publicId?: string
     tags?: string[]
-  }
+  },
 ) {
   try {
     const uploadOptions = {
@@ -81,12 +80,12 @@ export async function uploadToCloudinary(
       public_id: options?.publicId,
       tags: options?.tags,
     }
-    
+
     // Cloudinary uploader expects a string path, URL, or Buffer
     // For File objects from browser, we would need to handle differently
     // but that's outside the scope of this server-side function
     const uploadData = file
-    
+
     // @ts-expect-error - Cloudinary types don't properly handle all input types
     const result = await cloudinary.uploader.upload(uploadData, uploadOptions)
     return result
@@ -105,34 +104,31 @@ type CloudinaryUploadFile = string | { path: string }
 
 export async function uploadLogoAssets(
   mainFile: CloudinaryUploadFile,
-  galleryFiles: CloudinaryUploadFile[]
+  galleryFiles: CloudinaryUploadFile[],
 ): Promise<UploadResponse> {
   try {
     // Upload main placeholder using the preset
     const mainUpload = await cloudinary.uploader.upload(
       typeof mainFile === 'string' ? mainFile : mainFile.path,
-      { 
+      {
         upload_preset: 'logos_preset',
-        folder: 'logos'
-      }
+        folder: 'logos',
+      },
     )
 
     // Upload gallery images to a different folder
     const galleryUploads = await Promise.all(
-      galleryFiles.map(file => 
-        cloudinary.uploader.upload(
-          typeof file === 'string' ? file : file.path,
-          { 
-            folder: 'logos/gallery',
-            // No preset needed for gallery images
-          }
-        )
-      )
+      galleryFiles.map((file) =>
+        cloudinary.uploader.upload(typeof file === 'string' ? file : file.path, {
+          folder: 'logos/gallery',
+          // No preset needed for gallery images
+        }),
+      ),
     )
 
     return {
       mainImage: mainUpload.secure_url,
-      galleryImages: galleryUploads.map(upload => upload.secure_url)
+      galleryImages: galleryUploads.map((upload) => upload.secure_url),
     }
   } catch (error) {
     console.error('Upload failed:', error)
@@ -143,19 +139,19 @@ export async function uploadLogoAssets(
 // Helper function for direct uploads from the client
 export function getUploadSignature() {
   const apiSecret = process.env.CLOUDINARY_API_SECRET
-  
+
   if (!apiSecret) {
     throw new Error('Cloudinary API Secret is not configured')
   }
 
-  const timestamp = Math.round(new Date().getTime() / 1000)
+  const timestamp = Math.round(Date.now() / 1000)
   const signature = cloudinary.utils.api_sign_request(
     {
       timestamp,
       folder: 'logos',
-      upload_preset: 'logos_preset'
+      upload_preset: 'logos_preset',
     },
-    apiSecret
+    apiSecret,
   )
 
   const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
@@ -169,6 +165,6 @@ export function getUploadSignature() {
     timestamp,
     signature,
     cloudName,
-    apiKey
+    apiKey,
   }
 }

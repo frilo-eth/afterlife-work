@@ -1,14 +1,6 @@
 'use client'
 
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer 
-} from 'recharts'
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 interface OrderCount {
   tier: string
@@ -34,25 +26,20 @@ interface AnalyticsData {
 }
 
 export function AnalyticsChart({ data }: { data: AnalyticsData }) {
-  const chartData = data.ordersByTier.map(tier => ({
+  const chartData = data.ordersByTier.map((tier) => ({
     name: tier.tier,
-    orders: tier._count
+    orders: tier._count,
   }))
 
   return (
     <ResponsiveContainer width="100%" height={300}>
       <BarChart data={chartData}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis 
-          dataKey="name" 
-          tick={{ fill: '#fff' }}
-        />
-        <YAxis 
-          tick={{ fill: '#fff' }}
-        />
+        <XAxis dataKey="name" tick={{ fill: '#fff' }} />
+        <YAxis tick={{ fill: '#fff' }} />
         <Tooltip />
         <Bar dataKey="orders" fill="#8884d8" />
       </BarChart>
     </ResponsiveContainer>
   )
-} 
+}

@@ -1,5 +1,3 @@
-import { NextResponse } from 'next/server'
-
 const loginAttempts = new Map<string, { count: number; resetTime: number }>()
 
 export function checkRateLimit(ip: string, isLoginAttempt = false): boolean {
@@ -31,7 +29,7 @@ export function checkRateLimit(ip: string, isLoginAttempt = false): boolean {
   // Increment attempts
   attempt.count++
   loginAttempts.set(ip, attempt)
-  
+
   // Log remaining attempts
   console.log(`Login attempt ${attempt.count}/${maxAttempts} for IP: ${ip}`)
   return true
@@ -40,4 +38,4 @@ export function checkRateLimit(ip: string, isLoginAttempt = false): boolean {
 // Add a function to reset rate limit for testing
 export function resetRateLimit(ip: string) {
   loginAttempts.delete(ip)
-} 
+}

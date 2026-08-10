@@ -15,8 +15,8 @@ export async function ensureDbConnection() {
         throw error
       }
       // Wait 2 seconds before retrying
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
     }
   }
   return false
-} 
+}

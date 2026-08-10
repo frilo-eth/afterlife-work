@@ -1,21 +1,11 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react'
-import {
-  Modal,
-  ModalContent,
-  Button,
-  Input,
-  Textarea,
-  Chip,
-  Image
-} from "@nextui-org/react"
-import { X, Upload, Eye, Trash, Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react"
-import type { LogoWithDetails, LogoStatus } from '@/types'
-import { toast } from "sonner"
-import { useRouter } from "next/navigation"
-import type { Logo } from "@prisma/client"
-import { useLogos } from '@/hooks/useLogos'
+import { Button, Input, Modal, ModalContent, Textarea } from '@nextui-org/react'
+import { ChevronLeft, ChevronRight, Eye, Plus, Trash2, Upload, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { toast } from 'sonner'
+import type { LogoStatus, LogoWithDetails } from '@/types'
 
 // Add gallery type to match Prisma schema
 interface LogoGalleryItem {
@@ -24,17 +14,12 @@ interface LogoGalleryItem {
   logoId: string
 }
 
-// Extend LogoWithDetails type
-interface ExtendedLogoDetails extends LogoWithDetails {
-  gallery?: LogoGalleryItem[]
-}
-
 interface LogoEditModalProps {
-  logo: LogoWithDetails & { 
-    gallery?: { 
+  logo: LogoWithDetails & {
+    gallery?: {
       id: string
-      imageUrl: string 
-    }[] 
+      imageUrl: string
+    }[]
   }
   isOpen: boolean
   onClose: () => void
@@ -53,17 +38,8 @@ interface FilePreviewData {
   }
 }
 
-interface FilePreviewProps {
-  preview: string | null
-  loading?: boolean
-  error?: string
-  onRemove?: () => void
-  onPreview?: () => void
-  className?: string
-}
-
 interface MainImageState {
-  preview: string | null;
+  preview: string | null
   // Store file info instead of the file object
   fileInfo?: {
     name: string
@@ -72,44 +48,15 @@ interface MainImageState {
   }
 }
 
-interface FilePreview {
-  id: string
-  file: File | null  // Allow null for existing images
-  preview: string
-}
-
-const statusColorMap: Record<LogoStatus, "default" | "primary" | "secondary" | "success" | "warning" | "danger"> = {
-  AVAILABLE: "success",
-  SOLD: "primary",
-  REVIEW: "warning",
-  DRAFT: "default",
-  HIDDEN: "danger"
-}
-
-const FilePreview = ({ preview, loading, error, onRemove, className }: FilePreviewProps) => {
-  if (loading) {
-    return (
-      <div className={`flex items-center justify-center ${className}`}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground" />
-      </div>
-    )
-  }
-
-  return (
-    <div className={`relative group ${className}`}>
-      <img src={preview || ''} alt="Preview" className="w-full h-full object-cover rounded-lg" />
-      {onRemove && (
-        <Button
-          isIconOnly
-          className="absolute top-2 right-2 bg-background/20 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
-          size="sm"
-          onPress={onRemove}
-        >
-          <Trash size={16} />
-        </Button>
-      )}
-    </div>
-  )
+const statusColorMap: Record<
+  LogoStatus,
+  'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
+> = {
+  AVAILABLE: 'success',
+  SOLD: 'primary',
+  REVIEW: 'warning',
+  DRAFT: 'default',
+  HIDDEN: 'danger',
 }
 
 const AVAILABLE_TAGS = [
@@ -125,15 +72,15 @@ const AVAILABLE_TAGS = [
   'Delicate',
   'Mascot',
   'Counterform',
-  'Pixel'
+  'Pixel',
 ] as const
 
 // Title formatting utilities
 const formatTitle = (input: string): string => {
   // Only remove special characters, keep spaces
   return input
-    .replace(/[^\w\s-]/g, '')  // Keep word chars, spaces, and hyphens
-    .replace(/\s+/g, ' ')      // Normalize multiple spaces to single space
+    .replace(/[^\w\s-]/g, '') // Keep word chars, spaces, and hyphens
+    .replace(/\s+/g, ' ') // Normalize multiple spaces to single space
     .trim()
 }
 
@@ -143,151 +90,149 @@ const generateCloudinaryName = (title: string): string => {
 }
 
 // Add a helper function for file validation
-const validateFile = (file: File): { isValid: boolean; error?: string } => {
-  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-  const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
-  
+const _validateFile = (file: File): { isValid: boolean; error?: string } => {
+  const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+  const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.gif']
+
   // Check file size
   if (file.size > MAX_FILE_SIZE) {
     return {
       isValid: false,
-      error: `File is too large. Maximum size is ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(1)}MB`
-    };
+      error: `File is too large. Maximum size is ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(1)}MB`,
+    }
   }
-  
+
   // Check file type
-  const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+  const fileExt = file.name.substring(file.name.lastIndexOf('.')).toLowerCase()
   if (!ALLOWED_EXTENSIONS.includes(fileExt)) {
     return {
       isValid: false,
-      error: `Invalid file type. Allowed types: ${ALLOWED_EXTENSIONS.join(', ')}`
-    };
+      error: `Invalid file type. Allowed types: ${ALLOWED_EXTENSIONS.join(', ')}`,
+    }
   }
-  
-  return { isValid: true };
-};
+
+  return { isValid: true }
+}
 
 // Add a helper function to create file previews
-const createFilePreview = async (file: File): Promise<string> => {
+const _createFilePreview = async (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader();
+    const reader = new FileReader()
     reader.onload = (e) => {
       if (e.target?.result) {
-        resolve(e.target.result as string);
+        resolve(e.target.result as string)
       } else {
-        reject(new Error('Failed to create preview'));
+        reject(new Error('Failed to create preview'))
       }
-    };
-    reader.onerror = () => reject(new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-};
+    }
+    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.readAsDataURL(file)
+  })
+}
 
 // Add debug mode constant
 const DEBUG = process.env.NODE_ENV === 'development'
 
 // Memoize expensive computations
-const generateInitialGalleryPreviews = (gallery: LogoGalleryItem[] = []) => 
-  gallery.map(item => ({
+const generateInitialGalleryPreviews = (gallery: LogoGalleryItem[] = []) =>
+  gallery.map((item) => ({
     id: item.id,
     preview: `${item.imageUrl}?t=${Date.now()}`,
   }))
 
 // Add displayName to the component to fix ESLint error
 const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
-  const { refresh } = useLogos()
-  
   if (DEBUG) {
-    console.log('LogoEditModal render with state:', { 
-      logoId: logo.id, 
+    console.log('LogoEditModal render with state:', {
+      logoId: logo.id,
       isOpen,
       currentStatus: logo.status,
       hasMainImage: !!logo.thumbnail,
       galleryCount: logo.gallery?.length,
       selectedTags: logo.tags,
-      description: logo.description
+      description: logo.description,
     })
   }
-  
+
   // Initialize state with memoized values
   const [displayTitle, setDisplayTitle] = useState('')
-  const [cloudinaryName, setCloudinaryName] = useState('')
+  const [_cloudinaryName, setCloudinaryName] = useState('')
   const [description, setDescription] = useState(logo?.description || '')
   const [status, setStatus] = useState<LogoStatus>(logo.status || 'DRAFT')
   const [selectedTags, setSelectedTags] = useState<string[]>(logo?.tags || [])
   const [isLoading, setIsLoading] = useState(false)
   const [mainImage, setMainImage] = useState<MainImageState>({ preview: null })
-  const [galleryImages, setGalleryImages] = useState<FilePreviewData[]>([])
+  const [_galleryImages, setGalleryImages] = useState<FilePreviewData[]>([])
   const [deletedGalleryIds, setDeletedGalleryIds] = useState<string[]>([])
-  const [tagChanges, setTagChanges] = useState<string[]>([])
+  const [_tagChanges, setTagChanges] = useState<string[]>([])
   const [previewOpen, setPreviewOpen] = useState<string | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [deleteMainImage, setDeleteMainImage] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
-  
+  const [_isDeleting, setIsDeleting] = useState(false)
+  const [_deleteMainImage, _setDeleteMainImage] = useState(false)
+  const [previewUrl, _setPreviewUrl] = useState<string | null>(null)
+
   // Store file objects in refs instead of state
   const mainImageFileRef = useRef<File | null>(null)
   const galleryFilesRef = useRef<Map<string, File>>(new Map())
-  
+
   // Memoize gallery previews initialization
-  const initialGalleryPreviews = useMemo(() => 
-    generateInitialGalleryPreviews(logo.gallery),
-    [logo.gallery]
+  const initialGalleryPreviews = useMemo(
+    () => generateInitialGalleryPreviews(logo.gallery),
+    [logo.gallery],
   )
-  
+
   // Initialize gallery previews from memoized value
   const [galleryPreviews, setGalleryPreviews] = useState<FilePreviewData[]>(initialGalleryPreviews)
-  const [currentGalleryIndex, setCurrentGalleryIndex] = useState(0)
+  const [_currentGalleryIndex, setCurrentGalleryIndex] = useState(0)
   const mainImageInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
+  const _router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
 
   const MAX_GALLERY_IMAGES = 6
-  const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
+  const _ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
   const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
-  
+
   // Auto-refresh is always enabled (UI hidden)
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
-  
+  const [autoRefreshEnabled, _setAutoRefreshEnabled] = useState(true)
+
   useEffect(() => {
     if (logo) {
       setDescription(logo.description)
       setStatus(logo.status as LogoStatus)
       setSelectedTags(logo.tags)
-      
+
       // Reset gallery previews when logo changes with distinct cache-busting timestamp
-      const uniqueTimestamp = Date.now();
+      const uniqueTimestamp = Date.now()
       console.log(`🔄 [LOGO-EDIT] Initializing with fresh cache timestamp: ${uniqueTimestamp}`)
-      
+
       setGalleryPreviews(
-        logo.gallery?.map(item => ({
+        logo.gallery?.map((item) => ({
           id: item.id,
           preview: `${item.imageUrl}?t=${uniqueTimestamp}&r=${Math.random().toString(36).substring(7)}`,
-        })) || []
+        })) || [],
       )
-      
+
       // Ensure we get fresh image content by adding robust cache-busting
       if (logo.thumbnail) {
-        console.log("🖼️ [LOGO-EDIT] Setting main image from logo thumbnail with cache-busting")
+        console.log('🖼️ [LOGO-EDIT] Setting main image from logo thumbnail with cache-busting')
         const cacheBuster = `?t=${uniqueTimestamp}&r=${Math.random().toString(36).substring(7)}`
         setMainImage({ preview: `${logo.thumbnail}${cacheBuster}` })
       } else {
         setMainImage({ preview: null })
       }
-      
+
       // Reset deleted gallery IDs
       setDeletedGalleryIds([])
-      
+
       // Reset file refs when logo changes
       mainImageFileRef.current = null
       galleryFilesRef.current.clear()
-      
+
       // Reset loading state and error
       setIsLoading(false)
       setError(null)
-      
+
       // Reset changes tracking
       setHasChanges(false)
     }
@@ -300,7 +245,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
         .replace(/^Logo_/i, '')
         .replace(/_placeholder.*$/, '')
         .replace(/_/g, ' ')
-      
+
       const formattedTitle = formatTitle(cleanTitle)
       setDisplayTitle(formattedTitle)
       setCloudinaryName(generateCloudinaryName(formattedTitle))
@@ -319,19 +264,19 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
       if (galleryInputRef.current) {
         galleryInputRef.current.value = ''
       }
-      
+
       // Clear file refs when modal closes
       mainImageFileRef.current = null
       galleryFilesRef.current.clear()
     } else {
       // When modal opens, log the current gallery state
-      const visibleCount = galleryPreviews.filter(p => !deletedGalleryIds.includes(p.id)).length;
+      const visibleCount = galleryPreviews.filter((p) => !deletedGalleryIds.includes(p.id)).length
       console.log('🔄 [LOGO-EDIT] Modal opened, gallery state:', {
         galleryPreviews: galleryPreviews.length,
         deletedGalleryIds: deletedGalleryIds.length,
         visibleCount,
-        maxAllowed: MAX_GALLERY_IMAGES
-      });
+        maxAllowed: MAX_GALLERY_IMAGES,
+      })
     }
   }, [isOpen, galleryPreviews, deletedGalleryIds])
 
@@ -339,7 +284,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
   useEffect(() => {
     return () => {
       console.log('Cleanup starting')
-      
+
       // Clean up blob URLs
       for (const preview of galleryPreviews) {
         if (preview?.preview?.startsWith('blob:')) {
@@ -350,7 +295,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
           }
         }
       }
-      
+
       // Clean up main image preview
       if (mainImage?.preview?.startsWith('blob:')) {
         try {
@@ -359,7 +304,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
           console.error('Failed to revoke URL:', err)
         }
       }
-      
+
       // Clean up preview URL
       if (previewUrl?.startsWith('blob:')) {
         try {
@@ -368,351 +313,362 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
           console.error('Failed to revoke URL:', err)
         }
       }
-      
+
       console.log('Cleanup complete')
     }
   }, [galleryPreviews, mainImage.preview, previewUrl])
 
   // Complete rewrite of the file handling approach
   const triggerFileInput = useCallback(() => {
-    console.log('🔍 [LOGO-EDIT] Triggering file input with direct DOM approach');
-    
+    console.log('🔍 [LOGO-EDIT] Triggering file input with direct DOM approach')
+
     // Create a key identifier for this specific upload attempt
-    const uploadId = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    console.log(`🔑 [LOGO-EDIT] Generated uploadId: ${uploadId}`);
-    
+    const uploadId = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    console.log(`🔑 [LOGO-EDIT] Generated uploadId: ${uploadId}`)
+
     // Create a fresh file input for each selection to avoid browser caching issues
-    const tempInput = document.createElement('input');
-    tempInput.type = 'file';
-    tempInput.accept = 'image/*';
-    tempInput.id = uploadId; // Set a unique ID to help with debugging
-    tempInput.setAttribute('data-purpose', 'main-image-upload');
-    
+    const tempInput = document.createElement('input')
+    tempInput.type = 'file'
+    tempInput.accept = 'image/*'
+    tempInput.id = uploadId // Set a unique ID to help with debugging
+    tempInput.setAttribute('data-purpose', 'main-image-upload')
+
     // Apply styles to make it invisible but accessible
-    tempInput.style.position = 'fixed';
-    tempInput.style.top = '0';
-    tempInput.style.left = '0';
-    tempInput.style.opacity = '0.01'; // Nearly invisible but still technically visible for browser focus
-    tempInput.style.pointerEvents = 'none'; // Prevent it from interfering with user interaction
-    tempInput.style.height = '1px';
-    tempInput.style.width = '1px';
-    tempInput.style.overflow = 'hidden';
-    tempInput.style.clip = 'rect(0px, 0px, 0px, 0px)';
-    
+    tempInput.style.position = 'fixed'
+    tempInput.style.top = '0'
+    tempInput.style.left = '0'
+    tempInput.style.opacity = '0.01' // Nearly invisible but still technically visible for browser focus
+    tempInput.style.pointerEvents = 'none' // Prevent it from interfering with user interaction
+    tempInput.style.height = '1px'
+    tempInput.style.width = '1px'
+    tempInput.style.overflow = 'hidden'
+    tempInput.style.clip = 'rect(0px, 0px, 0px, 0px)'
+
     // Define the change handler before triggering click
     tempInput.onchange = async (e) => {
-      console.log(`🔄 [LOGO-EDIT] File input change event triggered for ${uploadId}`);
-      const files = (e.target as HTMLInputElement).files;
-      
+      console.log(`🔄 [LOGO-EDIT] File input change event triggered for ${uploadId}`)
+      const files = (e.target as HTMLInputElement).files
+
       // Log detailed information about the event
       console.log('🔍 Event details:', {
         uploadId,
         hasFiles: !!files,
         fileCount: files?.length || 0,
         inputValue: (e.target as HTMLInputElement).value,
-        targetType: e.target?.constructor?.name
-      });
-      
+        targetType: e.target?.constructor?.name,
+      })
+
       // Defensive check for files
       if (!files || files.length === 0) {
-        console.error(`🔴 [LOGO-EDIT] No files in change event for ${uploadId}`);
-        toast.error('No file selected. Please try again.');
-        return;
+        console.error(`🔴 [LOGO-EDIT] No files in change event for ${uploadId}`)
+        toast.error('No file selected. Please try again.')
+        return
       }
-      
+
       // Process the file immediately and with a backup delayed approach in case of timing issues
-      const file = files[0];
-      processMainImageFile(file);
-      
+      const file = files[0]
+      processMainImageFile(file)
+
       // Safety check with delay as backup
       setTimeout(() => {
         if (!mainImageFileRef.current) {
-          console.log(`🔄 [LOGO-EDIT] Delayed file processing for ${uploadId}`);
-          processMainImageFile(file);
+          console.log(`🔄 [LOGO-EDIT] Delayed file processing for ${uploadId}`)
+          processMainImageFile(file)
         }
-      }, 100);
-    };
-    
+      }, 100)
+    }
+
     // Also handle the click event in case the browser fires it before change
     tempInput.onclick = () => {
-      console.log(`🔍 [LOGO-EDIT] File input click event for ${uploadId}`);
-    };
-    
+      console.log(`🔍 [LOGO-EDIT] File input click event for ${uploadId}`)
+    }
+
     // Append to DOM and focus before clicking
-    document.body.appendChild(tempInput);
-    
+    document.body.appendChild(tempInput)
+
     // Wait for DOM to fully process the element
     setTimeout(() => {
       try {
-        console.log(`🔍 [LOGO-EDIT] Triggering click for ${uploadId}`);
-        tempInput.focus();
-        tempInput.click();
-        console.log(`✅ [LOGO-EDIT] Click triggered for ${uploadId}`);
+        console.log(`🔍 [LOGO-EDIT] Triggering click for ${uploadId}`)
+        tempInput.focus()
+        tempInput.click()
+        console.log(`✅ [LOGO-EDIT] Click triggered for ${uploadId}`)
       } catch (clickError) {
-        console.error(`🔴 [LOGO-EDIT] Error triggering click: ${clickError}`);
-        toast.error('Could not open file selector. Please try again.');
+        console.error(`🔴 [LOGO-EDIT] Error triggering click: ${clickError}`)
+        toast.error('Could not open file selector. Please try again.')
       }
-    }, 50);
-    
+    }, 50)
+
     // Clean up after click - but not too soon
     setTimeout(() => {
       try {
         if (document.body.contains(tempInput)) {
-          document.body.removeChild(tempInput);
-          console.log(`🧹 [LOGO-EDIT] Cleaned up input ${uploadId}`);
+          document.body.removeChild(tempInput)
+          console.log(`🧹 [LOGO-EDIT] Cleaned up input ${uploadId}`)
         }
       } catch (cleanupError) {
-        console.error(`⚠️ [LOGO-EDIT] Cleanup error for ${uploadId}:`, cleanupError);
+        console.error(`⚠️ [LOGO-EDIT] Cleanup error for ${uploadId}:`, cleanupError)
       }
-    }, 5000); // Keep in DOM longer to ensure event fires
-  }, []);
-  
+    }, 5000) // Keep in DOM longer to ensure event fires
+  }, [])
+
   // Separate file processing from event handling for cleaner code
   const processMainImageFile = async (file: File) => {
     try {
       // Check file type
       if (!file.type.startsWith('image/')) {
-        console.error(`🔴 [LOGO-EDIT] Invalid file type: ${file.type}`);
-        toast.error('Please select an image file');
-        return;
+        console.error(`🔴 [LOGO-EDIT] Invalid file type: ${file.type}`)
+        toast.error('Please select an image file')
+        return
       }
-      
+
       // Check file size
       if (file.size === 0) {
-        console.error('🔴 [LOGO-EDIT] File is empty (0 bytes)');
-        toast.error('Selected file is empty');
-        return;
+        console.error('🔴 [LOGO-EDIT] File is empty (0 bytes)')
+        toast.error('Selected file is empty')
+        return
       }
-      
+
       if (file.size > MAX_FILE_SIZE) {
-        console.error(`🔴 [LOGO-EDIT] File too large: ${(file.size / (1024 * 1024)).toFixed(1)}MB`);
-        toast.error(`File too large. Maximum size is ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(1)}MB`);
-        return;
+        console.error(`🔴 [LOGO-EDIT] File too large: ${(file.size / (1024 * 1024)).toFixed(1)}MB`)
+        toast.error(
+          `File too large. Maximum size is ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(1)}MB`,
+        )
+        return
       }
-      
+
       // Verify file access by reading a small sample
-      console.log('🔍 [LOGO-EDIT] Verifying file content access...');
-      let testSlice: ArrayBuffer;
+      console.log('🔍 [LOGO-EDIT] Verifying file content access...')
+      let testSlice: ArrayBuffer
       try {
-        testSlice = await file.slice(0, Math.min(1024, file.size)).arrayBuffer();
-        console.log(`✅ [LOGO-EDIT] Successfully read ${testSlice.byteLength} bytes from file`);
+        testSlice = await file.slice(0, Math.min(1024, file.size)).arrayBuffer()
+        console.log(`✅ [LOGO-EDIT] Successfully read ${testSlice.byteLength} bytes from file`)
       } catch (error) {
-        console.error('🔴 [LOGO-EDIT] Failed to read file sample:', error);
-        toast.error('Cannot access file content. Please try again with a different file.');
-        return;
+        console.error('🔴 [LOGO-EDIT] Failed to read file sample:', error)
+        toast.error('Cannot access file content. Please try again with a different file.')
+        return
       }
-      
+
       if (!testSlice || testSlice.byteLength === 0) {
-        console.error('🔴 [LOGO-EDIT] File sample is empty');
-        toast.error('Cannot read file content. The file may be corrupted.');
-        return;
+        console.error('🔴 [LOGO-EDIT] File sample is empty')
+        toast.error('Cannot read file content. The file may be corrupted.')
+        return
       }
-      
+
       // Create a copy of the file to avoid browser reference issues
-      const fileData = await file.arrayBuffer();
-      const fileCopy = new File(
-        [fileData], 
-        file.name, 
-        { 
-          type: file.type,
-          lastModified: file.lastModified
-        }
-      );
-      
+      const fileData = await file.arrayBuffer()
+      const fileCopy = new File([fileData], file.name, {
+        type: file.type,
+        lastModified: file.lastModified,
+      })
+
       // Store file in ref
-      mainImageFileRef.current = fileCopy;
-      
+      mainImageFileRef.current = fileCopy
+
       // Create preview URL
-      const previewUrl = URL.createObjectURL(fileCopy);
-      console.log(`🖼️ [LOGO-EDIT] Created preview URL: ${previewUrl}`);
-      
+      const previewUrl = URL.createObjectURL(fileCopy)
+      console.log(`🖼️ [LOGO-EDIT] Created preview URL: ${previewUrl}`)
+
       // Update state
       setMainImage({
         preview: previewUrl,
         fileInfo: {
           name: fileCopy.name,
           size: fileCopy.size,
-          type: fileCopy.type
-        }
-      });
-      
-      console.log(`✅ [LOGO-EDIT] Main image prepared successfully: ${fileCopy.name}`);
-      toast.success(`Image selected: ${fileCopy.name}`);
-      setHasChanges(true);
+          type: fileCopy.type,
+        },
+      })
+
+      console.log(`✅ [LOGO-EDIT] Main image prepared successfully: ${fileCopy.name}`)
+      toast.success(`Image selected: ${fileCopy.name}`)
+      setHasChanges(true)
     } catch (error) {
-      console.error('🔴 [LOGO-EDIT] Error processing image:', error);
-      toast.error(`Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('🔴 [LOGO-EDIT] Error processing image:', error)
+      toast.error(
+        `Failed to process image: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
     }
-  };
+  }
 
   // Add a direct DOM approach for gallery uploads as well
   const triggerGalleryInput = useCallback(() => {
-    console.log('🔍 [LOGO-EDIT] Triggering gallery file input with direct DOM approach');
-    
+    console.log('🔍 [LOGO-EDIT] Triggering gallery file input with direct DOM approach')
+
     // Debug log the current state of the gallery
-    const currentVisibleCount = galleryPreviews.filter(p => !deletedGalleryIds.includes(p.id)).length;
-    const availableSlots = MAX_GALLERY_IMAGES - currentVisibleCount;
-    
+    const currentVisibleCount = galleryPreviews.filter(
+      (p) => !deletedGalleryIds.includes(p.id),
+    ).length
+    const availableSlots = MAX_GALLERY_IMAGES - currentVisibleCount
+
     console.log('📊 [LOGO-EDIT] Gallery state at upload trigger:', {
       totalGalleryItems: galleryPreviews.length,
       deletedItems: deletedGalleryIds.length,
       visibleItems: currentVisibleCount,
       availableSlots: availableSlots,
-      maxAllowed: MAX_GALLERY_IMAGES
-    });
-    
+      maxAllowed: MAX_GALLERY_IMAGES,
+    })
+
     // Create a key identifier for this specific gallery upload
-    const galleryUploadId = `gallery_upload_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-    console.log(`🔑 [LOGO-EDIT] Generated galleryUploadId: ${galleryUploadId}`);
-    
+    const galleryUploadId = `gallery_upload_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    console.log(`🔑 [LOGO-EDIT] Generated galleryUploadId: ${galleryUploadId}`)
+
     // Create a fresh file input for each selection
-    const tempInput = document.createElement('input');
-    tempInput.type = 'file';
-    tempInput.accept = 'image/*';
-    tempInput.multiple = true;
-    tempInput.id = galleryUploadId;
-    tempInput.setAttribute('data-purpose', 'gallery-upload');
-    
+    const tempInput = document.createElement('input')
+    tempInput.type = 'file'
+    tempInput.accept = 'image/*'
+    tempInput.multiple = true
+    tempInput.id = galleryUploadId
+    tempInput.setAttribute('data-purpose', 'gallery-upload')
+
     // Apply styles to make it invisible but accessible
-    tempInput.style.position = 'fixed';
-    tempInput.style.top = '0';
-    tempInput.style.left = '0';
-    tempInput.style.opacity = '0.01';
-    tempInput.style.pointerEvents = 'none';
-    tempInput.style.height = '1px';
-    tempInput.style.width = '1px';
-    tempInput.style.overflow = 'hidden';
-    tempInput.style.clip = 'rect(0px, 0px, 0px, 0px)';
-    
+    tempInput.style.position = 'fixed'
+    tempInput.style.top = '0'
+    tempInput.style.left = '0'
+    tempInput.style.opacity = '0.01'
+    tempInput.style.pointerEvents = 'none'
+    tempInput.style.height = '1px'
+    tempInput.style.width = '1px'
+    tempInput.style.overflow = 'hidden'
+    tempInput.style.clip = 'rect(0px, 0px, 0px, 0px)'
+
     // Define the change handler
     tempInput.onchange = async (e) => {
-      console.log(`🔄 [LOGO-EDIT] Gallery input change event triggered for ${galleryUploadId}`);
-      const files = (e.target as HTMLInputElement).files;
-      
+      console.log(`🔄 [LOGO-EDIT] Gallery input change event triggered for ${galleryUploadId}`)
+      const files = (e.target as HTMLInputElement).files
+
       // Log details
       console.log('🔍 Gallery event details:', {
         galleryUploadId,
         hasFiles: !!files,
         fileCount: files?.length || 0,
-        inputValue: (e.target as HTMLInputElement).value
-      });
-      
+        inputValue: (e.target as HTMLInputElement).value,
+      })
+
       // Check for files
       if (!files || files.length === 0) {
-        console.error(`🔴 [LOGO-EDIT] No files in gallery selection for ${galleryUploadId}`);
-        toast.error('No files selected for gallery. Please try again.');
-        return;
+        console.error(`🔴 [LOGO-EDIT] No files in gallery selection for ${galleryUploadId}`)
+        toast.error('No files selected for gallery. Please try again.')
+        return
       }
-      
+
       // Process immediately and with a backup delayed approach
-      processGalleryFiles(files);
-    };
-    
+      processGalleryFiles(files)
+    }
+
     // Also handle the click event
     tempInput.onclick = () => {
-      console.log(`🔍 [LOGO-EDIT] Gallery input click event for ${galleryUploadId}`);
-    };
-    
+      console.log(`🔍 [LOGO-EDIT] Gallery input click event for ${galleryUploadId}`)
+    }
+
     // Append to DOM and focus before clicking
-    document.body.appendChild(tempInput);
-    
+    document.body.appendChild(tempInput)
+
     // Wait for DOM to fully process the element
     setTimeout(() => {
       try {
-        console.log(`🔍 [LOGO-EDIT] Triggering gallery click for ${galleryUploadId}`);
-        tempInput.focus();
-        tempInput.click();
-        console.log(`✅ [LOGO-EDIT] Gallery click triggered for ${galleryUploadId}`);
+        console.log(`🔍 [LOGO-EDIT] Triggering gallery click for ${galleryUploadId}`)
+        tempInput.focus()
+        tempInput.click()
+        console.log(`✅ [LOGO-EDIT] Gallery click triggered for ${galleryUploadId}`)
       } catch (clickError) {
-        console.error(`🔴 [LOGO-EDIT] Error triggering gallery click: ${clickError}`);
-        toast.error('Could not open gallery file selector. Please try again.');
+        console.error(`🔴 [LOGO-EDIT] Error triggering gallery click: ${clickError}`)
+        toast.error('Could not open gallery file selector. Please try again.')
       }
-    }, 50);
-    
+    }, 50)
+
     // Clean up
     setTimeout(() => {
       try {
         if (document.body.contains(tempInput)) {
-          document.body.removeChild(tempInput);
-          console.log(`🧹 [LOGO-EDIT] Cleaned up gallery input ${galleryUploadId}`);
+          document.body.removeChild(tempInput)
+          console.log(`🧹 [LOGO-EDIT] Cleaned up gallery input ${galleryUploadId}`)
         }
       } catch (cleanupError) {
-        console.error(`⚠️ [LOGO-EDIT] Gallery cleanup error for ${galleryUploadId}:`, cleanupError);
+        console.error(`⚠️ [LOGO-EDIT] Gallery cleanup error for ${galleryUploadId}:`, cleanupError)
       }
-    }, 5000);
-  }, [galleryPreviews, deletedGalleryIds]);
-  
+    }, 5000)
+  }, [galleryPreviews, deletedGalleryIds])
+
   // Process gallery files separately
   const processGalleryFiles = async (files: FileList) => {
-    console.log(`🔴 [LOGO-EDIT] Processing ${files.length} gallery files`);
-    
+    console.log(`🔴 [LOGO-EDIT] Processing ${files.length} gallery files`)
+
     // Get current count of visible gallery images (not marked for deletion)
-    const currentVisibleCount = galleryPreviews.filter(p => !deletedGalleryIds.includes(p.id)).length;
-    const availableSlots = MAX_GALLERY_IMAGES - currentVisibleCount;
-    
-    console.log(`🔢 [LOGO-EDIT] Current visible gallery count: ${currentVisibleCount}/${MAX_GALLERY_IMAGES}, available slots: ${availableSlots}`);
-    
+    const currentVisibleCount = galleryPreviews.filter(
+      (p) => !deletedGalleryIds.includes(p.id),
+    ).length
+    const availableSlots = MAX_GALLERY_IMAGES - currentVisibleCount
+
+    console.log(
+      `🔢 [LOGO-EDIT] Current visible gallery count: ${currentVisibleCount}/${MAX_GALLERY_IMAGES}, available slots: ${availableSlots}`,
+    )
+
     // Check if adding these files would exceed the maximum
     if (files.length > availableSlots) {
-      console.error(`🔴 [LOGO-EDIT] Too many files selected: ${files.length} files, but only ${availableSlots} slots available`);
-      toast.error(`You can only add ${availableSlots} more image(s). Maximum ${MAX_GALLERY_IMAGES} gallery images allowed.`);
-      return;
+      console.error(
+        `🔴 [LOGO-EDIT] Too many files selected: ${files.length} files, but only ${availableSlots} slots available`,
+      )
+      toast.error(
+        `You can only add ${availableSlots} more image(s). Maximum ${MAX_GALLERY_IMAGES} gallery images allowed.`,
+      )
+      return
     }
-    
-    const newPreviews: FilePreviewData[] = [];
-    
+
+    const newPreviews: FilePreviewData[] = []
+
     for (const file of Array.from(files)) {
       try {
-        console.log(`🔍 [LOGO-EDIT] Processing gallery file: ${file.name}`);
-      
-      // Validate file
+        console.log(`🔍 [LOGO-EDIT] Processing gallery file: ${file.name}`)
+
+        // Validate file
         if (!file.type.startsWith('image/')) {
-          console.error(`🔴 [LOGO-EDIT] Invalid gallery file type: ${file.type}`);
-          toast.error(`${file.name} is not a valid image file`);
-          continue;
+          console.error(`🔴 [LOGO-EDIT] Invalid gallery file type: ${file.type}`)
+          toast.error(`${file.name} is not a valid image file`)
+          continue
         }
-        
+
         if (file.size === 0) {
-          console.error(`🔴 [LOGO-EDIT] Gallery file is empty: ${file.name}`);
-          toast.error(`${file.name} appears to be empty`);
-          continue;
+          console.error(`🔴 [LOGO-EDIT] Gallery file is empty: ${file.name}`)
+          toast.error(`${file.name} appears to be empty`)
+          continue
         }
-        
+
         if (file.size > MAX_FILE_SIZE) {
-          console.error(`🔴 [LOGO-EDIT] Gallery file too large: ${file.name}`);
-          toast.error(`${file.name} exceeds maximum size of ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(1)}MB`);
-          continue;
+          console.error(`🔴 [LOGO-EDIT] Gallery file too large: ${file.name}`)
+          toast.error(
+            `${file.name} exceeds maximum size of ${(MAX_FILE_SIZE / (1024 * 1024)).toFixed(1)}MB`,
+          )
+          continue
         }
-        
+
         // Test file access
         try {
-          const testSlice = await file.slice(0, Math.min(1024, file.size)).arrayBuffer();
+          const testSlice = await file.slice(0, Math.min(1024, file.size)).arrayBuffer()
           if (testSlice.byteLength === 0) {
-            console.error(`🔴 [LOGO-EDIT] Cannot read gallery file content: ${file.name}`);
-            toast.error(`Cannot read content from ${file.name}`);
-            continue;
+            console.error(`🔴 [LOGO-EDIT] Cannot read gallery file content: ${file.name}`)
+            toast.error(`Cannot read content from ${file.name}`)
+            continue
           }
         } catch (error) {
-          console.error(`🔴 [LOGO-EDIT] Failed to access gallery file: ${file.name}`, error);
-          toast.error(`Cannot access file: ${file.name}`);
-          continue;
+          console.error(`🔴 [LOGO-EDIT] Failed to access gallery file: ${file.name}`, error)
+          toast.error(`Cannot access file: ${file.name}`)
+          continue
         }
-        
+
         // Create a copy to avoid browser reference issues
-        const fileData = await file.arrayBuffer();
-        const fileCopy = new File(
-          [fileData], 
-          file.name, 
-          { type: file.type, lastModified: file.lastModified }
-        );
-        
+        const fileData = await file.arrayBuffer()
+        const fileCopy = new File([fileData], file.name, {
+          type: file.type,
+          lastModified: file.lastModified,
+        })
+
         // Generate ID and store in ref
-        const newId = crypto.randomUUID();
-        galleryFilesRef.current.set(newId, fileCopy);
-        
+        const newId = crypto.randomUUID()
+        galleryFilesRef.current.set(newId, fileCopy)
+
         // Create preview URL
-        const previewUrl = URL.createObjectURL(fileCopy);
-        
+        const previewUrl = URL.createObjectURL(fileCopy)
+
         // Add to previews
         newPreviews.push({
           id: newId,
@@ -720,72 +676,92 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
           fileInfo: {
             name: fileCopy.name,
             size: fileCopy.size,
-            type: fileCopy.type
-          }
-        });
-        
-        console.log(`✅ [LOGO-EDIT] Gallery image prepared: ${file.name}`);
+            type: fileCopy.type,
+          },
+        })
+
+        console.log(`✅ [LOGO-EDIT] Gallery image prepared: ${file.name}`)
       } catch (error) {
-        console.error(`🔴 [LOGO-EDIT] Error processing gallery image: ${file.name}`, error);
-        toast.error(`Error processing ${file.name}`);
+        console.error(`🔴 [LOGO-EDIT] Error processing gallery image: ${file.name}`, error)
+        toast.error(`Error processing ${file.name}`)
       }
     }
-    
+
     if (newPreviews.length > 0) {
-      console.log(`✅ [LOGO-EDIT] Adding ${newPreviews.length} new gallery images`);
-      const newTotalVisibleCount = currentVisibleCount + newPreviews.length;
-      const remainingSlots = MAX_GALLERY_IMAGES - newTotalVisibleCount;
-      
-      console.log(`🔢 [LOGO-EDIT] Visible gallery count will change from ${currentVisibleCount} to ${newTotalVisibleCount} after addition`);
-      console.log(`🔢 [LOGO-EDIT] Available slots will change from ${availableSlots} to ${remainingSlots}`);
-      
+      console.log(`✅ [LOGO-EDIT] Adding ${newPreviews.length} new gallery images`)
+      const newTotalVisibleCount = currentVisibleCount + newPreviews.length
+      const remainingSlots = MAX_GALLERY_IMAGES - newTotalVisibleCount
+
+      console.log(
+        `🔢 [LOGO-EDIT] Visible gallery count will change from ${currentVisibleCount} to ${newTotalVisibleCount} after addition`,
+      )
+      console.log(
+        `🔢 [LOGO-EDIT] Available slots will change from ${availableSlots} to ${remainingSlots}`,
+      )
+
       // Update both galleryPreviews and galleryImages
-      setGalleryPreviews(prev => [...prev, ...newPreviews]);
-      setGalleryImages(prev => [...prev, ...newPreviews]);
-      setHasChanges(true);
-      toast.success(`Added ${newPreviews.length} gallery image(s). ${remainingSlots} slot(s) remaining.`);
+      setGalleryPreviews((prev) => [...prev, ...newPreviews])
+      setGalleryImages((prev) => [...prev, ...newPreviews])
+      setHasChanges(true)
+      toast.success(
+        `Added ${newPreviews.length} gallery image(s). ${remainingSlots} slot(s) remaining.`,
+      )
     } else {
-      console.error('🔴 [LOGO-EDIT] No valid gallery images were processed');
-      toast.error('No valid images were found in your selection');
+      console.error('🔴 [LOGO-EDIT] No valid gallery images were processed')
+      toast.error('No valid images were found in your selection')
     }
-  };
+  }
 
   const handleDeleteGalleryImage = (id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this image?')
     if (!confirmed) return
 
     console.log('🗑️ [LOGO-EDIT] Marking existing gallery image for deletion:', id)
-    
+
     // Get current count before deletion
-    const currentVisibleCount = galleryPreviews.filter(p => !deletedGalleryIds.includes(p.id)).length
-    
-    setDeletedGalleryIds(prev => {
+    const currentVisibleCount = galleryPreviews.filter(
+      (p) => !deletedGalleryIds.includes(p.id),
+    ).length
+
+    setDeletedGalleryIds((prev) => {
       const newDeletedIds = [...prev, id]
       const newVisibleCount = currentVisibleCount - 1
-      console.log(`🔢 [LOGO-EDIT] Visible gallery count will change from ${currentVisibleCount} to ${newVisibleCount} after deletion`)
-      console.log(`🔢 [LOGO-EDIT] Available slots will change from ${MAX_GALLERY_IMAGES - currentVisibleCount} to ${MAX_GALLERY_IMAGES - newVisibleCount}`)
+      console.log(
+        `🔢 [LOGO-EDIT] Visible gallery count will change from ${currentVisibleCount} to ${newVisibleCount} after deletion`,
+      )
+      console.log(
+        `🔢 [LOGO-EDIT] Available slots will change from ${MAX_GALLERY_IMAGES - currentVisibleCount} to ${MAX_GALLERY_IMAGES - newVisibleCount}`,
+      )
       return newDeletedIds
     })
-    
-    toast.success(`Image marked for deletion (${MAX_GALLERY_IMAGES - (currentVisibleCount - 1)} slots available)`)
+
+    toast.success(
+      `Image marked for deletion (${MAX_GALLERY_IMAGES - (currentVisibleCount - 1)} slots available)`,
+    )
     setHasChanges(true)
   }
 
   const handleDeleteNewGalleryImage = (id: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this image?')
     if (!confirmed) return
-    
+
     console.log('🗑️ [LOGO-EDIT] Deleting new gallery image:', id)
-    
+
     // Get current count before deletion
-    const currentVisibleCount = galleryPreviews.filter(p => !deletedGalleryIds.includes(p.id)).length
+    const currentVisibleCount = galleryPreviews.filter(
+      (p) => !deletedGalleryIds.includes(p.id),
+    ).length
     const newVisibleCount = currentVisibleCount - 1
-    console.log(`🔢 [LOGO-EDIT] Visible gallery count will change from ${currentVisibleCount} to ${newVisibleCount} after deletion`)
-    console.log(`🔢 [LOGO-EDIT] Available slots will change from ${MAX_GALLERY_IMAGES - currentVisibleCount} to ${MAX_GALLERY_IMAGES - newVisibleCount}`)
-    
+    console.log(
+      `🔢 [LOGO-EDIT] Visible gallery count will change from ${currentVisibleCount} to ${newVisibleCount} after deletion`,
+    )
+    console.log(
+      `🔢 [LOGO-EDIT] Available slots will change from ${MAX_GALLERY_IMAGES - currentVisibleCount} to ${MAX_GALLERY_IMAGES - newVisibleCount}`,
+    )
+
     // Find the preview to get its URL
-    const previewToDelete = galleryPreviews.find(p => p.id === id)
-    
+    const previewToDelete = galleryPreviews.find((p) => p.id === id)
+
     // Revoke the object URL if it's a blob URL
     if (previewToDelete?.preview?.startsWith('blob:')) {
       try {
@@ -794,13 +770,13 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
         console.error('Failed to revoke URL:', err)
       }
     }
-    
+
     // Remove from the gallery files ref
     galleryFilesRef.current.delete(id)
-    
+
     // Remove from both state arrays
-    setGalleryPreviews(prev => prev.filter(p => p.id !== id))
-    setGalleryImages(prev => prev.filter(p => p.id !== id))
+    setGalleryPreviews((prev) => prev.filter((p) => p.id !== id))
+    setGalleryImages((prev) => prev.filter((p) => p.id !== id))
     toast.success(`Image removed (${MAX_GALLERY_IMAGES - newVisibleCount} slots available)`)
     setHasChanges(true)
   }
@@ -812,9 +788,9 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
 
   const handleTagToggle = (tag: string) => {
     const newTags = selectedTags.includes(tag)
-      ? selectedTags.filter(t => t !== tag)
+      ? selectedTags.filter((t) => t !== tag)
       : [...selectedTags, tag].slice(0, 2)
-    
+
     setSelectedTags(newTags)
     setTagChanges(newTags)
     setHasChanges(true)
@@ -826,12 +802,12 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
     setHasChanges(true)
   }
 
-  const handleMainImageReplace = () => {
-    console.log('🔍 [LOGO-EDIT] Handling main image replacement');
-    triggerFileInput();
+  const _handleMainImageReplace = () => {
+    console.log('🔍 [LOGO-EDIT] Handling main image replacement')
+    triggerFileInput()
   }
 
-  const handleMainImageDelete = async () => {
+  const _handleMainImageDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this image?')) {
       return
     }
@@ -839,12 +815,12 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
     try {
       setIsDeleting(true)
       setPreviewOpen(null) // Close preview if open
-      
+
       // Clear the file input
       if (mainImageInputRef.current) {
         mainImageInputRef.current.value = ''
       }
-      
+
       // Revoke the object URL if it's a blob URL
       if (mainImage.preview?.startsWith('blob:')) {
         try {
@@ -853,11 +829,11 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
           console.error('Failed to revoke URL:', err)
         }
       }
-      
+
       // Clear the preview and file ref
       setMainImage({ preview: null })
       mainImageFileRef.current = null
-      
+
       toast.success('Main image will be deleted when you save changes')
       setHasChanges(true)
     } catch (error) {
@@ -868,100 +844,103 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
     }
   }
 
-  const handlePreviewOpen = useCallback<(previewUrl: string | null, index?: number) => void>((previewUrl, index = 0) => {
-    if (!previewUrl) return
-    try {
-      setPreviewOpen(previewUrl)
-      setCurrentGalleryIndex(index)
-    } catch (error) {
-      console.error('Failed to open preview:', error)
-      toast.error('Failed to open image preview')
-    }
-  }, [])
+  const handlePreviewOpen = useCallback<(previewUrl: string | null, index?: number) => void>(
+    (previewUrl, index = 0) => {
+      if (!previewUrl) return
+      try {
+        setPreviewOpen(previewUrl)
+        setCurrentGalleryIndex(index)
+      } catch (error) {
+        console.error('Failed to open preview:', error)
+        toast.error('Failed to open image preview')
+      }
+    },
+    [],
+  )
 
   const handlePreviousImage = useCallback(() => {
-    const visiblePreviews = galleryPreviews.filter(p => !deletedGalleryIds.includes(p.id));
-    if (visiblePreviews.length <= 1) return;
-    
-    setCurrentGalleryIndex(prev => {
-      const newIndex = prev === 0 ? visiblePreviews.length - 1 : prev - 1;
-      setPreviewOpen(visiblePreviews[newIndex].preview);
-      return newIndex;
-    });
-  }, [galleryPreviews, deletedGalleryIds]);
+    const visiblePreviews = galleryPreviews.filter((p) => !deletedGalleryIds.includes(p.id))
+    if (visiblePreviews.length <= 1) return
+
+    setCurrentGalleryIndex((prev) => {
+      const newIndex = prev === 0 ? visiblePreviews.length - 1 : prev - 1
+      setPreviewOpen(visiblePreviews[newIndex].preview)
+      return newIndex
+    })
+  }, [galleryPreviews, deletedGalleryIds])
 
   const handleNextImage = useCallback(() => {
-    const visiblePreviews = galleryPreviews.filter(p => !deletedGalleryIds.includes(p.id));
-    if (visiblePreviews.length <= 1) return;
-    
-    setCurrentGalleryIndex(prev => {
-      const newIndex = prev === visiblePreviews.length - 1 ? 0 : prev + 1;
-      setPreviewOpen(visiblePreviews[newIndex].preview);
-      return newIndex;
-    });
-  }, [galleryPreviews, deletedGalleryIds]);
+    const visiblePreviews = galleryPreviews.filter((p) => !deletedGalleryIds.includes(p.id))
+    if (visiblePreviews.length <= 1) return
+
+    setCurrentGalleryIndex((prev) => {
+      const newIndex = prev === visiblePreviews.length - 1 ? 0 : prev + 1
+      setPreviewOpen(visiblePreviews[newIndex].preview)
+      return newIndex
+    })
+  }, [galleryPreviews, deletedGalleryIds])
 
   // Add keyboard navigation for gallery preview
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!previewOpen) return;
-      
+      if (!previewOpen) return
+
       switch (e.key) {
         case 'ArrowLeft':
-          e.preventDefault();
-          handlePreviousImage();
-          break;
+          e.preventDefault()
+          handlePreviousImage()
+          break
         case 'ArrowRight':
-          e.preventDefault();
-          handleNextImage();
-          break;
+          e.preventDefault()
+          handleNextImage()
+          break
         case 'Escape':
-          e.preventDefault();
-          setPreviewOpen(null);
-          break;
+          e.preventDefault()
+          setPreviewOpen(null)
+          break
       }
-    };
-    
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [previewOpen, handlePreviousImage, handleNextImage]);
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [previewOpen, handlePreviousImage, handleNextImage])
 
   const handleSaveWithValidation = async () => {
-    console.group('🚀 [LOGO-EDIT] Save Operation');
-    console.log('Starting save with validation');
-    
+    console.group('🚀 [LOGO-EDIT] Save Operation')
+    console.log('Starting save with validation')
+
     if (!validateForm()) {
-      console.error('❌ Form validation failed');
-      console.groupEnd();
-      return;
+      console.error('❌ Form validation failed')
+      console.groupEnd()
+      return
     }
 
     try {
-      setIsLoading(true);
-      console.log('⏳ Setting loading state');
-      
+      setIsLoading(true)
+      console.log('⏳ Setting loading state')
+
       // Use this timestamp for all cache-busting operations in this session
-      const sessionTimestamp = Date.now();
-      console.log(`🔑 Session timestamp for cache-busting: ${sessionTimestamp}`);
-      
-      const formData = new FormData();
+      const sessionTimestamp = Date.now()
+      console.log(`🔑 Session timestamp for cache-busting: ${sessionTimestamp}`)
+
+      const formData = new FormData()
       // Add session timestamp to form data to help with cache invalidation
-      formData.append('clientTimestamp', sessionTimestamp.toString());
-      
+      formData.append('clientTimestamp', sessionTimestamp.toString())
+
       // Add a unique request ID to track this specific save operation
-      const requestId = `client_${sessionTimestamp}_${Math.random().toString(36).substring(2, 10)}`;
-      formData.append('requestId', requestId);
-      console.log(`🔑 Generated request ID for tracking: ${requestId}`);
-      
+      const requestId = `client_${sessionTimestamp}_${Math.random().toString(36).substring(2, 10)}`
+      formData.append('requestId', requestId)
+      console.log(`🔑 Generated request ID for tracking: ${requestId}`)
+
       // Add auto-refresh preference to form data
-      formData.append('autoRefresh', autoRefreshEnabled.toString());
-      console.log(`🔄 Auto-refresh preference: ${autoRefreshEnabled ? 'enabled' : 'disabled'}`);
-      
+      formData.append('autoRefresh', autoRefreshEnabled.toString())
+      console.log(`🔄 Auto-refresh preference: ${autoRefreshEnabled ? 'enabled' : 'disabled'}`)
+
       // Find gallery images that have fileInfo (new uploads)
       const newGalleryImageIds = galleryPreviews
-        .filter(p => p.fileInfo && !deletedGalleryIds.includes(p.id))
-        .map(p => p.id);
-      
+        .filter((p) => p.fileInfo && !deletedGalleryIds.includes(p.id))
+        .map((p) => p.id)
+
       console.log('📝 Building FormData with:', {
         logoId: logo.id,
         requestId,
@@ -972,124 +951,137 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
         hasNewMainImage: !!mainImageFileRef.current,
         deletedGalleryIds: deletedGalleryIds.length,
         newGalleryImagesCount: newGalleryImageIds.length,
-        timestamp: new Date().toISOString()
-      });
+        timestamp: new Date().toISOString(),
+      })
 
-      formData.append('title', displayTitle.trim());
-      formData.append('description', description.trim());
-      formData.append('status', status);
-      formData.append('tags', JSON.stringify(selectedTags));
+      formData.append('title', displayTitle.trim())
+      formData.append('description', description.trim())
+      formData.append('status', status)
+      formData.append('tags', JSON.stringify(selectedTags))
 
       // Handle main image
       if (mainImageFileRef.current) {
-        const mainImage = mainImageFileRef.current;
-        console.log(`🖼️ Adding main image to FormData: ${mainImage.name}, size: ${mainImage.size}, type: ${mainImage.type}, lastModified: ${new Date(mainImage.lastModified).toISOString()}`);
-        
+        const mainImage = mainImageFileRef.current
+        console.log(
+          `🖼️ Adding main image to FormData: ${mainImage.name}, size: ${mainImage.size}, type: ${mainImage.type}, lastModified: ${new Date(mainImage.lastModified).toISOString()}`,
+        )
+
         // Check if file is still valid (not null or empty)
         if (!mainImage.size) {
-          console.error('🔴 Main image file appears empty or invalid', { 
+          console.error('🔴 Main image file appears empty or invalid', {
             name: mainImage.name,
             size: mainImage.size,
-            type: mainImage.type
-          });
-          toast.error('Main image appears invalid. Please try uploading again.');
-          console.groupEnd();
-          return;
+            type: mainImage.type,
+          })
+          toast.error('Main image appears invalid. Please try uploading again.')
+          console.groupEnd()
+          return
         }
-        
+
         try {
-          console.log('🔍 Verifying main image file access...');
+          console.log('🔍 Verifying main image file access...')
           // Check if we can still access the file data
-          const testSlice = await mainImage.slice(0, Math.min(1024, mainImage.size)).arrayBuffer();
-          console.log(`✅ File access verified, read ${testSlice.byteLength} bytes sample`);
+          const testSlice = await mainImage.slice(0, Math.min(1024, mainImage.size)).arrayBuffer()
+          console.log(`✅ File access verified, read ${testSlice.byteLength} bytes sample`)
         } catch (fileAccessError) {
-          console.error('🔴 Cannot access file data:', fileAccessError);
-          toast.error('Cannot access image data. Please try uploading again.');
-          console.groupEnd();
-          return;
+          console.error('🔴 Cannot access file data:', fileAccessError)
+          toast.error('Cannot access image data. Please try uploading again.')
+          console.groupEnd()
+          return
         }
-        
-        formData.append('mainImage', mainImage);
+
+        formData.append('mainImage', mainImage)
         // Add header flag to indicate main image is expected
-        console.log('✅ Main image added to FormData');
+        console.log('✅ Main image added to FormData')
       } else {
-        console.log('ℹ️ No new main image to upload');
+        console.log('ℹ️ No new main image to upload')
       }
 
       if (deletedGalleryIds.length > 0) {
-        console.log(`🗑️ Adding ${deletedGalleryIds.length} deleted gallery IDs to FormData:`, deletedGalleryIds);
-        formData.append('deletedGalleryIds', JSON.stringify(deletedGalleryIds));
+        console.log(
+          `🗑️ Adding ${deletedGalleryIds.length} deleted gallery IDs to FormData:`,
+          deletedGalleryIds,
+        )
+        formData.append('deletedGalleryIds', JSON.stringify(deletedGalleryIds))
       }
-      
+
       // Add new gallery images to form data
-      console.log(`🖼️ Processing ${newGalleryImageIds.length} new gallery images for upload`);
-      
+      console.log(`🖼️ Processing ${newGalleryImageIds.length} new gallery images for upload`)
+
       for (const id of newGalleryImageIds) {
-        const file = galleryFilesRef.current.get(id);
+        const file = galleryFilesRef.current.get(id)
         if (file) {
-          console.log(`🖼️ Adding gallery image to FormData: ${file.name}, size: ${file.size}, type: ${file.type}, lastModified: ${new Date(file.lastModified).toISOString()}`);
-          
+          console.log(
+            `🖼️ Adding gallery image to FormData: ${file.name}, size: ${file.size}, type: ${file.type}, lastModified: ${new Date(file.lastModified).toISOString()}`,
+          )
+
           try {
             // Verify file is still accessible
-            const testSlice = await file.slice(0, Math.min(1024, file.size)).arrayBuffer();
-            console.log(`✅ Gallery file ${id} access verified, read ${testSlice.byteLength} bytes sample`);
-            formData.append('galleryImages', file);
+            const testSlice = await file.slice(0, Math.min(1024, file.size)).arrayBuffer()
+            console.log(
+              `✅ Gallery file ${id} access verified, read ${testSlice.byteLength} bytes sample`,
+            )
+            formData.append('galleryImages', file)
           } catch (fileAccessError) {
-            console.error(`🔴 Cannot access gallery file ${id} data:`, fileAccessError);
-            toast.error("Cannot access gallery image data. Please try uploading again.");
+            console.error(`🔴 Cannot access gallery file ${id} data:`, fileAccessError)
+            toast.error('Cannot access gallery image data. Please try uploading again.')
             // Continue with other files
           }
         } else {
-          console.warn(`⚠️ File not found for gallery image ID: ${id}`);
+          console.warn(`⚠️ File not found for gallery image ID: ${id}`)
         }
       }
 
       // Log FormData entries
-      console.log('📋 FormData entries:');
-      let entryCount = 0;
+      console.log('📋 FormData entries:')
+      let entryCount = 0
       for (const pair of formData.entries()) {
-        entryCount++;
-        const value = pair[1];
+        entryCount++
+        const value = pair[1]
         if (value instanceof File) {
-          console.log(`📋 FormData entry ${entryCount}: ${pair[0]} = File(${value.name}, ${value.size} bytes, ${value.type})`);
+          console.log(
+            `📋 FormData entry ${entryCount}: ${pair[0]} = File(${value.name}, ${value.size} bytes, ${value.type})`,
+          )
         } else {
-          console.log(`📋 FormData entry ${entryCount}: ${pair[0]} = ${typeof value === 'string' && value.length > 50 ? `${value.substring(0, 50)}...` : value}`);
+          console.log(
+            `📋 FormData entry ${entryCount}: ${pair[0]} = ${typeof value === 'string' && value.length > 50 ? `${value.substring(0, 50)}...` : value}`,
+          )
         }
       }
 
-      const apiUrl = `/api/admin/logos/${logo.id}/edit`;
-      console.log('🔄 Sending request to:', apiUrl);
-      
+      const apiUrl = `/api/admin/logos/${logo.id}/edit`
+      console.log('🔄 Sending request to:', apiUrl)
+
       // Add a timestamp to force fresh request
-      const urlWithTimestamp = `${apiUrl}?t=${sessionTimestamp}&r=${Math.random().toString(36).substring(7)}`;
-      console.log('🔄 URL with timestamp:', urlWithTimestamp);
-      
+      const urlWithTimestamp = `${apiUrl}?t=${sessionTimestamp}&r=${Math.random().toString(36).substring(7)}`
+      console.log('🔄 URL with timestamp:', urlWithTimestamp)
+
       // Add request start time for timing analysis
-      const requestStartTime = Date.now();
-      console.log(`⏱️ Request start time: ${new Date(requestStartTime).toISOString()}`);
-      
+      const requestStartTime = Date.now()
+      console.log(`⏱️ Request start time: ${new Date(requestStartTime).toISOString()}`)
+
       // Create AbortController for request timeout
-      const controller = new AbortController();
+      const controller = new AbortController()
       const timeoutId = setTimeout(() => {
-        console.error("🔴 Request timeout after 60 seconds");
-        controller.abort();
-      }, 60000); // 60 second timeout
+        console.error('🔴 Request timeout after 60 seconds')
+        controller.abort()
+      }, 60000) // 60 second timeout
 
       // Visual progress notification
-      const loadingToast = toast.loading('Uploading logo...', { 
+      const loadingToast = toast.loading('Uploading logo...', {
         id: `upload-${requestId}`,
-        duration: 60000
-      });
-      
+        duration: 60000,
+      })
+
       try {
         // Before sending request, check files one more time
         if (mainImageFileRef.current && !mainImageFileRef.current.size) {
-          console.error('🔴 Main image validation failed right before upload');
-          throw new Error('Image file is no longer valid. Please try uploading again.');
+          console.error('🔴 Main image validation failed right before upload')
+          throw new Error('Image file is no longer valid. Please try uploading again.')
         }
-        
+
         const response = await fetch(urlWithTimestamp, {
-        method: 'PATCH',
+          method: 'PATCH',
           body: formData,
           // Disable cache to get fresh response
           cache: 'no-store',
@@ -1098,59 +1090,63 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
             'X-Request-ID': requestId,
             'X-Cache-Buster': Math.random().toString(36).substring(7),
             'X-Has-Main-Image': mainImageFileRef.current ? 'true' : 'false',
-            'Pragma': 'no-cache',
-            'Cache-Control': 'no-cache'
+            Pragma: 'no-cache',
+            'Cache-Control': 'no-cache',
           },
-          signal: controller.signal
-        });
-        
+          signal: controller.signal,
+        })
+
         // Clear the timeout since request completed
-        clearTimeout(timeoutId);
-        toast.dismiss(loadingToast);
-        
-        const requestDuration = Date.now() - requestStartTime;
-        console.log(`⏱️ Request completed in ${requestDuration}ms with status: ${response.status}`);
+        clearTimeout(timeoutId)
+        toast.dismiss(loadingToast)
+
+        const requestDuration = Date.now() - requestStartTime
+        console.log(`⏱️ Request completed in ${requestDuration}ms with status: ${response.status}`)
 
         // Log response headers
-        const responseHeaders: Record<string, string> = {};
+        const responseHeaders: Record<string, string> = {}
         response.headers.forEach((value, key) => {
-          responseHeaders[key] = value;
-        });
-        console.log('🔄 Response headers:', JSON.stringify(responseHeaders, null, 2));
-        
+          responseHeaders[key] = value
+        })
+        console.log('🔄 Response headers:', JSON.stringify(responseHeaders, null, 2))
+
         // Get response data with error handling
-        let responseData: Record<string, unknown>;
+        let responseData: Record<string, unknown>
         try {
-          const responseText = await response.text();
-          console.log(`📄 Raw response (first 300 chars): ${responseText.substring(0, 300)}${responseText.length > 300 ? '...' : ''}`);
-          
+          const responseText = await response.text()
+          console.log(
+            `📄 Raw response (first 300 chars): ${responseText.substring(0, 300)}${responseText.length > 300 ? '...' : ''}`,
+          )
+
           try {
-            responseData = JSON.parse(responseText);
-            console.log('🔄 Parsed response data:', JSON.stringify(responseData, null, 2));
+            responseData = JSON.parse(responseText)
+            console.log('🔄 Parsed response data:', JSON.stringify(responseData, null, 2))
           } catch (parseError) {
-            console.error('❌ Failed to parse response as JSON:', parseError);
-            throw new Error(`Server returned invalid JSON: ${responseText.substring(0, 100)}...`);
+            console.error('❌ Failed to parse response as JSON:', parseError)
+            throw new Error(`Server returned invalid JSON: ${responseText.substring(0, 100)}...`)
           }
         } catch (textError: unknown) {
-          console.error('❌ Failed to get response text:', textError);
-          throw new Error(`Failed to read server response: ${textError instanceof Error ? textError.message : 'Unknown error'}`);
-        }
-      
-      if (!response.ok) {
-          console.error('❌ Server error response:', responseData);
+          console.error('❌ Failed to get response text:', textError)
           throw new Error(
-            typeof responseData.error === 'string' 
-              ? responseData.error 
-              : typeof responseData.message === 'string' 
-                ? responseData.message 
-                : `Server returned ${response.status} ${response.statusText}`
-          );
+            `Failed to read server response: ${textError instanceof Error ? textError.message : 'Unknown error'}`,
+          )
         }
 
-        console.log('✅ Update successful:', responseData);
-        
+        if (!response.ok) {
+          console.error('❌ Server error response:', responseData)
+          throw new Error(
+            typeof responseData.error === 'string'
+              ? responseData.error
+              : typeof responseData.message === 'string'
+                ? responseData.message
+                : `Server returned ${response.status} ${response.statusText}`,
+          )
+        }
+
+        console.log('✅ Update successful:', responseData)
+
         // Clear cache more aggressively with better error handling
-        console.log('🧹 Starting cache refresh request');
+        console.log('🧹 Starting cache refresh request')
         try {
           const cacheResponse = await fetch(`/api/admin/logos/${logo.id}/refresh-cache`, {
             method: 'POST',
@@ -1158,91 +1154,95 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
             headers: {
               'X-Request-Source': 'logo-edit-modal',
               'X-Request-ID': requestId,
-              'X-Request-Time': Date.now().toString()
-            }
-          });
-          
-          const cacheStatus = cacheResponse.status;
-          console.log(`🧹 Cache refresh response status: ${cacheStatus}`);
-          
+              'X-Request-Time': Date.now().toString(),
+            },
+          })
+
+          const cacheStatus = cacheResponse.status
+          console.log(`🧹 Cache refresh response status: ${cacheStatus}`)
+
           if (cacheResponse.ok) {
             try {
-              const cacheData = await cacheResponse.json();
-              console.log('🧹 Cache refresh response:', JSON.stringify(cacheData, null, 2));
+              const cacheData = await cacheResponse.json()
+              console.log('🧹 Cache refresh response:', JSON.stringify(cacheData, null, 2))
             } catch (e) {
-              console.warn('⚠️ Failed to parse cache refresh response:', e);
+              console.warn('⚠️ Failed to parse cache refresh response:', e)
             }
           } else {
-            console.warn(`⚠️ Cache refresh failed with status: ${cacheStatus}`);
+            console.warn(`⚠️ Cache refresh failed with status: ${cacheStatus}`)
           }
         } catch (cacheError) {
-          console.warn('⚠️ Cache refresh request failed:', cacheError);
+          console.warn('⚠️ Cache refresh request failed:', cacheError)
           // Continue even if cache refresh fails
         }
-        
-        toast.success('Logo updated successfully');
-        console.log('✅ Closing modal');
-        onClose();
-        
+
+        toast.success('Logo updated successfully')
+        console.log('✅ Closing modal')
+        onClose()
+
         // Use a longer delay before refreshing to allow server to process
-        console.log('⏳ Setting timeout for page reload');
+        console.log('⏳ Setting timeout for page reload')
         if (autoRefreshEnabled) {
           setTimeout(() => {
-            console.log('🔄 Executing page reload');
-            
+            console.log('🔄 Executing page reload')
+
             try {
               // Force reload the page to ensure fresh content
-              window.location.href = `${window.location.pathname}?t=${sessionTimestamp}`;
+              window.location.href = `${window.location.pathname}?t=${sessionTimestamp}`
             } catch (reloadError) {
-              console.error('❌ Failed to reload page:', reloadError);
+              console.error('❌ Failed to reload page:', reloadError)
               // Try alternative reload method if the first fails
-              window.location.reload();
+              window.location.reload()
             }
-          }, 1000); // Increased from 500ms to 1000ms for more reliable refreshing
+          }, 1000) // Increased from 500ms to 1000ms for more reliable refreshing
         } else {
-          console.log('🔄 Page reload skipped (auto-refresh disabled)');
+          console.log('🔄 Page reload skipped (auto-refresh disabled)')
         }
       } catch (fetchError: unknown) {
         // Clear the timeout if there was an error
-        clearTimeout(timeoutId);
-        
-        console.error('❌ Fetch error:', fetchError);
-        
+        clearTimeout(timeoutId)
+
+        console.error('❌ Fetch error:', fetchError)
+
         if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-          throw new Error('Request timed out after 60 seconds. The server may be overloaded.');
+          throw new Error('Request timed out after 60 seconds. The server may be overloaded.')
         }
-        
+
         // Check for network errors
         if (!navigator.onLine) {
-          throw new Error('Network connection lost. Please check your internet connection and try again.');
+          throw new Error(
+            'Network connection lost. Please check your internet connection and try again.',
+          )
         }
-        
-        throw fetchError;
+
+        throw fetchError
       }
     } catch (error: unknown) {
-      console.error('❌ Save failed:', error);
-      setError(error instanceof Error ? error.message : 'Unknown error occurred');
-      toast.error(`Failed to save changes: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      
+      console.error('❌ Save failed:', error)
+      setError(error instanceof Error ? error.message : 'Unknown error occurred')
+      toast.error(
+        `Failed to save changes: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      )
+
       // Log extra diagnostic info for errors
       console.error('❌ Error details:', {
         type: error instanceof Error ? error.constructor.name : 'Unknown',
         message: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         online: navigator.onLine,
-        timeOfError: new Date().toISOString()
-      });
+        timeOfError: new Date().toISOString(),
+      })
     } finally {
-      console.log('🏁 Finishing save process, resetting loading state');
-      setIsLoading(false);
-      console.groupEnd();
+      console.log('🏁 Finishing save process, resetting loading state')
+      setIsLoading(false)
+      console.groupEnd()
     }
   }
 
   const handleTitleChange = (value: string) => {
     // Allow direct input including spaces
     setDisplayTitle(value)
-    
+
     // Generate cloudinary name without spaces
     const cloudinaryValue = value.replace(/\s+/g, '_').toLowerCase()
     setCloudinaryName(generateCloudinaryName(cloudinaryValue))
@@ -1256,7 +1256,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
       description,
       status,
       selectedTags,
-      hasImage: !!mainImageFileRef.current || !!logo.thumbnail
+      hasImage: !!mainImageFileRef.current || !!logo.thumbnail,
     })
 
     if (!displayTitle?.trim()) {
@@ -1285,9 +1285,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
 
   const handleClose = useCallback(() => {
     if (hasChanges) {
-      const confirmed = window.confirm(
-        'You have unsaved changes. Are you sure you want to close?'
-      )
+      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to close?')
       if (!confirmed) return
     }
     onClose()
@@ -1295,69 +1293,77 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
 
   // Track changes in form data
   useEffect(() => {
-    const hasModifications = 
+    const hasModifications =
       mainImage.preview !== null ||
       description !== logo.description ||
       status !== logo.status ||
       JSON.stringify(selectedTags) !== JSON.stringify(logo.tags) ||
       deletedGalleryIds.length > 0 ||
-      galleryPreviews.some(p => p.fileInfo !== undefined)
-    
+      galleryPreviews.some((p) => p.fileInfo !== undefined)
+
     setHasChanges(hasModifications)
-  }, [mainImage.preview, description, status, selectedTags, logo, deletedGalleryIds, galleryPreviews])
+  }, [
+    mainImage.preview,
+    description,
+    status,
+    selectedTags,
+    logo,
+    deletedGalleryIds,
+    galleryPreviews,
+  ])
 
   // Log gallery state changes
   useEffect(() => {
     // Only log when component is mounted and visible
     if (isOpen) {
-      const totalGalleryItems = galleryPreviews.length;
-      const deletedItems = deletedGalleryIds.length;
-      const visibleItems = totalGalleryItems - deletedItems;
-      const availableSlots = MAX_GALLERY_IMAGES - visibleItems;
-      
+      const totalGalleryItems = galleryPreviews.length
+      const deletedItems = deletedGalleryIds.length
+      const visibleItems = totalGalleryItems - deletedItems
+      const availableSlots = MAX_GALLERY_IMAGES - visibleItems
+
       console.log('📊 [LOGO-EDIT] Gallery state updated:', {
         total: totalGalleryItems,
         visible: visibleItems,
         deleted: deletedItems,
         available: availableSlots,
-        maxAllowed: MAX_GALLERY_IMAGES
-      });
+        maxAllowed: MAX_GALLERY_IMAGES,
+      })
     }
-  }, [isOpen, galleryPreviews, deletedGalleryIds]);
+  }, [isOpen, galleryPreviews, deletedGalleryIds])
 
   // Calculate visible gallery count (excluding deleted items)
   const visibleGalleryCount = useMemo(() => {
     // Get all gallery preview IDs
-    const allIds = galleryPreviews.map(p => p.id);
-    
+    const allIds = galleryPreviews.map((p) => p.id)
+
     // Filter out deleted IDs
-    const visibleIds = allIds.filter(id => !deletedGalleryIds.includes(id));
-    
+    const visibleIds = allIds.filter((id) => !deletedGalleryIds.includes(id))
+
     // Count unique visible IDs
-    const uniqueVisibleIds = new Set(visibleIds);
-    const count = uniqueVisibleIds.size;
-    
+    const uniqueVisibleIds = new Set(visibleIds)
+    const count = uniqueVisibleIds.size
+
     console.log('🔢 [LOGO-EDIT] Visible gallery count calculation:', {
       total: galleryPreviews.length,
       deleted: deletedGalleryIds.length,
       visible: count,
-      available: MAX_GALLERY_IMAGES - count
-    });
-    
-    return count;
-  }, [galleryPreviews, deletedGalleryIds]);
+      available: MAX_GALLERY_IMAGES - count,
+    })
+
+    return count
+  }, [galleryPreviews, deletedGalleryIds])
 
   // Force UI update when gallery state changes
   useEffect(() => {
     if (isOpen && (galleryPreviews.length > 0 || deletedGalleryIds.length > 0)) {
-      console.log('🔄 [LOGO-EDIT] Gallery state changed, forcing UI update');
-      
+      console.log('🔄 [LOGO-EDIT] Gallery state changed, forcing UI update')
+
       // This is just to ensure React re-renders the component
       // when the gallery state changes
-      const forceUpdate = () => {};
-      forceUpdate();
+      const forceUpdate = () => {}
+      forceUpdate()
     }
-  }, [isOpen, galleryPreviews, deletedGalleryIds]);
+  }, [isOpen, galleryPreviews, deletedGalleryIds])
 
   // Error boundary
   if (error) {
@@ -1376,14 +1382,14 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
   }
 
   return (
-    <Modal 
-      isOpen={isOpen} 
+    <Modal
+      isOpen={isOpen}
       onClose={handleClose}
       classNames={{
-        base: "bg-background/95 backdrop-blur-xl",
-        wrapper: "p-0 max-w-full h-[100dvh] max-h-[100dvh] overflow-hidden",
-        body: "p-0 max-h-[100dvh] overflow-hidden",
-        closeButton: "hidden",
+        base: 'bg-background/95 backdrop-blur-xl',
+        wrapper: 'p-0 max-w-full h-[100dvh] max-h-[100dvh] overflow-hidden',
+        body: 'p-0 max-h-[100dvh] overflow-hidden',
+        closeButton: 'hidden',
       }}
       size="full"
       scrollBehavior="inside"
@@ -1407,15 +1413,16 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
               <span className="font-mono text-sm tracking-wider opacity-50 uppercase block">
                 Edit Logo
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold">
-                Update Logo Details
-              </h2>
+              <h2 className="text-4xl md:text-5xl font-bold">Update Logo Details</h2>
             </div>
 
-            <form className="max-w-xl mx-auto space-y-8" onSubmit={(e) => {
-              e.preventDefault()
-              handleSaveWithValidation()
-            }}>
+            <form
+              className="max-w-xl mx-auto space-y-8"
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSaveWithValidation()
+              }}
+            >
               {/* Title Input */}
               <div className="space-y-2">
                 <Input
@@ -1425,44 +1432,45 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   value={displayTitle}
                   onChange={(e) => handleTitleChange(e.target.value)}
                   classNames={{
-                    label: "text-foreground-muted text-sm",
-                    input: "bg-transparent text-sm",
+                    label: 'text-foreground-muted text-sm',
+                    input: 'bg-transparent text-sm',
                     inputWrapper: [
-                      "bg-background/20",
-                      "backdrop-blur-sm",
-                      "border border-border",
-                      "hover:border-border-strong",
-                      "px-3",
-                      "!rounded-lg",
-                    ]
+                      'bg-background/20',
+                      'backdrop-blur-sm',
+                      'border border-border',
+                      'hover:border-border-strong',
+                      'px-3',
+                      '!rounded-lg',
+                    ],
                   }}
                 />
               </div>
 
               {/* Status Pills */}
               <div className="space-y-2">
-                <span 
-                  id="status-group-label" 
+                <span
+                  id="status-group-label"
                   className="block text-sm font-medium text-foreground-muted"
                 >
                   Status
                 </span>
-                <div 
-                  role="group" 
+                <div
+                  role="group"
                   aria-labelledby="status-group-label"
                   className="flex flex-wrap gap-2"
                 >
-                  {Object.entries(statusColorMap).map(([statusKey, color]) => (
+                  {Object.entries(statusColorMap).map(([statusKey, _color]) => (
                     <Button
                       key={statusKey}
                       size="sm"
                       aria-pressed={status === statusKey}
-                      variant={status === statusKey ? "solid" : "bordered"}
+                      variant={status === statusKey ? 'solid' : 'bordered'}
                       className={`
                         rounded-full px-4 h-10 text-sm transition-all
-                        ${status === statusKey
-                          ? 'bg-foreground text-background hover:bg-foreground/90'
-                          : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
+                        ${
+                          status === statusKey
+                            ? 'bg-foreground text-background hover:bg-foreground/90'
+                            : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
                         }
                       `}
                       onPress={() => handleStatusChange(statusKey as LogoStatus)}
@@ -1483,14 +1491,10 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   onChange={() => console.log('Native input change event - not used anymore')}
                   aria-label="Upload main image"
                 />
-                
+
                 {mainImage.preview ? (
                   <div className="relative group">
-                    <img 
-                      src={mainImage.preview} 
-                      alt="Logo preview" 
-                      className="w-full rounded-lg"
-                    />
+                    <img src={mainImage.preview} alt="Logo preview" className="w-full rounded-lg" />
                     <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <Button
                         isIconOnly
@@ -1505,11 +1509,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   </div>
                 ) : logo.thumbnail ? (
                   <div className="relative group">
-                    <img 
-                      src={logo.thumbnail} 
-                      alt="Logo preview" 
-                      className="w-full rounded-lg"
-                    />
+                    <img src={logo.thumbnail} alt="Logo preview" className="w-full rounded-lg" />
                     <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <Button
                         isIconOnly
@@ -1547,8 +1547,8 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   aria-label="Gallery images upload"
                 />
                 <div className="flex items-center justify-between">
-                  <span 
-                    id="gallery-images-label" 
+                  <span
+                    id="gallery-images-label"
                     aria-label="Gallery images count"
                     role="status"
                     className="block text-sm font-medium text-foreground-muted"
@@ -1562,46 +1562,56 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   </span>
                   {visibleGalleryCount < MAX_GALLERY_IMAGES && (
                     <span className="text-xs text-green-400">
-                      {MAX_GALLERY_IMAGES - visibleGalleryCount} slot{MAX_GALLERY_IMAGES - visibleGalleryCount !== 1 ? 's' : ''} available
+                      {MAX_GALLERY_IMAGES - visibleGalleryCount} slot
+                      {MAX_GALLERY_IMAGES - visibleGalleryCount !== 1 ? 's' : ''} available
                     </span>
                   )}
                 </div>
-                <div 
-                  role="group" 
+                <div
+                  role="group"
                   aria-labelledby="gallery-images-label"
                   className="grid grid-cols-3 gap-4"
                 >
                   {/* Existing gallery images */}
-                  {galleryPreviews.filter(item => !deletedGalleryIds.includes(item.id)).map((item) => (
-                    <div key={item.id} className="relative aspect-square bg-background/20 rounded-lg overflow-hidden group">
-                      <img
-                        src={item.preview}
-                        alt={`Gallery pic ${item.id}`}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          onPress={() => handlePreviewOpen(item.preview)}
-                          className="bg-accent backdrop-blur-sm"
-                          aria-label={`Preview gallery image ${item.id}`}
-                        >
-                          <Eye size={20} />
-                        </Button>
-                        <Button
-                          isIconOnly
-                          variant="light"
-                          onPress={() => item.fileInfo ? handleDeleteNewGalleryImage(item.id) : handleDeleteGalleryImage(item.id)}
-                          className="bg-accent backdrop-blur-sm"
-                          aria-label={`Delete gallery image ${item.id}`}
-                        >
-                          <Trash2 size={20} />
-                        </Button>
+                  {galleryPreviews
+                    .filter((item) => !deletedGalleryIds.includes(item.id))
+                    .map((item) => (
+                      <div
+                        key={item.id}
+                        className="relative aspect-square bg-background/20 rounded-lg overflow-hidden group"
+                      >
+                        <img
+                          src={item.preview}
+                          alt={`Gallery pic ${item.id}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <Button
+                            isIconOnly
+                            variant="light"
+                            onPress={() => handlePreviewOpen(item.preview)}
+                            className="bg-accent backdrop-blur-sm"
+                            aria-label={`Preview gallery image ${item.id}`}
+                          >
+                            <Eye size={20} />
+                          </Button>
+                          <Button
+                            isIconOnly
+                            variant="light"
+                            onPress={() =>
+                              item.fileInfo
+                                ? handleDeleteNewGalleryImage(item.id)
+                                : handleDeleteGalleryImage(item.id)
+                            }
+                            className="bg-accent backdrop-blur-sm"
+                            aria-label={`Delete gallery image ${item.id}`}
+                          >
+                            <Trash2 size={20} />
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                  
+                    ))}
+
                   {/* Upload button - show if we have less than MAX_GALLERY_IMAGES visible images */}
                   {visibleGalleryCount < MAX_GALLERY_IMAGES && (
                     <Button
@@ -1617,12 +1627,15 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
               {/* Tags */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span id="tags-group-label" className="block text-sm font-medium text-foreground-muted">
+                  <span
+                    id="tags-group-label"
+                    className="block text-sm font-medium text-foreground-muted"
+                  >
                     Tags (max 2)
                   </span>
                 </div>
-                <div 
-                  role="group" 
+                <div
+                  role="group"
                   aria-labelledby="tags-group-label"
                   className="flex flex-wrap gap-2"
                 >
@@ -1631,17 +1644,16 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                       key={tag}
                       size="sm"
                       aria-pressed={selectedTags.includes(tag)}
-                      variant={selectedTags.includes(tag) ? "solid" : "bordered"}
+                      variant={selectedTags.includes(tag) ? 'solid' : 'bordered'}
                       className={`
                         rounded-full px-4 h-10 text-sm transition-all
-                        ${selectedTags.includes(tag)
-                          ? 'bg-foreground text-background hover:bg-foreground/90'
-                          : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
+                        ${
+                          selectedTags.includes(tag)
+                            ? 'bg-foreground text-background hover:bg-foreground/90'
+                            : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
                         }
                       `}
-                      endContent={selectedTags.includes(tag) && 
-                        <X size={14} className="ml-1" />
-                      }
+                      endContent={selectedTags.includes(tag) && <X size={14} className="ml-1" />}
                       onPress={() => handleTagToggle(tag)}
                     >
                       {tag}
@@ -1659,16 +1671,16 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   value={description}
                   onChange={(e) => handleDescriptionChange(e.target.value)}
                   classNames={{
-                    label: "text-foreground-muted text-sm",
-                    input: "bg-transparent text-sm",
+                    label: 'text-foreground-muted text-sm',
+                    input: 'bg-transparent text-sm',
                     inputWrapper: [
-                      "bg-background/20",
-                      "backdrop-blur-sm",
-                      "border border-border",
-                      "hover:border-border-strong",
-                      "px-3",
-                      "!rounded-lg",
-                    ]
+                      'bg-background/20',
+                      'backdrop-blur-sm',
+                      'border border-border',
+                      'hover:border-border-strong',
+                      'px-3',
+                      '!rounded-lg',
+                    ],
                   }}
                 />
               </div>
@@ -1690,14 +1702,14 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
         </div>
 
         {/* Image Preview Modal */}
-        <Modal 
-          isOpen={!!previewOpen} 
+        <Modal
+          isOpen={!!previewOpen}
           onClose={() => setPreviewOpen(null)}
           size="2xl"
           hideCloseButton
           classNames={{
-            base: "bg-background/95 backdrop-blur-xl",
-            wrapper: "p-4"
+            base: 'bg-background/95 backdrop-blur-xl',
+            wrapper: 'p-4',
           }}
         >
           <ModalContent>
@@ -1735,11 +1747,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
               )}
 
               {previewOpen && (
-                <img 
-                  src={previewOpen} 
-                  alt="Preview" 
-                  className="w-full object-contain"
-                />
+                <img src={previewOpen} alt="Preview" className="w-full object-contain" />
               )}
             </div>
           </ModalContent>
@@ -1750,6 +1758,6 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
 })
 
 // Add displayName to fix the ESLint error
-LogoEditModal.displayName = 'LogoEditModal';
+LogoEditModal.displayName = 'LogoEditModal'
 
-export default LogoEditModal 
+export default LogoEditModal

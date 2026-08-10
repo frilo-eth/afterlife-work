@@ -24,10 +24,13 @@ export type PriceId = string
 export interface ProductConfig {
   name: string
   description?: string
-  prices: Record<string, {
-    id: PriceId
-    amount: number
-  }>
+  prices: Record<
+    string,
+    {
+      id: PriceId
+      amount: number
+    }
+  >
 }
 
 export const PRODUCTS = {
@@ -42,7 +45,7 @@ export const PRODUCTS = {
         id: STRIPE_PRICE_ECHO || '',
         amount: 12500, // $125.00
       },
-    }
+    },
   },
   retainer: {
     name: 'Design Retainer',
@@ -51,9 +54,9 @@ export const PRODUCTS = {
       monthly: {
         id: STRIPE_PRICE_RETAINER || '',
         amount: 100000, // $1,000.00
-      }
-    }
-  }
+      },
+    },
+  },
 } as const
 
 export type ProductType = keyof typeof PRODUCTS
@@ -110,15 +113,11 @@ export async function handleWebhook({
   }
 
   try {
-    const event = stripe.webhooks.constructEvent(
-      payload,
-      signature,
-      STRIPE_WEBHOOK_SECRET
-    )
-    
+    const event = stripe.webhooks.constructEvent(payload, signature, STRIPE_WEBHOOK_SECRET)
+
     return { event }
   } catch (err) {
     console.error('Webhook signature verification failed:', err)
     throw new Error('Invalid webhook signature')
   }
-} 
+}

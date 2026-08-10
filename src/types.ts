@@ -35,4 +35,4 @@ export interface LogoWithDetails {
     createdAt: Date | string
     updatedAt: Date | string
   }
-} 
+}

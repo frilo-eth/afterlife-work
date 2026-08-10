@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server'
 import type { CreateEmailResponse } from 'resend'
-import { OrderConfirmationEmail } from '@/components/emails/OrderConfirmationEmail'
-import { SubmissionConfirmationEmail } from '@/components/emails/SubmissionConfirmationEmail'
-import { LogoApprovalEmail } from '@/components/emails/LogoApprovalEmail'
-import { LogoRejectionEmail } from '@/components/emails/LogoRejectionEmail'
-import { LogoChangesRequestedEmail } from '@/components/emails/LogoChangesRequestedEmail'
-import { LogoSoldEmail } from '@/components/emails/LogoSoldEmail'
-import { createEmailClient } from '@/lib/email'
-import { requireAdmin } from '@/lib/api-utils'
-import { WelcomeEmail } from '@/components/emails/WelcomeEmail'
-import { RetainerSaleAlertEmail } from '@/components/emails/RetainerSaleAlertEmail'
 import { DesignerPayoutSummaryEmail } from '@/components/emails/DesignerPayoutSummaryEmail'
+import { LogoApprovalEmail } from '@/components/emails/LogoApprovalEmail'
+import { LogoChangesRequestedEmail } from '@/components/emails/LogoChangesRequestedEmail'
+import { LogoRejectionEmail } from '@/components/emails/LogoRejectionEmail'
+import { LogoSoldEmail } from '@/components/emails/LogoSoldEmail'
+import { OrderConfirmationEmail } from '@/components/emails/OrderConfirmationEmail'
+import { RetainerSaleAlertEmail } from '@/components/emails/RetainerSaleAlertEmail'
+import { SubmissionConfirmationEmail } from '@/components/emails/SubmissionConfirmationEmail'
+import { WelcomeEmail } from '@/components/emails/WelcomeEmail'
+import { requireAdmin } from '@/lib/api-utils'
+import { createEmailClient } from '@/lib/email'
 
 const emailClient = createEmailClient()
 
@@ -20,16 +20,13 @@ export async function POST(request: Request) {
 
   try {
     const { to, template = 'order' } = await request.json()
-    
+
     if (!to) {
-      return NextResponse.json(
-        { error: 'Email address required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Email address required' }, { status: 400 })
     }
 
-    let emailData: CreateEmailResponse;
-    
+    let emailData: CreateEmailResponse
+
     switch (template) {
       case 'order':
         emailData = await emailClient.send({
@@ -42,9 +39,9 @@ export async function POST(request: Request) {
             amount: 6500,
             tier: 'revival',
             options: {
-              wordmark: 'Custom Wordmark'
-            }
-          })
+              wordmark: 'Custom Wordmark',
+            },
+          }),
         })
         break
 
@@ -55,8 +52,8 @@ export async function POST(request: Request) {
           subject: 'Logo Submission Received',
           react: SubmissionConfirmationEmail({
             designerName: 'Test Designer',
-            logoName: 'awesome-logo.ai'
-          })
+            logoName: 'awesome-logo.ai',
+          }),
         })
         break
 
@@ -68,8 +65,9 @@ export async function POST(request: Request) {
           react: LogoApprovalEmail({
             logoId: 'test-123',
             title: 'Test Logo',
-            thumbnail: 'https://res.cloudinary.com/dsfmwnf5j/image/upload/v1710371386/logos/test-logo.png'
-          })
+            thumbnail:
+              'https://res.cloudinary.com/dsfmwnf5j/image/upload/v1710371386/logos/test-logo.png',
+          }),
         })
         break
 
@@ -82,8 +80,8 @@ export async function POST(request: Request) {
             designerName: 'Test Designer',
             logoTitle: 'Test Logo',
             reason: 'The logo does not meet our quality standards.',
-            feedback: 'Consider improving the resolution and adding more contrast to the design.'
-          })
+            feedback: 'Consider improving the resolution and adding more contrast to the design.',
+          }),
         })
         break
 
@@ -98,10 +96,11 @@ export async function POST(request: Request) {
             changes: [
               'Increase the contrast between elements',
               'Improve the scalability of the design',
-              'Refine the typography spacing'
+              'Refine the typography spacing',
             ],
-            additionalNotes: 'Please ensure all changes maintain the original concept while improving usability.'
-          })
+            additionalNotes:
+              'Please ensure all changes maintain the original concept while improving usability.',
+          }),
         })
         break
 
@@ -117,8 +116,8 @@ export async function POST(request: Request) {
             isEarlyAdopter: true,
             earlyAdopterNumber: 42,
             estimatedPayout: 6500,
-            payoutDate: '2024-03-20'
-          })
+            payoutDate: '2024-03-20',
+          }),
         })
         break
 
@@ -130,8 +129,8 @@ export async function POST(request: Request) {
           react: WelcomeEmail({
             name: 'Test User',
             isDesigner: true,
-            verificationUrl: 'https://afterlife.work/verify-email?token=test-token'
-          })
+            verificationUrl: 'https://afterlife.work/verify-email?token=test-token',
+          }),
         })
         break
 
@@ -145,8 +144,8 @@ export async function POST(request: Request) {
             buyerEmail: 'buyer@example.com',
             retainerAmount: 100000,
             purchaseDate: new Date().toISOString(),
-            transactionId: 'txn_test123'
-          })
+            transactionId: 'txn_test123',
+          }),
         })
         break
 
@@ -165,36 +164,36 @@ export async function POST(request: Request) {
                 logoTitle: 'REVIVAL Logo',
                 saleAmount: 150000,
                 commission: 0,
-                saleDate: '2024-03-15'
+                saleDate: '2024-03-15',
               },
               {
                 logoTitle: 'ECHO Logo',
                 saleAmount: 100000,
                 commission: 0,
-                saleDate: '2024-03-20'
-              }
-            ]
-          })
+                saleDate: '2024-03-20',
+              },
+            ],
+          }),
         })
         break
 
       default:
-        return NextResponse.json(
-          { error: 'Invalid template type' },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: 'Invalid template type' }, { status: 400 })
     }
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: `Test ${template} email sent to ${to}`,
-      emailId: emailData.data?.id 
+      emailId: emailData.data?.id,
     })
   } catch (error) {
     console.error('Email test failed:', error)
-    return NextResponse.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 },
+    )
   }
-} 
+}

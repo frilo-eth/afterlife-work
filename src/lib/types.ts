@@ -32,28 +32,17 @@ export interface Logo {
 
 // For admin page compatibility
 export interface LogoWithDetails extends Omit<Logo, 'internal_id'> {
-  internal_id?: number  // Make it optional for LogoWithDetails
+  internal_id?: number // Make it optional for LogoWithDetails
 }
 
 export interface PricingTierProps {
-  title: string;
-  price: number | string;
-  features: string[];
-  highlighted?: boolean;
-}
-
-interface SubscribeResponse {
-  success: boolean;
-  message: string;
-  error?: string;
-}
-
-interface SubscribeRequest {
-  email: string;
-  source?: string;
+  title: string
+  price: number | string
+  features: string[]
+  highlighted?: boolean
 }
 
 export interface FilterState {
-  styles: string[];
-  search: string;
-} 
+  styles: string[]
+  search: string
+}

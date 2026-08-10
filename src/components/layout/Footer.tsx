@@ -1,94 +1,69 @@
 'use client'
 
-import { useState } from 'react'
+import { Mail } from 'lucide-react'
 import Link from 'next/link'
-import { PricingModal } from '@/components/modals/PricingModal'
+import { useState } from 'react'
+import { FriloPill } from '@/components/layout/FriloPill'
 import { SubmitLogoModal } from '@/components/modals/SubmitLogoModal'
+import { Button } from '@/components/ui/button'
 
 const linkClass =
-  'block text-sm text-muted-foreground transition-colors duration-quick ease-settle hover:text-foreground'
+  'text-caption text-foreground-subtle transition-colors duration-80 hover:text-foreground'
 
-// Actions that open a dialog are buttons, not links. They were previously
-// anchors wrapping `#` with a click handler, which announces as navigation,
-// breaks open-in-new-tab, and moves the page to the top on activation.
-const actionClass = `${linkClass} text-left`
+/** Lucide's Twitter bird is retired; keep a simple X glyph for the profile link. */
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className} fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  )
+}
 
 export const Footer = () => {
-  const [isPricingOpen, setIsPricingOpen] = useState(false)
   const [isSubmitOpen, setIsSubmitOpen] = useState(false)
+  const year = new Date().getFullYear()
 
   return (
     <>
-      <footer className="border-t border-border py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div>
-              <h2 className="mb-4 font-mono text-sm uppercase tracking-wider opacity-50">
+      <footer className="border-t border-border">
+        <div className="container mx-auto flex flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex flex-wrap items-center gap-1.5 text-caption text-foreground-subtle">
+            © {year} Afterlife
+            Made with soul by
+            <FriloPill />
+          </p>
+
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+            <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
+              <Link href="/about" className={linkClass}>
                 About
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                Where rejected logos find new life. Each design tells a story of what
-                could have been—and what still could be.
-              </p>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Made by{' '}
-                <a
-                  href="https://frilo.io"
-                  className="transition-colors duration-quick ease-settle hover:text-foreground"
-                >
-                  frilo.io
-                </a>
-              </p>
-            </div>
+              </Link>
+              <button type="button" className={linkClass} onClick={() => setIsSubmitOpen(true)}>
+                Submit
+              </button>
+            </nav>
 
-            <div>
-              <h2 className="mb-4 font-mono text-sm uppercase tracking-wider opacity-50">
-                Links
-              </h2>
-              <div className="space-y-2">
-                <Link href="/#collection" className={linkClass}>
-                  Collection
-                </Link>
-                <button type="button" className={actionClass} onClick={() => setIsSubmitOpen(true)}>
-                  Submit Logo
-                </button>
-                <button type="button" className={actionClass} onClick={() => setIsPricingOpen(true)}>
-                  Pricing
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <h2 className="mb-4 font-mono text-sm uppercase tracking-wider opacity-50">
-                Contact
-              </h2>
-              <div className="space-y-2">
-                <a href="mailto:hi@afterlife.work" className={linkClass}>
-                  Email us
+            <div className="flex items-center gap-1">
+              <Button asChild variant="ghost" size="icon-sm">
+                <a href="mailto:hi@afterlife.work" aria-label="Email">
+                  <Mail className="h-3.5 w-3.5" />
                 </a>
+              </Button>
+              <Button asChild variant="ghost" size="icon-sm">
                 <a
                   href="https://x.com/afterlifewrk"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={linkClass}
+                  aria-label="Afterlife on X"
                 >
-                  Follow us
+                  <XIcon className="h-3.5 w-3.5" />
                 </a>
-                <a
-                  href="https://cal.com/afterlife/30min"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={linkClass}
-                >
-                  Book a call
-                </a>
-              </div>
+              </Button>
             </div>
           </div>
         </div>
       </footer>
 
-      <PricingModal isOpen={isPricingOpen} onClose={() => setIsPricingOpen(false)} />
       <SubmitLogoModal isOpen={isSubmitOpen} onClose={() => setIsSubmitOpen(false)} />
     </>
   )

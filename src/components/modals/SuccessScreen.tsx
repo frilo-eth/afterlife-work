@@ -1,7 +1,10 @@
-import { Modal, ModalContent, Button } from "@nextui-org/react"
+'use client'
+
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 
 interface SuccessScreenProps {
   onClose: () => void
@@ -11,7 +14,6 @@ interface SuccessScreenProps {
 export function SuccessScreen({ onClose, onSubmitAnother }: SuccessScreenProps) {
   const router = useRouter()
 
-  // Handle ESC key
   useEffect(() => {
     const handleEsc = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -28,49 +30,34 @@ export function SuccessScreen({ onClose, onSubmitAnother }: SuccessScreenProps) 
   }
 
   return (
-    <Modal
-      isOpen={true}
-      onClose={handleClose}
-      size="full"
-      hideCloseButton
-      classNames={{
-        base: "bg-background/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]",
-        wrapper: "p-0 h-[100dvh] m-0",
-        backdrop: "opacity-100",
-        body: "p-0 h-full"
-      }}
-    >
-      <ModalContent>
-        <div className="h-full flex flex-col items-center justify-center p-4 max-w-xl mx-auto text-center">
-          <Image
-            src="/oktomb.svg"
-            alt="Success"
-            width={120}
-            height={120}
-            className="mb-8"
-            priority
-          />
-          <h2 className="text-3xl font-bold mb-4">Submission Successful!</h2>
-          <div className="text-center text-foreground mt-4 mb-10">
-            We&apos;ve received your submission! Our team will review it shortly.
-          </div>
-          <div className="flex gap-4">
-            <Button
-              variant="bordered"
-              className="border-border hover:bg-secondary h-12"
-              onPress={handleClose}
-            >
-              Back Home
-            </Button>
-            <Button
-              className="bg-foreground text-background hover:bg-foreground/90 h-12"
-              onPress={onSubmitAnother}
-            >
-              Submit Another Logo
-            </Button>
+    <Dialog open onOpenChange={(open) => !open && handleClose()}>
+      <DialogContent hideClose placement="fullscreen">
+        <DialogTitle className="sr-only">Submission successful</DialogTitle>
+        <div className="flex h-full flex-col items-center justify-center px-4 text-center">
+          <div className="mx-auto max-w-md space-y-6">
+            <Image src="/oktomb.svg" alt="" width={96} height={96} className="mx-auto" priority />
+            <div className="space-y-3">
+              <span className="block font-mono text-metadata uppercase text-foreground-subtle">
+                Submit logo
+              </span>
+              <h2 className="text-4xl tracking-tight text-foreground sm:text-5xl">
+                Submission successful
+              </h2>
+              <p className="mx-auto max-w-lg text-lede text-foreground-muted text-pretty">
+                We&apos;ve received your submission. Our team will review it shortly.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <Button type="button" variant="tertiary" size="lg" onClick={handleClose}>
+                Back home
+              </Button>
+              <Button type="button" variant="primary" size="lg" onClick={onSubmitAnother}>
+                Submit another logo
+              </Button>
+            </div>
           </div>
         </div>
-      </ModalContent>
-    </Modal>
+      </DialogContent>
+    </Dialog>
   )
-} 
+}

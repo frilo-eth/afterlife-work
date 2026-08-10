@@ -1,6 +1,6 @@
+import type { Logo, Order } from '@prisma/client'
 import { db } from '@/lib/db'
 import { sendOrderConfirmationEmail } from '@/lib/email'
-import type { Order, Logo } from '@prisma/client'
 
 export type OrderTier = 'summon' | 'revival' | 'afterlife'
 
@@ -16,7 +16,11 @@ interface OrderFulfillmentOptions {
   hasWordmark: boolean
 }
 
-export async function handleOrderFulfillment({ order, logo, hasWordmark }: OrderFulfillmentOptions) {
+export async function handleOrderFulfillment({
+  order,
+  logo,
+  hasWordmark,
+}: OrderFulfillmentOptions) {
   const tier = order.tier as OrderTier
 
   // 1. Send admin notification
@@ -29,8 +33,8 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
       tier,
       amount: order.amount,
       hasWordmark,
-      customerEmail: order.customerEmail
-    }
+      customerEmail: order.customerEmail,
+    },
   })
 
   // 2. Handle tier-specific logic
@@ -48,8 +52,8 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
             logoTitle: logo.title,
             files,
             tier,
-            amount: order.amount
-          }
+            amount: order.amount,
+          },
         })
       } else {
         // Wordmark requires designer work
@@ -58,9 +62,9 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
           logoId: logo.id,
           tier,
           wordmark: order.wordmark || undefined,
-          customerEmail: order.customerEmail
+          customerEmail: order.customerEmail,
         })
-        
+
         await sendOrderConfirmationEmail({
           type: 'customer',
           template: 'OrderConfirmationPendingWordmark',
@@ -70,8 +74,8 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
             logoTitle: logo.title,
             tier,
             amount: order.amount,
-            estimatedDays: '5-7'
-          }
+            estimatedDays: '5-7',
+          },
         })
       }
       break
@@ -79,7 +83,7 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
 
     case 'revival': {
       const estimatedDays = hasWordmark ? '5-7' : '2-3'
-      
+
       // Initial confirmation
       await sendOrderConfirmationEmail({
         type: 'customer',
@@ -91,8 +95,8 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
           tier,
           amount: order.amount,
           estimatedDays,
-          hasWordmark
-        }
+          hasWordmark,
+        },
       })
 
       // Notify designer for revival package preparation
@@ -101,7 +105,7 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
         logoId: logo.id,
         tier,
         wordmark: order.wordmark || undefined,
-        customerEmail: order.customerEmail
+        customerEmail: order.customerEmail,
       })
       break
     }
@@ -116,8 +120,8 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
           orderId: order.id,
           logoTitle: logo.title,
           tier,
-          amount: order.amount
-        }
+          amount: order.amount,
+        },
       })
 
       // Notify team for afterlife project setup
@@ -125,7 +129,7 @@ export async function handleOrderFulfillment({ order, logo, hasWordmark }: Order
         orderId: order.id,
         logoId: logo.id,
         customerEmail: order.customerEmail,
-        amount: order.amount
+        amount: order.amount,
       })
       break
     }
@@ -152,8 +156,8 @@ function prepareFileDelivery(logo: Logo, stripeSessionId: string): FileDelivery[
     {
       type: 'package',
       url: `${baseUrl}/download/${logo.id}?session_id=${encodeURIComponent(stripeSessionId)}`,
-      name: logo.sourcePackageName ?? `${logo.title} — source files`
-    }
+      name: logo.sourcePackageName ?? `${logo.title} — source files`,
+    },
   ]
 }
 
@@ -162,7 +166,7 @@ async function notifyDesigner({
   logoId,
   tier,
   wordmark,
-  customerEmail
+  customerEmail,
 }: {
   orderId: string
   logoId: string
@@ -171,7 +175,7 @@ async function notifyDesigner({
   customerEmail: string
 }) {
   const logo = await db.logo.findUnique({
-    where: { id: logoId }
+    where: { id: logoId },
   })
 
   if (!logo) {
@@ -187,8 +191,8 @@ async function notifyDesigner({
       logoTitle: logo.title,
       tier,
       wordmark,
-      customerEmail
-    }
+      customerEmail,
+    },
   })
 }
 
@@ -196,7 +200,7 @@ async function notifyTeam({
   orderId,
   logoId,
   customerEmail,
-  amount
+  amount,
 }: {
   orderId: string
   logoId: string
@@ -204,7 +208,7 @@ async function notifyTeam({
   amount: number
 }) {
   const logo = await db.logo.findUnique({
-    where: { id: logoId }
+    where: { id: logoId },
   })
 
   if (!logo) {
@@ -219,7 +223,7 @@ async function notifyTeam({
       logoId,
       logoTitle: logo.title,
       customerEmail,
-      amount
-    }
+      amount,
+    },
   })
-} 
+}

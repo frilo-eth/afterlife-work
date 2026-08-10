@@ -1,19 +1,21 @@
-import { PrismaClient, Prisma } from '@prisma/client'
 import { EventEmitter } from 'node:events'
+import { PrismaClient } from '@prisma/client'
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient }
 
-export const prisma = globalForPrisma.prisma || new PrismaClient({
-  log: [
-    { level: 'error', emit: 'event' },
-    { level: 'warn', emit: 'event' }
-  ],
-  errorFormat: 'pretty',
-})
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: [
+      { level: 'error', emit: 'event' },
+      { level: 'warn', emit: 'event' },
+    ],
+    errorFormat: 'pretty',
+  })
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma
-  
+
   // Create an event emitter for Prisma events
   const prismaEvents = new EventEmitter()
   prismaEvents.setMaxListeners(20)
@@ -36,7 +38,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Only connect once
 if (!globalForPrisma.prisma) {
-  void prisma.$connect()
+  void prisma
+    .$connect()
     .then(() => console.log('Database connected successfully'))
     .catch((error: Error) => {
       console.error('Failed to connect to database:', error)
@@ -44,4 +47,4 @@ if (!globalForPrisma.prisma) {
     })
 }
 
-export default prisma 
+export default prisma

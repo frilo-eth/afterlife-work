@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify } from 'jose'
+import { jwtVerify, SignJWT } from 'jose'
 
 // Resolved lazily so a missing secret surfaces as a runtime error on the
 // request that needs it, rather than crashing the build when env vars are
@@ -26,7 +26,7 @@ const hashPassword = async (password: string): Promise<string> => {
   const msgBuffer = new TextEncoder().encode(password)
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')
 }
 
 // Length-independent, constant-time string comparison.
@@ -57,7 +57,7 @@ export const generateSession = async (userId: string): Promise<string> => {
   const token = await new SignJWT({
     role: 'admin',
     userId,
-    sessionCreated: Date.now()
+    sessionCreated: Date.now(),
   })
     .setProtectedHeader({ alg: 'HS256' })
     .setExpirationTime('24h')
@@ -73,7 +73,7 @@ export const generateSession = async (userId: string): Promise<string> => {
 export const verifySession = async (token: string): Promise<boolean> => {
   try {
     const { payload } = await jwtVerify(token, getJwtSecret(), {
-      algorithms: ['HS256']
+      algorithms: ['HS256'],
     })
     return payload.role === 'admin'
   } catch {

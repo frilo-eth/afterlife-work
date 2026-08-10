@@ -1,26 +1,21 @@
 import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { uploadFile } from '@/lib/uploadFile'
-import { prisma } from '@/lib/prisma'
 import { NewLogoSubmissionEmail } from '@/components/emails/NewLogoSubmission'
 import { SubmissionConfirmationEmail } from '@/components/emails/SubmissionConfirmationEmail'
+import { prisma } from '@/lib/prisma'
+import { uploadFile } from '@/lib/uploadFile'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: Request) {
   try {
-    console.log('Admin email address:', process.env.ADMIN_EMAIL);
-
     const formData = await request.formData()
-    
+
     // Validate required fields
     const requiredFields = ['designerName', 'email', 'description', 'logo']
     for (const field of requiredFields) {
       if (!formData.get(field)) {
-        return NextResponse.json(
-          { error: `Missing required field: ${field}` },
-          { status: 400 }
-        )
+        return NextResponse.json({ error: `Missing required field: ${field}` }, { status: 400 })
       }
     }
 
@@ -31,149 +26,124 @@ export async function POST(request: Request) {
     const description = formData.get('description') as string
     const logoFile = formData.get('logo') as File
     const logoTitle = formData.get('logoTitle') as string
-    const mockupFiles = Array.from(formData.getAll('mockup'))
-      .filter((file): file is File => file instanceof File)
+    const mockupFiles = Array.from(formData.getAll('mockup')).filter(
+      (file): file is File => file instanceof File,
+    )
 
     try {
       // Create or update designer
-      console.log('Creating/updating designer record...')
       const designer = await prisma.designer.upsert({
         where: { email },
         create: {
           name: designerName,
           email,
-          twitter: twitter || undefined
+          twitter: twitter || undefined,
         },
         update: {
           name: designerName,
-          twitter: twitter || undefined
-        }
+          twitter: twitter || undefined,
+        },
       })
-      console.log('Designer record processed:', designer.id)
 
-      // Upload files to storage
-      console.log('Uploading logo file...')
-      const logoUpload = await uploadFile(logoFile)
-      console.log('Logo uploaded successfully:', logoUpload.secure_url)
-      
-      console.log('Uploading mockup files...')
-      const mockupUploads = await Promise.all(mockupFiles.map(uploadFile))
-      console.log('Mockups uploaded successfully:', mockupUploads.map(u => u.secure_url))
+      // Upload logo and mockups together — waiting on the logo alone before
+      // starting mockups added their full duration to every submission.
+      const [logoUpload, ...mockupUploads] = await Promise.all([
+        uploadFile(logoFile),
+        ...mockupFiles.map((file) => uploadFile(file)),
+      ])
 
-      // Create logo entry
-      console.log('Creating logo entry...')
       const price = await prisma.price.create({
         data: {
-          summon: 1000, // Default prices
+          summon: 2500,
           revival: 5000,
-          afterlife: "Starts at $10,000"
-        }
+          afterlife: '$10,000/mo',
+        },
       })
+
+      const resolvedTitle = logoTitle || `Logo by ${designerName}`
+      const thumbnail = mockupUploads[0]?.secure_url || logoUpload.secure_url
 
       const logo = await prisma.logo.create({
         data: {
-          title: logoTitle || `Logo by ${designerName}`, // Use provided title or fallback
+          title: resolvedTitle,
           description,
-          thumbnail: mockupUploads[0]?.secure_url || logoUpload.secure_url,
+          thumbnail,
           images: [logoUpload.secure_url],
-          tags: [], // Empty tags initially
+          tags: [],
           status: 'REVIEW',
-          designerId: designer.id, // Link to designer
+          designerId: designer.id,
           priceId: price.id,
           gallery: {
-            create: mockupUploads.map(upload => ({
-              imageUrl: upload.secure_url
-            }))
-          }
+            create: mockupUploads.map((upload) => ({
+              imageUrl: upload.secure_url,
+            })),
+          },
         },
-        include: {
-          gallery: true,
-          price: true,
-          designer: true
-        }
       })
-      console.log('Logo entry created:', logo.id)
 
+      // Notification mail is fire-and-forget. Awaiting Resend here held the
+      // submit response for several seconds after the logo was already saved.
       const adminEmail = process.env.ADMIN_EMAIL
-      if (!adminEmail) {
-        throw new Error('Admin email not configured')
-      }
-
-      // Send emails with detailed logging
-      console.log('Preparing to send notification emails...')
-      try {
-        const [adminNotification, userConfirmation] = await Promise.all([
+      if (adminEmail) {
+        void Promise.all([
           resend.emails.send({
             from: 'Afterlife <notifications@updates.afterlife.work>',
             to: adminEmail,
-            subject: `New Logo Submission: ${logoTitle || "Untitled Logo"}`,
+            subject: `New Logo Submission: ${resolvedTitle}`,
+            reply_to: email,
             react: NewLogoSubmissionEmail({
               logoId: logo.id,
-              title: logoTitle || `Logo by ${designerName}`,
-              thumbnail: mockupUploads[0]?.secure_url || logoUpload.secure_url,
+              title: resolvedTitle,
+              thumbnail,
               designerName,
               designerEmail: email,
               description,
               submissionDate: new Date().toLocaleString(),
               tags: [],
-              hasSourceFile: mockupFiles.length > 0
-            })
-          }).then(res => {
-            console.log('Admin notification sent:', res)
-            return res
-          }).catch(err => {
-            console.error('Admin notification failed:', err)
-            throw err
+              hasSourceFile: mockupFiles.length > 0,
+            }),
           }),
-
           resend.emails.send({
             from: 'Afterlife <notifications@updates.afterlife.work>',
             to: email,
             subject: 'Logo Submission Received',
+            reply_to: 'hi@afterlife.work',
             react: SubmissionConfirmationEmail({
               designerName,
-              logoName: logoFile.name
-            })
-          }).then(res => {
-            console.log('User confirmation sent:', res)
-            return res
-          }).catch(err => {
-            console.error('User confirmation failed:', err)
-            throw err
-          })
-        ])
-
-        console.log('All notification emails sent successfully:', {
-          adminEmail: adminNotification,
-          userEmail: userConfirmation
+              logoName: logoFile.name,
+            }),
+          }),
+        ]).catch((emailError) => {
+          console.error('Failed to send submission emails:', emailError)
         })
-      } catch (emailError) {
-        console.error('Failed to send notification emails:', emailError)
-        // Continue with the submission process even if emails fail
+      } else {
+        console.error('ADMIN_EMAIL is not configured; skipping submission emails')
       }
 
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         message: 'Logo submitted successfully',
-        logoId: logo.id
+        logoId: logo.id,
       })
     } catch (uploadError) {
       console.error('Processing error:', uploadError)
-      throw new Error(uploadError instanceof Error ? uploadError.message : 'Failed to process files')
+      throw new Error(
+        uploadError instanceof Error ? uploadError.message : 'Failed to process files',
+      )
     }
   } catch (error) {
     console.error('Submission error details:', {
       error,
       message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
     })
-    
+
     return NextResponse.json(
-      { 
+      {
         error: error instanceof Error ? error.message : 'Failed to process submission',
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        details: process.env.NODE_ENV === 'development' ? error : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
-} 
+}

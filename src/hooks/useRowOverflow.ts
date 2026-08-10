@@ -24,7 +24,7 @@ export function useRowOverflow(itemCount: number) {
     if (!container) return
 
     const items = Array.from(container.children).filter(
-      child => child.getAttribute('data-row-item') === 'true'
+      (child) => child.getAttribute('data-row-item') === 'true',
     ) as HTMLElement[]
 
     if (items.length === 0) return
@@ -52,7 +52,7 @@ export function useRowOverflow(itemCount: number) {
 
     // Showing a single pill next to "All tags" is worse than showing none;
     // below two, the row reads as broken rather than truncated.
-    setVisibleCount(previous => {
+    setVisibleCount((previous) => {
       const resolved = fits < 2 && items.length > 1 ? 0 : fits
       return previous === resolved ? previous : resolved
     })
@@ -73,7 +73,7 @@ export function useRowOverflow(itemCount: number) {
     }
 
     return () => observer.disconnect()
-  }, [measure, itemCount])
+  }, [measure])
 
   return { containerRef, trailingRef, visibleCount, remeasure: measure }
 }

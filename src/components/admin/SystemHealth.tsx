@@ -15,19 +15,23 @@ interface SystemHealthProps {
 
 export function SystemHealth({ services }: SystemHealthProps) {
   const getStatusIcon = (status: ServiceStatus['status']) => {
-    return <Circle className={`w-3 h-3 ${
-      status === 'healthy' 
-        ? 'fill-white/20' 
-        : status === 'warning'
-          ? 'fill-white/40'
-          : 'fill-white/60'
-    }`} />
+    return (
+      <Circle
+        className={`w-3 h-3 ${
+          status === 'healthy'
+            ? 'fill-white/20'
+            : status === 'warning'
+              ? 'fill-white/40'
+              : 'fill-white/60'
+        }`}
+      />
+    )
   }
 
   return (
     <div className="space-y-4">
       {services.map((service) => (
-        <div 
+        <div
           key={service.name}
           className="flex items-center justify-between p-3 rounded-lg bg-secondary"
         >
@@ -41,12 +45,10 @@ export function SystemHealth({ services }: SystemHealthProps) {
             </div>
           </div>
           {service.latency && (
-            <span className="text-xs text-foreground-subtle">
-              {service.latency}ms
-            </span>
+            <span className="text-xs text-foreground-subtle">{service.latency}ms</span>
           )}
         </div>
       ))}
     </div>
   )
-} 
+}

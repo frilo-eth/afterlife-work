@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
-import Image from 'next/image'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import Image from 'next/image'
+import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
@@ -18,11 +18,11 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
   const [previewIndex, setPreviewIndex] = useState(0)
 
   const handleNext = useCallback(() => {
-    setCurrentIndex(prev => (prev + 1) % images.length)
+    setCurrentIndex((prev) => (prev + 1) % images.length)
   }, [images.length])
 
   const handlePrev = useCallback(() => {
-    setCurrentIndex(prev => (prev - 1 + images.length) % images.length)
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length)
   }, [images.length])
 
   // Arrow keys page through the lightbox. Escape is handled by the dialog.
@@ -50,7 +50,7 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
             setCurrentIndex(previewIndex)
             setIsOpen(true)
           }}
-          className="relative block aspect-video w-full overflow-hidden rounded-lg border border-border transition-colors duration-quick ease-settle hover:border-foreground/20"
+          className="relative block aspect-video w-full overflow-hidden rounded-xl border border-border transition-colors duration-quick ease-settle hover:border-foreground/20"
         >
           <Image
             src={images[previewIndex]}
@@ -63,44 +63,51 @@ export function ImageGallery({ images, title }: ImageGalleryProps) {
         </button>
 
         {images.length > 1 && (
-          <div className="overflow-x-auto">
-            {/*
-              A tablist-style strip of real buttons. These were NextUI Buttons
-              wrapping images with transform overrides fighting the component's
-              own press animation; plain buttons need none of that.
-            */}
-            <div className="flex gap-4 pb-4">
-              {images.map((image, index) => (
-                <button
-                  key={image}
-                  type="button"
-                  aria-label={`Show image ${index + 1} of ${images.length}`}
-                  aria-current={previewIndex === index}
-                  onClick={() => setPreviewIndex(index)}
-                  className={cn(
-                    'relative aspect-video w-48 flex-shrink-0 overflow-hidden rounded-lg border',
-                    'transition-colors duration-quick ease-settle',
-                    previewIndex === index
-                      ? 'border-foreground/40'
-                      : 'border-border hover:border-foreground/20'
-                  )}
-                >
-                  <Image
-                    src={image}
-                    alt=""
-                    fill
-                    sizes="192px"
-                    className="object-cover"
-                  />
-                </button>
-              ))}
+          <div className="relative">
+            <div className="gallery-scroller overflow-x-auto">
+              {/*
+                A tablist-style strip of real buttons. These were NextUI Buttons
+                wrapping images with transform overrides fighting the component's
+                own press animation; plain buttons need none of that.
+              */}
+              <div className="flex gap-4 pb-2">
+                {images.map((image, index) => (
+                  <button
+                    key={image}
+                    type="button"
+                    aria-label={`Show image ${index + 1} of ${images.length}`}
+                    aria-current={previewIndex === index}
+                    onClick={() => setPreviewIndex(index)}
+                    className={cn(
+                      'relative aspect-video w-48 flex-shrink-0 overflow-hidden rounded-2xl border',
+                      'transition-colors duration-quick ease-settle',
+                      previewIndex === index
+                        ? 'border-foreground/40'
+                        : 'border-border hover:border-foreground/20',
+                    )}
+                  >
+                    <Image src={image} alt="" fill sizes="192px" className="object-cover" />
+                  </button>
+                ))}
+              </div>
             </div>
+            {/*
+              Right-edge fade only. Stops above the 3px scrollbar track so the
+              thumb stays fully visible and un-tinted.
+            */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-[3px] right-0 top-0 w-16 bg-gradient-to-l from-background to-transparent"
+            />
           </div>
         )}
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="h-screen w-screen max-w-none border-0 bg-background/95 p-0 backdrop-blur-xl">
+        <DialogContent
+          hideClose
+          className="h-screen w-screen max-w-none border-0 bg-background/95 p-0 backdrop-blur-xl"
+        >
           {/* Named for assistive tech; the lightbox itself is purely visual. */}
           <DialogTitle className="sr-only">
             {title} — image {currentIndex + 1} of {images.length}

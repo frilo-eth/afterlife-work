@@ -1,11 +1,11 @@
 import { Resend } from 'resend'
-import { NewLogoSubmissionEmail } from '@/components/emails/NewLogoSubmission'
-import { OrderConfirmationEmail } from '@/components/emails/OrderConfirmationEmail'
-import type { Logo } from '@/types/index'
 import { LogoApprovalEmail } from '@/components/emails/LogoApprovalEmail'
+import { NewLogoSubmissionEmail } from '@/components/emails/NewLogoSubmission'
+import type { Logo } from '@/types/index'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL
+
 // afterlife.com was never a domain this project owns, let alone a verified
 // sender. Notifications go out from the same verified domain as everything else.
 import { EMAIL_DOMAIN } from './email'
@@ -23,11 +23,12 @@ export async function sendNewLogoNotification(logo: Logo) {
       from: `Afterlife <${SITE_EMAIL}>`,
       to: ADMIN_EMAIL,
       subject: `New Logo Submission: ${logo.title}`,
+      reply_to: 'hi@afterlife.work',
       react: NewLogoSubmissionEmail({
         logoId: logo.id,
         title: logo.title,
-        thumbnail: logo.thumbnail
-      })
+        thumbnail: logo.thumbnail,
+      }),
     })
   } catch (error) {
     console.error('Failed to send logo notification:', error)
@@ -48,13 +49,14 @@ export async function sendLogoApprovalNotification(logo: Logo) {
       from: `Afterlife <${SITE_EMAIL}>`,
       to: designerEmail,
       subject: 'Your Logo Has Been Approved',
+      reply_to: 'hi@afterlife.work',
       react: LogoApprovalEmail({
         logoId: logo.id,
         title: logo.title,
-        thumbnail: logo.thumbnail
-      })
+        thumbnail: logo.thumbnail,
+      }),
     })
   } catch (error) {
     console.error('Failed to send approval notification:', error)
   }
-} 
+}

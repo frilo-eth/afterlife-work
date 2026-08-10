@@ -1,6 +1,6 @@
-import { Label } from '@/components/ui/label'
-import Image from 'next/image'
 import { Spinner } from '@nextui-org/react'
+import Image from 'next/image'
+import { Label } from '@/components/ui/label'
 
 interface ImagePreview {
   preview: string
@@ -14,12 +14,7 @@ interface LogoPreviewProps {
   isLoading?: boolean
 }
 
-export function LogoPreview({ 
-  placeholder, 
-  gallery, 
-  onRemove,
-  isLoading 
-}: LogoPreviewProps) {
+export function LogoPreview({ placeholder, gallery, onRemove, isLoading }: LogoPreviewProps) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-48">
@@ -31,7 +26,7 @@ export function LogoPreview({
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Preview</h3>
-      
+
       {placeholder && (
         <div className="space-y-2">
           <Label>Main Image</Label>
@@ -83,4 +78,4 @@ export function LogoPreview({
       )}
     </div>
   )
-} 
+}

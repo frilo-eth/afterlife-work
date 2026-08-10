@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server'
+import { Resend } from 'resend'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
-import { Resend } from 'resend'
 
 export async function GET() {
   const status = {
     database: await checkDatabase(),
     stripe: await checkStripe(),
     email: await checkEmail(),
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   }
-  
+
   return NextResponse.json(status)
 }
 
@@ -40,4 +40,4 @@ async function checkEmail() {
   } catch {
     return 'error'
   }
-} 
+}

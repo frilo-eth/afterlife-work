@@ -1,7 +1,16 @@
 'use client'
 
+import {
+  Card,
+  Chip,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
+} from '@nextui-org/react'
 import { useEffect, useState } from 'react'
-import { Card, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Chip } from "@nextui-org/react"
 
 interface Submission {
   id: string
@@ -17,7 +26,7 @@ interface Submission {
 
 export default function SubmissionsPage() {
   const [submissions, setSubmissions] = useState<Submission[]>([])
-  const [loading, setLoading] = useState(true)
+  const [_loading, setLoading] = useState(true)
 
   useEffect(() => {
     fetchSubmissions()
@@ -38,7 +47,7 @@ export default function SubmissionsPage() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Logo Submissions</h1>
-      
+
       <Card>
         <Table aria-label="Submissions table">
           <TableHeader>
@@ -54,28 +63,26 @@ export default function SubmissionsPage() {
                 <TableCell>{submission.designerName}</TableCell>
                 <TableCell>{submission.email}</TableCell>
                 <TableCell>
-                  <img 
-                    src={submission.logoUrl} 
-                    alt="Logo" 
+                  <img
+                    src={submission.logoUrl}
+                    alt="Logo"
                     className="w-12 h-12 object-cover rounded"
                   />
                 </TableCell>
                 <TableCell>
                   <Chip
                     color={
-                      submission.status === 'APPROVED' 
-                        ? 'success' 
+                      submission.status === 'APPROVED'
+                        ? 'success'
                         : submission.status === 'REJECTED'
-                        ? 'danger'
-                        : 'warning'
+                          ? 'danger'
+                          : 'warning'
                     }
                   >
                     {submission.status}
                   </Chip>
                 </TableCell>
-                <TableCell>
-                  {new Date(submission.createdAt).toLocaleDateString()}
-                </TableCell>
+                <TableCell>{new Date(submission.createdAt).toLocaleDateString()}</TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -83,4 +90,4 @@ export default function SubmissionsPage() {
       </Card>
     </div>
   )
-} 
+}

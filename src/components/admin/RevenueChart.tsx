@@ -1,17 +1,16 @@
 'use client'
 
+import { Tooltip as NextUITooltip } from '@nextui-org/react'
+import { format } from 'date-fns'
 import {
-  AreaChart,
   Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer
 } from 'recharts'
-import { format } from 'date-fns'
-import { Card, Tooltip as NextUITooltip } from '@nextui-org/react'
-import type { TooltipProps } from 'recharts'
 
 interface RevenueDataPoint {
   date: Date
@@ -34,9 +33,9 @@ interface CustomTooltipProps {
 
 export function RevenueChart({ data }: RevenueChartProps) {
   const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
-    if (active && payload && payload.length) {
+    if (active && payload?.length) {
       return (
-        <NextUITooltip 
+        <NextUITooltip
           content={
             <div className="py-2 px-4 text-sm">
               <div className="text-foreground-muted">{format(new Date(label || ''), 'MMM dd')}</div>
@@ -55,31 +54,23 @@ export function RevenueChart({ data }: RevenueChartProps) {
   return (
     <div className="h-[400px] w-full">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
-          data={data}
-          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-        >
+        <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-          <XAxis 
-            dataKey="date" 
+          <XAxis
+            dataKey="date"
             stroke="#666"
             tick={{ fill: '#666', fontSize: 12 }}
             tickFormatter={(date) => format(new Date(date), 'MMM').charAt(0)}
           />
-          <YAxis 
+          <YAxis
             stroke="#666"
             tick={{ fill: '#666', fontSize: 12 }}
-            tickFormatter={(value) => `$${value/1000}k`}
+            tickFormatter={(value) => `$${value / 1000}k`}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Area
-            type="monotone"
-            dataKey="amount"
-            stroke="#fff"
-            fill="rgba(255,255,255,0.1)"
-          />
+          <Area type="monotone" dataKey="amount" stroke="#fff" fill="rgba(255,255,255,0.1)" />
         </AreaChart>
       </ResponsiveContainer>
     </div>
   )
-} 
+}

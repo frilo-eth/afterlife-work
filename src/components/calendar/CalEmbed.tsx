@@ -23,14 +23,14 @@ export function CalEmbed({ calLink }: CalEmbedProps) {
     const initCal = (C: CalWindow, A: string, L: string): void => {
       const pushToQueue = (api: unknown, args: unknown[]): void => {
         if (typeof api === 'object' && api && 'q' in api) {
-          (api.q as unknown[]).push(args)
+          ;(api.q as unknown[]).push(args)
         }
       }
 
       const d = C.document
       const initCalFunction = (...params: unknown[]): void => {
         const cal = C.Cal as CalInstance
-        
+
         if (typeof cal === 'function') {
           if (!Object.hasOwn(cal, 'loaded')) {
             Object.defineProperty(cal, 'ns', { value: {} })
@@ -44,9 +44,9 @@ export function CalEmbed({ calLink }: CalEmbedProps) {
             const api = (...innerArgs: unknown[]): void => {
               pushToQueue(api, innerArgs)
             }
-            
+
             Object.defineProperty(api, 'q', { value: [] })
-            
+
             if (typeof namespace === 'string' && cal.ns) {
               cal.ns[namespace] = api
               pushToQueue(api, params)
@@ -59,7 +59,7 @@ export function CalEmbed({ calLink }: CalEmbedProps) {
         }
       }
 
-      C.Cal = C.Cal || initCalFunction as CalInstance
+      C.Cal = C.Cal || (initCalFunction as CalInstance)
     }
 
     initCal(window as CalWindow, 'https://cal.com/embed.js', 'init')
@@ -73,19 +73,19 @@ export function CalEmbed({ calLink }: CalEmbedProps) {
         config: {
           theme: 'dark',
           layout: 'month_view',
-          styles: { 
-            branding: { brandColor: '#000000' }
-          }
-        }
+          styles: {
+            branding: { brandColor: '#000000' },
+          },
+        },
       })
     }
 
     return () => {
       if ((window as CalWindow).Cal) {
-        (window as CalWindow).Cal = undefined
+        ;(window as CalWindow).Cal = undefined
       }
     }
   }, [calLink])
 
   return <div id="cal-booking-place" className="min-h-[600px]" />
-} 
+}

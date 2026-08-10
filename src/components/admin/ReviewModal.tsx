@@ -7,7 +7,7 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -33,7 +33,7 @@ export function ReviewModal({ isOpen, onClose, onSubmit, title, action }: Review
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={next => {
+      onOpenChange={(next) => {
         if (!next) onClose()
       }}
     >
@@ -48,7 +48,7 @@ export function ReviewModal({ isOpen, onClose, onSubmit, title, action }: Review
             id="review-message"
             placeholder="Enter your feedback…"
             value={message}
-            onChange={event => setMessage(event.target.value)}
+            onChange={(event) => setMessage(event.target.value)}
             rows={4}
           />
         </div>

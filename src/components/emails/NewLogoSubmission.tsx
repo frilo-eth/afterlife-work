@@ -1,5 +1,5 @@
-import { BaseEmailTemplate } from './BaseEmailTemplate'
 import { Text } from '@react-email/components'
+import { BaseEmailTemplate } from './BaseEmailTemplate'
 
 interface NewLogoSubmissionEmailProps {
   logoId: string
@@ -19,10 +19,10 @@ export const NewLogoSubmissionEmail = ({
   thumbnail,
   designerName,
   designerEmail,
-  description = "No description provided",
+  description = 'No description provided',
   submissionDate = new Date().toLocaleString(),
   tags = [],
-  hasSourceFile = false
+  hasSourceFile = false,
 }: NewLogoSubmissionEmailProps) => {
   return (
     <BaseEmailTemplate
@@ -35,53 +35,61 @@ export const NewLogoSubmissionEmail = ({
       ctaUrl={`https://afterlife.work/admin/submissions/${logoId}`}
       body={
         <>
-          <Text style={styles.text}>
-            A new logo has been submitted for review.
-          </Text>
-          
+          <Text style={styles.text}>A new logo has been submitted for review.</Text>
+
           <div style={styles.thumbnailContainer}>
-            <img
-              src={thumbnail}
-              alt={`${title} Logo`}
-              style={styles.thumbnail}
-            />
+            <img src={thumbnail} alt={`${title} Logo`} style={styles.thumbnail} />
           </div>
-          
+
           <table style={styles.infoTable}>
             <tbody>
               <tr>
-                <td style={styles.labelCell}><strong>Logo Name:</strong></td>
+                <td style={styles.labelCell}>
+                  <strong>Logo Name:</strong>
+                </td>
                 <td style={styles.valueCell}>{title}</td>
               </tr>
               {designerName && (
                 <tr>
-                  <td style={styles.labelCell}><strong>Submitted By:</strong></td>
+                  <td style={styles.labelCell}>
+                    <strong>Submitted By:</strong>
+                  </td>
                   <td style={styles.valueCell}>{designerName}</td>
                 </tr>
               )}
               {designerEmail && (
                 <tr>
-                  <td style={styles.labelCell}><strong>Contact Email:</strong></td>
+                  <td style={styles.labelCell}>
+                    <strong>Contact Email:</strong>
+                  </td>
                   <td style={styles.valueCell}>{designerEmail}</td>
                 </tr>
               )}
               <tr>
-                <td style={styles.labelCell}><strong>Submission Date:</strong></td>
+                <td style={styles.labelCell}>
+                  <strong>Submission Date:</strong>
+                </td>
                 <td style={styles.valueCell}>{submissionDate}</td>
               </tr>
               <tr>
-                <td style={styles.labelCell}><strong>Description:</strong></td>
+                <td style={styles.labelCell}>
+                  <strong>Description:</strong>
+                </td>
                 <td style={styles.valueCell}>{description}</td>
               </tr>
               {tags.length > 0 && (
                 <tr>
-                  <td style={styles.labelCell}><strong>Tags:</strong></td>
+                  <td style={styles.labelCell}>
+                    <strong>Tags:</strong>
+                  </td>
                   <td style={styles.valueCell}>{tags.join(', ')}</td>
                 </tr>
               )}
               <tr>
-                <td style={styles.labelCell}><strong>Source File:</strong></td>
-                <td style={styles.valueCell}>{hasSourceFile ? "Included" : "Not included"}</td>
+                <td style={styles.labelCell}>
+                  <strong>Source File:</strong>
+                </td>
+                <td style={styles.valueCell}>{hasSourceFile ? 'Included' : 'Not included'}</td>
               </tr>
             </tbody>
           </table>
@@ -129,4 +137,4 @@ const styles = {
     fontSize: '14px',
     lineHeight: '1.5',
   },
-} 
+}

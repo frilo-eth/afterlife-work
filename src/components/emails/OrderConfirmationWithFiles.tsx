@@ -1,17 +1,14 @@
-import React from 'react'
 import {
   Body,
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Link,
   Preview,
   Section,
   Text,
-  Button,
-  Hr,
-  Img
 } from '@react-email/components'
 import type { FileDelivery } from '@/lib/order-fulfillment'
 
@@ -28,7 +25,7 @@ export const OrderConfirmationWithFiles = ({
   logoTitle,
   files,
   tier,
-  amount
+  amount,
 }: OrderConfirmationWithFilesProps) => {
   return (
     <Html>
@@ -37,10 +34,11 @@ export const OrderConfirmationWithFiles = ({
       <Body style={main}>
         <Container style={container}>
           <Heading style={h1}>Thank you for your purchase!</Heading>
-          
+
           <Section style={section}>
             <Text style={text}>
-              Your payment for {logoTitle} has been processed successfully. Your order ID is: {orderId}
+              Your payment for {logoTitle} has been processed successfully. Your order ID is:{' '}
+              {orderId}
             </Text>
 
             <Text style={text}>
@@ -49,21 +47,16 @@ export const OrderConfirmationWithFiles = ({
 
             <Section style={filesSection}>
               {files.map((file) => (
-                <Link
-                  key={file.type}
-                  href={file.url}
-                  style={fileLink}
-                  target="_blank"
-                >
+                <Link key={file.type} href={file.url} style={fileLink} target="_blank">
                   Download {file.name}
                 </Link>
               ))}
             </Section>
 
             <Text style={text}>
-              These files include everything you need to start using your logo right away.
-              If you need any assistance or have questions about the files, please don't
-              hesitate to reach out.
+              These files include everything you need to start using your logo right away. If you
+              need any assistance or have questions about the files, please don't hesitate to reach
+              out.
             </Text>
 
             <Hr style={hr} />
@@ -71,8 +64,10 @@ export const OrderConfirmationWithFiles = ({
             <Section style={orderSummary}>
               <Heading style={h2}>Order Summary</Heading>
               <Text style={summaryText}>
-                Logo: {logoTitle}<br />
-                Tier: {tier.toUpperCase()}<br />
+                Logo: {logoTitle}
+                <br />
+                Tier: {tier.toUpperCase()}
+                <br />
                 Amount: ${(amount / 100).toFixed(2)}
               </Text>
             </Section>
@@ -170,4 +165,4 @@ const footer = {
   color: '#a1a1aa',
   fontSize: '14px',
   margin: '32px 0 0',
-} 
+}

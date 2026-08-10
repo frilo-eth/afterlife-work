@@ -1,24 +1,24 @@
-"use client";
+'use client'
 
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   createContext,
-  useContext,
-  useRef,
-  useEffect,
   forwardRef,
   type HTMLAttributes,
   type ReactElement,
   type ReactNode,
-} from "react";
-import type { IconComponent } from "@/lib/icon-context";
-import { motion, AnimatePresence } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { fontWeights } from "@/lib/font-weight";
-import { shapeMap } from "@/lib/shape-context";
+  useContext,
+  useEffect,
+  useRef,
+} from 'react'
+import { fontWeights } from '@/lib/font-weight'
+import type { IconComponent } from '@/lib/icon-context'
+import { shapeMap } from '@/lib/shape-context'
+import { cn } from '@/lib/utils'
 
 // MenuItem is only used inside Dropdown, which opts out of the global pill
 // shape — see dropdown.tsx for the rationale.
-const shape = shapeMap.rounded;
+const shape = shapeMap.rounded
 
 // ---------------------------------------------------------------------------
 // Dropdown context — the single shared context for every Dropdown build.
@@ -37,58 +37,58 @@ const shape = shapeMap.rounded;
  *  own Item / RadioItem primitive, so MenuItem itself stays primitive-free. */
 export interface MenuItemRenderOptions {
   /** Radio-style option (boolean `checked` on MenuItem) vs plain action item. */
-  radio: boolean;
+  radio: boolean
   /** The item's index — doubles as the radio value. */
-  value: number;
-  disabled?: boolean;
-  label: string;
-  closeOnClick: boolean;
-  element: ReactElement;
-  children: ReactNode;
+  value: number
+  disabled?: boolean
+  label: string
+  closeOnClick: boolean
+  element: ReactElement
+  children: ReactNode
 }
 
 export interface DropdownContextValue {
-  registerItem: (index: number, element: HTMLElement | null) => void;
-  activeIndex: number | null;
-  checkedIndex?: number;
+  registerItem: (index: number, element: HTMLElement | null) => void
+  activeIndex: number | null
+  checkedIndex?: number
   /** True when items render inside a Menu popup (DropdownContent), where the
    *  primitive's Item / RadioItem own roles, roving highlight, typeahead,
    *  and activation. MenuItem switches its rendering accordingly. */
-  inMenu?: boolean;
+  inMenu?: boolean
   /** Popup-only: wraps a MenuItem's styled div in the dropdown's menu-item
    *  primitive. Absent in the inline Dropdown panel, where MenuItem renders
    *  its own ARIA menuitem div. */
-  renderMenuItem?: (opts: MenuItemRenderOptions) => ReactElement;
+  renderMenuItem?: (opts: MenuItemRenderOptions) => ReactElement
 }
 
-export const DropdownContext = createContext<DropdownContextValue | null>(null);
+export const DropdownContext = createContext<DropdownContextValue | null>(null)
 
 export function useDropdown() {
-  const ctx = useContext(DropdownContext);
-  if (!ctx) throw new Error("useDropdown must be used within a Dropdown");
-  return ctx;
+  const ctx = useContext(DropdownContext)
+  if (!ctx) throw new Error('useDropdown must be used within a Dropdown')
+  return ctx
 }
 
 /** Null-safe context read for callers that render outside a provider. */
 export function useDropdownMaybe() {
-  return useContext(DropdownContext);
+  return useContext(DropdownContext)
 }
 
 interface MenuItemProps extends HTMLAttributes<HTMLDivElement> {
   /** Optional leading icon. When omitted, the row renders text-only with no
    *  reserved icon column. */
-  icon?: IconComponent;
-  label: string;
-  index: number;
+  icon?: IconComponent
+  label: string
+  index: number
   /** When a boolean, the item is a radio-style option (role="menuitemradio"
    *  with aria-checked). When undefined, it is a plain action item
    *  (role="menuitem", no checked state announced). */
-  checked?: boolean;
-  onSelect?: () => void;
-  disabled?: boolean;
+  checked?: boolean
+  onSelect?: () => void
+  disabled?: boolean
   /** Popup-only (inside DropdownContent): whether activating the item closes
    *  the menu. Ignored in the inline Dropdown panel. @default true */
-  closeOnClick?: boolean;
+  closeOnClick?: boolean
 }
 
 const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
@@ -105,37 +105,36 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
       onClick,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const internalRef = useRef<HTMLDivElement | null>(null);
-    const hasMounted = useRef(false);
-    const { registerItem, activeIndex, checkedIndex, renderMenuItem } =
-      useDropdown();
+    const internalRef = useRef<HTMLDivElement | null>(null)
+    const hasMounted = useRef(false)
+    const { registerItem, activeIndex, checkedIndex, renderMenuItem } = useDropdown()
 
     useEffect(() => {
-      registerItem(index, internalRef.current);
-      return () => registerItem(index, null);
-    }, [index, registerItem]);
+      registerItem(index, internalRef.current)
+      return () => registerItem(index, null)
+    }, [index, registerItem])
 
     useEffect(() => {
-      hasMounted.current = true;
-    }, []);
+      hasMounted.current = true
+    }, [])
 
-    const isActive = activeIndex === index;
-    const skipAnimation = !hasMounted.current;
+    const isActive = activeIndex === index
+    const skipAnimation = !hasMounted.current
 
     const mergeRef = (node: HTMLDivElement | null) => {
-      (internalRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-      if (typeof ref === "function") ref(node);
-      else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
-    };
+      ;(internalRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+      if (typeof ref === 'function') ref(node)
+      else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
+    }
 
     const handleActivate = disabled
       ? undefined
       : (e: React.MouseEvent<HTMLDivElement>) => {
-          onClick?.(e);
-          onSelect?.();
-        };
+          onClick?.(e)
+          onSelect?.()
+        }
 
     const itemClassName = cn(
       // Fixed height (was py-2 around a 19.5px line box ≈ 35.5px) so the
@@ -143,9 +142,9 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
       // menu popups are max-height flex columns — without it a long list
       // compresses rows to fit instead of scrolling.
       `relative z-10 flex h-9 shrink-0 items-center gap-2 ${shape.item} px-2 cursor-pointer outline-none`,
-      disabled && "opacity-50 pointer-events-none",
-      className
-    );
+      disabled && 'opacity-50 pointer-events-none',
+      className,
+    )
 
     const content = (
       <>
@@ -158,10 +157,8 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
               size={16}
               strokeWidth={isActive || checked ? 2 : 1.5}
               className={cn(
-                "col-start-1 row-start-1 transition-[color,stroke-width] duration-80",
-                isActive || checked
-                  ? "text-foreground"
-                  : "text-muted-foreground"
+                'col-start-1 row-start-1 transition-[color,stroke-width] duration-80',
+                isActive || checked ? 'text-foreground' : 'text-muted-foreground',
               )}
             />
           </span>
@@ -178,15 +175,11 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
           </span>
           <span
             className={cn(
-              "col-start-1 row-start-1 transition-[color,font-variation-settings] duration-80 [text-box:trim-both_cap_alphabetic]",
-              isActive || checked
-                ? "text-foreground"
-                : "text-muted-foreground"
+              'col-start-1 row-start-1 transition-[color,font-variation-settings] duration-80 [text-box:trim-both_cap_alphabetic]',
+              isActive || checked ? 'text-foreground' : 'text-muted-foreground',
             )}
             style={{
-              fontVariationSettings: checked
-                ? fontWeights.semibold
-                : fontWeights.normal,
+              fontVariationSettings: checked ? fontWeights.semibold : fontWeights.normal,
             }}
           >
             {label}
@@ -214,18 +207,18 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
                 initial={{ pathLength: skipAnimation ? 1 : 0 }}
                 animate={{
                   pathLength: 1,
-                  transition: { duration: 0.08, ease: "easeOut" },
+                  transition: { duration: 0.08, ease: 'easeOut' },
                 }}
                 exit={{
                   pathLength: 0,
-                  transition: { duration: 0.04, ease: "easeIn" },
+                  transition: { duration: 0.04, ease: 'easeIn' },
                 }}
               />
             </motion.svg>
           )}
         </AnimatePresence>
       </>
-    );
+    )
 
     if (renderMenuItem) {
       // Inside DropdownContent, the menu-item primitive (supplied by the
@@ -236,7 +229,7 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
       // Functionalism visuals and the proximity-hover registration; MenuItem
       // itself imports no primitive.
       return renderMenuItem({
-        radio: typeof checked === "boolean",
+        radio: typeof checked === 'boolean',
         value: index,
         disabled,
         label,
@@ -252,7 +245,7 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
           />
         ),
         children: content,
-      });
+      })
     }
 
     return (
@@ -261,16 +254,16 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
         data-proximity-index={index}
         // Disabled items are never the roving tab stop.
         tabIndex={!disabled && index === (checkedIndex ?? 0) ? 0 : -1}
-        role={typeof checked === "boolean" ? "menuitemradio" : "menuitem"}
-        aria-checked={typeof checked === "boolean" ? checked : undefined}
+        role={typeof checked === 'boolean' ? 'menuitemradio' : 'menuitem'}
+        aria-checked={typeof checked === 'boolean' ? checked : undefined}
         aria-disabled={disabled || undefined}
         aria-label={label}
         onClick={handleActivate}
         onKeyDown={(e) => {
-          if (disabled) return;
-          if (e.key === " " || e.key === "Enter") {
-            e.preventDefault();
-            onSelect?.();
+          if (disabled) return
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault()
+            onSelect?.()
           }
         }}
         className={itemClassName}
@@ -278,11 +271,11 @@ const MenuItem = forwardRef<HTMLDivElement, MenuItemProps>(
       >
         {content}
       </div>
-    );
-  }
-);
+    )
+  },
+)
 
-MenuItem.displayName = "MenuItem";
+MenuItem.displayName = 'MenuItem'
 
-export { MenuItem };
-export default MenuItem;
+export { MenuItem }
+export default MenuItem

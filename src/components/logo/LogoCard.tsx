@@ -1,20 +1,21 @@
 'use client'
 
+import { ArrowRight, Skull } from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useEffect, useRef } from 'react'
-import { Skull } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface LogoCardProps {
   /** Position in the grid, used to register with proximity tracking. */
   index: number
   registerItem: (index: number, element: HTMLElement | null) => void
+  id: string
   title: string
   thumbnail: string
   tags: string[]
   /** True when this card is the pointer's nearest target. */
   isNearest?: boolean
-  onSelect: () => void
 }
 
 const formatTitle = (title: string) =>
@@ -23,20 +24,20 @@ const formatTitle = (title: string) =>
     .replace(/^Logo_/, '')
     .replace(/_/g, ' ')
     .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
 
 export function LogoCard({
   index,
   registerItem,
+  id,
   title,
   thumbnail,
   tags,
   isNearest = false,
-  onSelect
 }: LogoCardProps) {
   const label = formatTitle(title)
-  const ref = useRef<HTMLButtonElement>(null)
+  const ref = useRef<HTMLAnchorElement>(null)
 
   // Register with the grid's proximity tracker so it can measure this card.
   useEffect(() => {
@@ -45,10 +46,10 @@ export function LogoCard({
   }, [index, registerItem])
 
   return (
-    <button
+    <Link
       ref={ref}
-      type="button"
-      onClick={onSelect}
+      href={`/${id}`}
+      prefetch
       aria-label={`View ${label}`}
       className="group block w-full text-left"
     >
@@ -61,7 +62,7 @@ export function LogoCard({
         className={cn(
           'relative aspect-[4/3] w-full overflow-hidden rounded-lg border bg-card',
           'transition-colors duration-quick ease-settle',
-          isNearest ? 'border-border-strong' : 'border-border'
+          isNearest ? 'border-border-strong' : 'border-border',
         )}
       >
         {thumbnail ? (
@@ -77,25 +78,31 @@ export function LogoCard({
             <Skull className="h-12 w-12 text-foreground-subtle" />
           </div>
         )}
-      </div>
 
-      <div className="mt-3 flex items-baseline gap-2">
         {/*
-          Weight marks the nearest card. A size change would reflow the row;
-          weight reads as emphasis and costs nothing in layout.
+          Soft circle affordance — same geometry as the email submit control,
+          but secondary fill so it doesn't compete with the mark itself.
         */}
-        <h3
+        <span
+          aria-hidden="true"
           className={cn(
-            'text-label text-foreground transition-[font-weight] duration-quick ease-settle',
-            isNearest ? 'font-semibold' : 'font-medium'
+            'pointer-events-none absolute bottom-3 right-3',
+            'inline-flex h-9 w-9 items-center justify-center rounded-lg',
+            'border border-border bg-card/80 text-foreground-muted backdrop-blur-sm',
+            'transition-opacity duration-quick ease-settle',
+            isNearest ? 'opacity-100' : 'opacity-0',
           )}
         >
-          {label}
-        </h3>
-        <span className="text-caption text-foreground-subtle">
+          <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+        </span>
+      </div>
+
+      <div className="mt-3 flex items-baseline justify-between gap-3">
+        <h3 className="min-w-0 truncate text-label font-medium text-foreground">{label}</h3>
+        <span className="shrink-0 text-caption text-foreground-subtle">
           {tags.slice(0, 2).join(' · ')}
         </span>
       </div>
-    </button>
+    </Link>
   )
 }

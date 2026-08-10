@@ -1,12 +1,13 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { z } from 'zod'
-import { Resend } from 'resend'
-import { requireAdmin } from '@/lib/api-utils'
 import { revalidateTag } from 'next/cache'
+import { NextResponse } from 'next/server'
+import { z } from 'zod'
+import { LogoApprovalEmail } from '@/components/emails/LogoApprovalEmail'
+import { LogoChangesRequestedEmail } from '@/components/emails/LogoChangesRequestedEmail'
+import { LogoRejectionEmail } from '@/components/emails/LogoRejectionEmail'
+import { requireAdmin } from '@/lib/api-utils'
 import { CATALOG_TAG } from '@/lib/catalog'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { createEmailClient } from '@/lib/email'
+import { prisma } from '@/lib/prisma'
 
 // Validation schema for review actions
 const ReviewActionSchema = z.object({
@@ -14,10 +15,7 @@ const ReviewActionSchema = z.object({
   message: z.string().optional(), // Required for REQUEST_CHANGES and REJECT
 })
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: Request, { params }: { params: { id: string } }) {
   const denied = await requireAdmin()
   if (denied) return denied
 
@@ -27,25 +25,19 @@ export async function POST(
 
     // Validate message is provided for REQUEST_CHANGES and REJECT
     if ((action === 'REQUEST_CHANGES' || action === 'REJECT') && !message) {
-      return NextResponse.json(
-        { error: 'Message is required for this action' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Message is required for this action' }, { status: 400 })
     }
 
     // Get the logo with designer info
     const logo = await prisma.logo.findUnique({
       where: { id: params.id },
       include: {
-        designer: true
-      }
+        designer: true,
+      },
     })
 
     if (!logo) {
-      return NextResponse.json(
-        { error: 'Logo not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Logo not found' }, { status: 404 })
     }
 
     // Update logo status based on action
@@ -54,37 +46,65 @@ export async function POST(
       where: { id: params.id },
       data: { status: newStatus },
       include: {
-        designer: true
-      }
+        designer: true,
+      },
     })
 
-    // Send email notification
+    // Branded React templates — the previous path sent plain text and landed
+    // in junk looking like an unauthenticated blast.
     const designerEmail = logo.designer?.email || logo.designerEmail
     if (designerEmail) {
-      let emailSubject = ''
-      let emailContent = ''
+      const designerName = logo.designer?.name?.split(' ')[0] || 'there'
+      const email = createEmailClient()
 
-      switch (action) {
-        case 'APPROVE':
-          emailSubject = 'Your logo has been approved!'
-          emailContent = `Congratulations! Your logo "${logo.title}" has been approved and is now available on our marketplace.`
-          break
-        case 'REQUEST_CHANGES':
-          emailSubject = 'Changes requested for your logo submission'
-          emailContent = `We've reviewed your logo "${logo.title}" and have some feedback:\n\n${message}\n\nPlease make the requested changes and submit an updated version.`
-          break
-        case 'REJECT':
-          emailSubject = 'Update on your logo submission'
-          emailContent = `We've reviewed your logo "${logo.title}" and unfortunately, we cannot accept it at this time.\n\n${message}\n\nFeel free to submit other logos in the future.`
-          break
+      try {
+        switch (action) {
+          case 'APPROVE':
+            await email.send({
+              type: 'submissions',
+              to: designerEmail,
+              subject: 'Your logo has been approved',
+              react: LogoApprovalEmail({
+                logoId: logo.id,
+                title: logo.title,
+                thumbnail: logo.thumbnail,
+              }),
+            })
+            break
+          case 'REQUEST_CHANGES': {
+            const feedback = message ?? ''
+            await email.send({
+              type: 'submissions',
+              to: designerEmail,
+              subject: 'Changes requested for your logo submission',
+              react: LogoChangesRequestedEmail({
+                designerName,
+                logoTitle: logo.title,
+                changes: [feedback],
+              }),
+            })
+            break
+          }
+          case 'REJECT': {
+            const reason = message ?? ''
+            await email.send({
+              type: 'submissions',
+              to: designerEmail,
+              subject: 'Update on your logo submission',
+              react: LogoRejectionEmail({
+                designerName,
+                logoTitle: logo.title,
+                reason,
+              }),
+            })
+            break
+          }
+        }
+      } catch (emailError) {
+        // The review itself already succeeded; mail failure should not roll
+        // the status change back or look like a 500 to the admin.
+        console.error('Review notification email failed:', emailError)
       }
-
-      await resend.emails.send({
-        from: 'Afterlife <notifications@updates.afterlife.work>',
-        to: designerEmail,
-        subject: emailSubject,
-        text: emailContent
-      })
     }
 
     revalidateTag(CATALOG_TAG)
@@ -92,16 +112,16 @@ export async function POST(
     return NextResponse.json({
       success: true,
       logo: updatedLogo,
-      action
+      action,
     })
   } catch (error) {
     console.error('Review action error:', error)
     return NextResponse.json(
-      { 
+      {
         error: error instanceof Error ? error.message : 'Failed to process review action',
-        details: process.env.NODE_ENV === 'development' ? error : undefined
+        details: process.env.NODE_ENV === 'development' ? error : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
-} 
+}

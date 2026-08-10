@@ -1,8 +1,7 @@
 'use client'
 
-import React from "react"
-import { Modal, ModalContent, Button, Tooltip } from "@nextui-org/react"
-import { X, Info } from "lucide-react"
+import { Button, Modal, ModalContent } from '@nextui-org/react'
+import { X } from 'lucide-react'
 
 interface PricingModalProps {
   isOpen: boolean
@@ -11,16 +10,16 @@ interface PricingModalProps {
 
 export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
   return (
-    <Modal 
-      isOpen={isOpen} 
+    <Modal
+      isOpen={isOpen}
       onClose={onClose}
       size="full"
       hideCloseButton
       classNames={{
-        base: "bg-background/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]",
-        wrapper: "p-0 h-[100dvh] m-0",
-        backdrop: "opacity-100",
-        body: "p-0 h-full"
+        base: 'bg-background/95 backdrop-blur-xl h-[100dvh] m-0 fixed inset-0 z-[100]',
+        wrapper: 'p-0 h-[100dvh] m-0',
+        backdrop: 'opacity-100',
+        body: 'p-0 h-full',
       }}
     >
       <ModalContent>
@@ -41,9 +40,7 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
               <span className="font-mono text-sm tracking-wider opacity-50 uppercase block">
                 Pricing Plans
               </span>
-              <h2 className="text-4xl md:text-5xl font-bold">
-                Choose your resurrection plan
-              </h2>
+              <h2 className="text-4xl md:text-5xl font-bold">Choose your resurrection plan</h2>
               <p className="text-sm text-foreground-muted max-w-xl mx-auto">
                 From basic revival to complete rebirth, select the journey that fits your vision
               </p>
@@ -59,8 +56,10 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                     Summon
                   </span>
                   <div className="mb-8">
-                    <div className="text-3xl font-bold">$1,000</div>
-                    <p className="text-sm text-foreground-muted mt-2">Essential files. Instant Delivery.</p>
+                    <div className="text-3xl font-bold">$2,500</div>
+                    <p className="text-sm text-foreground-muted mt-2">
+                      Essential files. Instant Delivery.
+                    </p>
                   </div>
                   <ul className="space-y-4">
                     <li className="text-sm text-foreground-muted flex items-center gap-2">
@@ -89,7 +88,9 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                   </div>
                   <div className="mb-8">
                     <div className="text-3xl font-bold">$5,000</div>
-                    <p className="text-sm text-foreground-muted mt-2">Full editable files. Delivery in 2-3 days.</p>
+                    <p className="text-sm text-foreground-muted mt-2">
+                      Full editable files. Delivery in 2-3 days.
+                    </p>
                   </div>
                   <ul className="space-y-4">
                     <li className="text-sm text-foreground-muted flex items-center gap-2">
@@ -120,39 +121,23 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                     Afterlife
                   </span>
                   <div className="mb-8">
-                    <div className="text-3xl font-bold">From $10,000</div>
-                    <p className="text-sm text-foreground-muted mt-2">Bespoke brand development. 2 weeks sprint.</p>
+                    <div className="text-3xl font-bold">$10,000/mo</div>
+                    <p className="text-sm text-foreground-muted mt-2">
+                      Ongoing design support. Billed monthly.
+                    </p>
                   </div>
                   <ul className="space-y-4">
                     <li className="text-sm text-foreground-muted flex items-center gap-2">
                       <span className="w-1 h-1 bg-foreground/60 rounded-full" />
-                      Personalized Session
+                      Everything in Revival
                     </li>
                     <li className="text-sm text-foreground-muted flex items-center gap-2">
                       <span className="w-1 h-1 bg-foreground/60 rounded-full" />
-                      Custom Applications
+                      Dedicated design capacity
                     </li>
                     <li className="text-sm text-foreground-muted flex items-center gap-2">
                       <span className="w-1 h-1 bg-foreground/60 rounded-full" />
-                      Full Brand Strategy
-                    </li>
-                    <li className="text-sm text-foreground-muted flex items-center gap-2">
-                      <span className="w-1 h-1 bg-foreground/60 rounded-full" />
-                      Frequent updates
-                    </li>
-                    <li className="text-sm text-foreground-muted flex items-center gap-2">
-                      <span className="w-1 h-1 bg-foreground/60 rounded-full" />
-                      Renewable white gloves service
-                      <Tooltip 
-                        content={
-                          <div className="p-2">
-                            <p>$10,000 Monthly Retainer afterwards</p>
-                            <span className="bg-accent text-xs px-2 py-0.5 rounded-full">50% Off</span>
-                          </div>
-                        }
-                      >
-                        <Info className="w-4 h-4 opacity-60" />
-                      </Tooltip>
+                      Cancel anytime
                     </li>
                   </ul>
                 </div>
@@ -174,4 +159,4 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
       </ModalContent>
     </Modal>
   )
-} 
+}

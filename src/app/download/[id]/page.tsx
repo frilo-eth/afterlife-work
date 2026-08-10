@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
 import { Button } from '@nextui-org/react'
 import Image from 'next/image'
+import { useParams, useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 interface FileAsset {
   url: string
@@ -31,7 +31,7 @@ export default function DownloadPage() {
         if (!response.ok) throw new Error('Failed to fetch download details')
         const data = await response.json()
         setDetails(data)
-      } catch (err) {
+      } catch (_err) {
         setError('Failed to load download details')
       } finally {
         setLoading(false)
@@ -52,7 +52,7 @@ export default function DownloadPage() {
       })
 
       if (!response.ok) throw new Error('Download failed')
-      
+
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -93,19 +93,13 @@ export default function DownloadPage() {
     <main className="pt-24 pb-12">
       <div className="container mx-auto px-4 max-w-2xl text-center">
         <div className="relative w-24 h-24 mx-auto mb-8">
-          <Image
-            src="/parka.svg"
-            alt="Afterlife Logo"
-            fill
-            className="object-contain"
-            priority
-          />
+          <Image src="/parka.svg" alt="Afterlife Logo" fill className="object-contain" priority />
         </div>
-        
+
         <h1 className="text-5xl font-bold mb-8 bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent leading-tight">
           Your Files Are Ready
         </h1>
-        
+
         <div className="space-y-4 mb-8">
           {details?.files.map((file) => (
             <Button
@@ -118,7 +112,7 @@ export default function DownloadPage() {
           ))}
         </div>
 
-        <Button 
+        <Button
           className="bg-secondary backdrop-blur-sm border-border hover:bg-accent text-foreground text-sm h-9"
           size="sm"
           onPress={() => router.push('/')}
@@ -128,4 +122,4 @@ export default function DownloadPage() {
       </div>
     </main>
   )
-} 
+}

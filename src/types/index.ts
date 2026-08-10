@@ -1,7 +1,3 @@
-import type { PrismaClient } from '@prisma/client'
-
-type PrismaTypes = Awaited<ReturnType<typeof PrismaClient.prototype.$extends>>
-
 // Base types from Prisma
 export type LogoStatus = 'AVAILABLE' | 'SOLD' | 'REVIEW' | 'DRAFT' | 'HIDDEN'
 
@@ -72,11 +68,11 @@ export interface OrderConfirmationEmailProps {
 }
 
 // Interface for the Logo component props
-export interface LogoDisplayProps extends Logo {} 
+export interface LogoDisplayProps extends Logo {}
 
 export interface LogoFormData {
   title: string
   placeholder: File | null
   galleryImages: File[]
   tags: string[]
-} 
+}

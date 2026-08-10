@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Search } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { InputGroup, InputField } from '@/components/ui/input-group'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { InputField, InputGroup } from '@/components/ui/input-group'
 import { useRowOverflow } from '@/hooks/useRowOverflow'
 import { LOGO_TAGS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
@@ -23,7 +23,7 @@ interface FilterBarProps {
 function FilterPill({
   label,
   active,
-  onToggle
+  onToggle,
 }: {
   label: string
   active: boolean
@@ -32,10 +32,10 @@ function FilterPill({
   return (
     <Button
       variant={active ? 'primary' : 'tertiary'}
-      size="md"
+      size="lg"
       aria-pressed={active}
       onClick={onToggle}
-      className="shrink-0 rounded-full"
+      className="shrink-0"
     >
       {label}
     </Button>
@@ -66,7 +66,7 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
   }, [styles, search])
 
   const toggleFilter = useCallback((filter: string) => {
-    setSelectedStyles(previous => {
+    setSelectedStyles((previous) => {
       const next = new Set(previous)
       if (next.has(filter)) next.delete(filter)
       else next.add(filter)
@@ -74,32 +74,26 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
     })
   }, [])
 
-  const clearAll = useCallback(() => {
-    setSelectedStyles(new Set())
-    setSearchInput('')
-  }, [])
-
   // Selected tags lead the row, so an active filter is never the one pushed
   // into the overflow panel.
   const orderedTags = useMemo(() => {
     const all: string[] = [...LOGO_TAGS]
-    return [...styles, ...all.filter(tag => !styles.includes(tag))]
+    return [...styles, ...all.filter((tag) => !styles.includes(tag))]
   }, [styles])
 
   // How many actually fit on one line, measured. The row must never wrap —
   // that is the entire reason the overflow panel exists.
   const { containerRef, trailingRef, visibleCount } = useRowOverflow(orderedTags.length)
 
-  const hasFilters = selectedStyles.size > 0 || searchInput.length > 0
-
   return (
     <>
       <div className="sticky top-16 z-10 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="container mx-auto flex flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center">
-          <InputGroup className="w-full shrink-0 [&_label]:sr-only lg:w-56">
+          <InputGroup className="w-full shrink-0 lg:w-56">
             <InputField
               index={0}
               label="Search logos"
+              hideLabel
               placeholder="Search"
               icon={Search}
               value={searchInput}
@@ -138,24 +132,13 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
             <div ref={trailingRef} className="ml-auto flex shrink-0 items-center gap-2">
               <Button
                 variant="ghost"
-                size="md"
-                className="shrink-0 rounded-full"
+                size="lg"
+                className="shrink-0"
                 aria-haspopup="dialog"
                 onClick={() => setTagsOpen(true)}
               >
                 All tags
               </Button>
-
-              {hasFilters && (
-                <Button
-                  variant="ghost"
-                  size="md"
-                  onClick={clearAll}
-                  className="shrink-0 rounded-full text-foreground-subtle"
-                >
-                  Clear
-                </Button>
-              )}
             </div>
           </div>
         </div>
@@ -167,13 +150,16 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
         nudging the eight already in front of you.
       */}
       <Dialog open={tagsOpen} onOpenChange={setTagsOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent
+          placement="right"
+          className="border border-border bg-background shadow-none"
+        >
           <DialogHeader>
             <DialogTitle>Tags</DialogTitle>
           </DialogHeader>
 
           <ul className="-mx-2 max-h-[60vh] overflow-y-auto">
-            {LOGO_TAGS.map(tag => {
+            {LOGO_TAGS.map((tag) => {
               const active = selectedStyles.has(tag)
               const count = tagCounts?.[tag] ?? 0
               return (
@@ -189,14 +175,14 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
                       'disabled:cursor-not-allowed disabled:opacity-40',
                       active
                         ? 'font-semibold text-foreground'
-                        : 'text-foreground-muted hover:bg-hover hover:text-foreground'
+                        : 'text-foreground-muted hover:bg-hover hover:text-foreground',
                     )}
                   >
                     <span className="text-label">{tag}</span>
                     {/* A leader line ties the name to its count across the gap. */}
                     <span
                       aria-hidden="true"
-                      className="mb-1 min-w-4 flex-1 border-b border-dashed border-border"
+                      className="mb-1 min-w-4 flex-1 border-b border-border"
                     />
                     <span className="text-caption tabular-nums text-foreground-subtle">
                       {count}
@@ -206,12 +192,6 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
               )
             })}
           </ul>
-
-          {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearAll} className="self-start">
-              Clear all
-            </Button>
-          )}
         </DialogContent>
       </Dialog>
     </>

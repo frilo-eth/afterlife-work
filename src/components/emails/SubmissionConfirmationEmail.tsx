@@ -6,19 +6,9 @@ interface SubmissionConfirmationEmailProps {
   logoName: string
 }
 
-interface LogoSoldEmailProps {
-  logoTitle: string
-  saleAmount: number
-  commission: number
-  isEarlyAdopter: boolean  // First 100 logos = 0% fee
-  earlyAdopterNumber: number // e.g., "#42/100"
-  estimatedPayout: number
-  payoutDate: string
-}
-
-export function SubmissionConfirmationEmail({ 
-  designerName, 
-  logoName 
+export function SubmissionConfirmationEmail({
+  designerName,
+  logoName,
 }: SubmissionConfirmationEmailProps) {
   return (
     <BaseEmailTemplate
@@ -26,22 +16,19 @@ export function SubmissionConfirmationEmail({
       heading="Logo Submission Received"
       body={
         <>
+          <Text style={styles.text}>Hi {designerName},</Text>
+
           <Text style={styles.text}>
-            Hi {designerName},
+            We've received your logo submission <span style={styles.bold}>{logoName}</span>. Our
+            team will review it shortly and get back to you.
           </Text>
-          
-          <Text style={styles.text}>
-            We've received your logo submission <span style={styles.bold}>{logoName}</span>. Our team will review it shortly and get back to you.
-          </Text>
-          
+
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>What's Next?</Text>
             <Text style={styles.text}>
               1. Our team will review your submission within 24-48 hours
             </Text>
-            <Text style={styles.text}>
-              2. You'll receive an email with our decision
-            </Text>
+            <Text style={styles.text}>2. You'll receive an email with our decision</Text>
             <Text style={styles.text}>
               3. If approved, your logo will be listed on our marketplace
             </Text>
@@ -83,5 +70,5 @@ const styles = {
     fontSize: '18px',
     fontWeight: '600',
     margin: '0 0 16px',
-  }
-} 
+  },
+}

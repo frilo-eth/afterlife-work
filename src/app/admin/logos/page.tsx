@@ -1,13 +1,13 @@
 'use client'
 
-import { Suspense, useState } from 'react'
-import { LogosTable } from '@/components/admin/LogosTable'
 import { Button } from '@nextui-org/react'
 import { Plus } from 'lucide-react'
-import { useLogos } from '@/hooks/useLogos'
+import { Suspense, useState } from 'react'
 import { LoadingState } from '@/components/admin/LoadingState'
-import type { LogoWithDetails } from '@/types'
 import { LogoAddModal } from '@/components/admin/LogoAddModal'
+import { LogosTable } from '@/components/admin/LogosTable'
+import { useLogos } from '@/hooks/useLogos'
+import type { LogoWithDetails } from '@/types'
 
 export default function LogosPage() {
   const { logos, isLoading, error } = useLogos()
@@ -33,16 +33,12 @@ export default function LogosPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-4xl font-bold">Logos</h1>
-        <Button 
-          color="default" 
-          variant="flat" 
-          onPress={handleOpenAddModal}
-        >
+        <Button color="default" variant="flat" onPress={handleOpenAddModal}>
           <Plus size={20} className="mr-2" />
           Add New Logo
         </Button>
       </div>
-      
+
       <Suspense fallback={<LoadingState />}>
         {!isLoading && logos?.length === 0 ? (
           <div className="text-center py-10">
@@ -50,17 +46,18 @@ export default function LogosPage() {
             <p className="text-sm text-gray-400">Add some logos to get started</p>
           </div>
         ) : (
-          <LogosTable logos={logos?.map(logo => ({
-            ...logo,
-            updatedAt: logo.createdAt // Temporary fix until we update the API response
-          })) as LogoWithDetails[]} />
+          <LogosTable
+            logos={
+              logos?.map((logo) => ({
+                ...logo,
+                updatedAt: logo.createdAt, // Temporary fix until we update the API response
+              })) as LogoWithDetails[]
+            }
+          />
         )}
       </Suspense>
 
-      <LogoAddModal 
-        isOpen={isAddModalOpen}
-        onClose={handleCloseAddModal}
-      />
+      <LogoAddModal isOpen={isAddModalOpen} onClose={handleCloseAddModal} />
     </div>
   )
-} 
+}

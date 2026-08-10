@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const template = searchParams.get('template')
-  
+
   if (!template) {
     return new Response('Template parameter required', { status: 400 })
   }
@@ -50,7 +50,10 @@ export async function GET(request: Request) {
               <!-- Your logo SVG here -->
             </svg>
           </div>
-          <h1>${template.split('-').map(w => w[0].toUpperCase() + w.slice(1)).join(' ')}</h1>
+          <h1>${template
+            .split('-')
+            .map((w) => w[0].toUpperCase() + w.slice(1))
+            .join(' ')}</h1>
           <p>Sample email content for ${template} template.</p>
           <a href="#" class="button">Action Button</a>
         </div>
@@ -59,6 +62,6 @@ export async function GET(request: Request) {
   `
 
   return new NextResponse(html, {
-    headers: { 'Content-Type': 'text/html' }
+    headers: { 'Content-Type': 'text/html' },
   })
-} 
+}

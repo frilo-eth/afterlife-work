@@ -6,7 +6,7 @@ import type { Logo, LogoWithDetails } from '@/types'
 
 export default function PendingLogosPage() {
   const [logos, setLogos] = useState<(Logo | LogoWithDetails)[]>([])
-  
+
   useEffect(() => {
     const fetchLogos = async () => {
       const res = await fetch('/api/admin/logos/pending')
@@ -17,4 +17,4 @@ export default function PendingLogosPage() {
   }, [])
 
   return <LogosTable logos={logos as LogoWithDetails[]} />
-} 
+}

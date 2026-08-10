@@ -22,13 +22,13 @@ import { spring } from './springs'
 export const list: Variants = {
   hidden: {},
   visible: {
-    transition: { staggerChildren: 0.035, delayChildren: 0.02 }
-  }
+    transition: { staggerChildren: 0.035, delayChildren: 0.02 },
+  },
 }
 
 export const listItem: Variants = {
   hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: spring.moderate }
+  visible: { opacity: 1, y: 0, transition: spring.moderate },
 }
 
 /**
@@ -39,5 +39,5 @@ export const listItem: Variants = {
 export const surface: Variants = {
   hidden: { opacity: 0, y: 8 },
   visible: { opacity: 1, y: 0, transition: spring.moderate },
-  exit: { opacity: 0, y: 4, transition: { duration: spring.moderate.exit.duration } }
+  exit: { opacity: 0, y: 4, transition: { duration: spring.moderate.exit.duration } },
 }

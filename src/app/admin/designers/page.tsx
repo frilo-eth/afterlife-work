@@ -1,20 +1,20 @@
 'use client'
 
-import { 
-  Table, 
-  TableHeader, 
-  TableBody, 
-  TableColumn, 
-  TableRow, 
-  TableCell,
+import {
   Button,
+  Link,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableHeader,
+  TableRow,
   Tooltip,
-  Link
-} from "@nextui-org/react"
-import { Edit2, ExternalLink, Mail, Twitter } from 'lucide-react'
-import { format } from 'date-fns'
-import { useState, useEffect } from 'react'
+} from '@nextui-org/react'
 import type { Designer } from '@prisma/client'
+import { format } from 'date-fns'
+import { Edit2, ExternalLink, Mail, Twitter } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function DesignersPage() {
   const [designers, setDesigners] = useState<Designer[]>([])
@@ -62,7 +62,7 @@ export default function DesignersPage() {
                 <div className="flex flex-col">
                   <span className="font-medium">{designer.name}</span>
                   {designer.website && (
-                    <Link 
+                    <Link
                       href={designer.website}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -79,7 +79,7 @@ export default function DesignersPage() {
                     <Mail size={16} className="text-default-500" />
                   </Link>
                   {designer.twitter && (
-                    <Link 
+                    <Link
                       href={`https://twitter.com/${designer.twitter.replace('@', '')}`}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -90,18 +90,14 @@ export default function DesignersPage() {
                 </div>
               </TableCell>
               <TableCell>
-                <Link href={`/admin/logos?designer=${designer.id}`}>
-                  View submissions
-                </Link>
+                <Link href={`/admin/logos?designer=${designer.id}`}>View submissions</Link>
               </TableCell>
-              <TableCell>
-                {format(new Date(designer.createdAt), 'MMM d, yyyy')}
-              </TableCell>
+              <TableCell>{format(new Date(designer.createdAt), 'MMM d, yyyy')}</TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Tooltip content="Edit designer">
-                    <Button 
-                      isIconOnly 
+                    <Button
+                      isIconOnly
                       variant="light"
                       onPress={() => {
                         // TODO: Implement edit functionality
@@ -129,4 +125,4 @@ export default function DesignersPage() {
       </Table>
     </div>
   )
-} 
+}

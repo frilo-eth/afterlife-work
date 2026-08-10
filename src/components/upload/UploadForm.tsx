@@ -1,9 +1,8 @@
-import type React from "react"
-import { useState } from "react"
-import { Card, CardBody, Input, Button, Textarea } from "@nextui-org/react"
-import { Upload } from "lucide-react"
-import { LOGO_TAGS } from "@/lib/constants"
-import { uploadLogo } from "@/lib/cloudinary"
+import { Button, Card, CardBody, Input, Textarea } from '@nextui-org/react'
+import { Upload } from 'lucide-react'
+import type React from 'react'
+import { useState } from 'react'
+import { uploadLogo } from '@/lib/cloudinary'
 
 interface UploadFormProps {
   onSuccess: (logoId: string) => void
@@ -14,14 +13,14 @@ export const UploadForm = ({ onSuccess }: UploadFormProps) => {
   const [loading, setLoading] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
+    title: '',
+    description: '',
     tags: [] as string[],
   })
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
-    if (files && files[0]) {
+    if (files?.[0]) {
       setFiles(files)
       // Create preview
       const reader = new FileReader()
@@ -40,7 +39,7 @@ export const UploadForm = ({ onSuccess }: UploadFormProps) => {
     try {
       // Upload to Cloudinary
       const imageUrl = await uploadLogo(files[0])
-      
+
       // Create logo record
       const response = await fetch('/api/logos', {
         method: 'POST',
@@ -48,8 +47,8 @@ export const UploadForm = ({ onSuccess }: UploadFormProps) => {
         body: JSON.stringify({
           ...formData,
           images: [imageUrl],
-          thumbnail: imageUrl
-        })
+          thumbnail: imageUrl,
+        }),
       })
 
       const { logo } = await response.json()
@@ -72,7 +71,7 @@ export const UploadForm = ({ onSuccess }: UploadFormProps) => {
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
             />
-            
+
             <Textarea
               label="Description"
               value={formData.description}
@@ -107,16 +106,11 @@ export const UploadForm = ({ onSuccess }: UploadFormProps) => {
             </div>
           </div>
 
-          <Button
-            type="submit"
-            color="primary"
-            className="w-full"
-            isLoading={loading}
-          >
+          <Button type="submit" color="primary" className="w-full" isLoading={loading}>
             Upload Logo
           </Button>
         </form>
       </CardBody>
     </Card>
   )
-} 
+}

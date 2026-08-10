@@ -12,7 +12,7 @@ export function LogoChangesRequestedEmail({
   designerName,
   logoTitle,
   changes,
-  additionalNotes
+  additionalNotes,
 }: LogoChangesRequestedEmailProps) {
   return (
     <BaseEmailTemplate
@@ -20,14 +20,13 @@ export function LogoChangesRequestedEmail({
       heading="Logo Changes Requested"
       body={
         <>
+          <Text style={styles.text}>Hi {designerName},</Text>
+
           <Text style={styles.text}>
-            Hi {designerName},
+            We've reviewed your logo <span style={styles.bold}>{logoTitle}</span> and would like to
+            request some changes before we can approve it.
           </Text>
-          
-          <Text style={styles.text}>
-            We've reviewed your logo <span style={styles.bold}>{logoTitle}</span> and would like to request some changes before we can approve it.
-          </Text>
-          
+
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>Requested Changes</Text>
             {changes.map((change) => (
@@ -38,29 +37,21 @@ export function LogoChangesRequestedEmail({
             {additionalNotes && (
               <>
                 <Text style={styles.detailsHeading}>Additional Notes</Text>
-                <Text style={styles.text}>
-                  {additionalNotes}
-                </Text>
+                <Text style={styles.text}>{additionalNotes}</Text>
               </>
             )}
           </div>
 
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>Next Steps</Text>
-            <Text style={styles.text}>
-              1. Review the requested changes carefully
-            </Text>
-            <Text style={styles.text}>
-              2. Make the necessary adjustments to your logo
-            </Text>
-            <Text style={styles.text}>
-              3. Submit the updated version through your dashboard
-            </Text>
+            <Text style={styles.text}>1. Review the requested changes carefully</Text>
+            <Text style={styles.text}>2. Make the necessary adjustments to your logo</Text>
+            <Text style={styles.text}>3. Submit the updated version through your dashboard</Text>
           </div>
 
           <Text style={styles.text}>
-            We're excited to see your revised version. If you have any questions about the requested changes, 
-            please don't hesitate to reach out.
+            We're excited to see your revised version. If you have any questions about the requested
+            changes, please don't hesitate to reach out.
           </Text>
         </>
       }
@@ -102,5 +93,5 @@ const styles = {
     lineHeight: '1.6',
     margin: '0 0 12px',
     paddingLeft: '20px',
-  }
-} 
+  },
+}

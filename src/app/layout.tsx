@@ -1,26 +1,27 @@
-import type { ReactNode } from "react"
-import { Providers } from "./providers"
-import { GeistSans } from 'geist/font/sans'
+import { Analytics } from '@vercel/analytics/react'
 import { GeistMono } from 'geist/font/mono'
-import { Header } from "../components/layout/Header"
-import { Footer } from "../components/layout/Footer"
-import { Analytics } from "@vercel/analytics/react"
+import { GeistSans } from 'geist/font/sans'
 import type { Metadata } from 'next'
-import "./globals.css"
+import type { ReactNode } from 'react'
+import { Footer } from '../components/layout/Footer'
+import { Header } from '../components/layout/Header'
+import { Providers } from './providers'
+import './globals.css'
 import { ScrollManager } from '@/components/ScrollManager'
-
 
 export const metadata: Metadata = {
   title: {
     default: 'Afterlife | Where rejected logos find new life',
-    template: '%s | Afterlife'
+    template: '%s | Afterlife',
   },
-  description: 'Save logos, save time. Discover and acquire premium, ready-to-use logos for your brand.',
+  description:
+    'Save logos, save time. Discover and acquire premium, ready-to-use logos for your brand.',
   keywords: ['logos', 'branding', 'design', 'premium logos', 'brand identity', 'rejected logos'],
   metadataBase: new URL('https://afterlife.work'),
   openGraph: {
     title: 'Afterlife | Where rejected logos find new life',
-    description: 'Save LogosPage, save time. Discover and acquire premium, ready-to-use logos for your brand.',
+    description:
+      'Save LogosPage, save time. Discover and acquire premium, ready-to-use logos for your brand.',
     url: 'https://afterlife.work',
     siteName: 'Afterlife',
     images: [
@@ -28,8 +29,8 @@ export const metadata: Metadata = {
         url: '/open-graph-image.png',
         width: 1200,
         height: 630,
-        alt: 'Afterlife Logo Collection'
-      }
+        alt: 'Afterlife Logo Collection',
+      },
     ],
     locale: 'en_US',
     type: 'website',
@@ -37,7 +38,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Afterlife | Where rejected logos find new life',
-    description: 'Save LogosPage, save time. Discover and acquire premium, ready-to-use logos for your brand.',
+    description:
+      'Save LogosPage, save time. Discover and acquire premium, ready-to-use logos for your brand.',
     images: ['/open-graph-image-twitter.png'],
   },
   icons: {
@@ -47,9 +49,7 @@ export const metadata: Metadata = {
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
       { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
     ],
-    apple: [
-      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
-    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
     other: [
       {
         rel: 'icon',
@@ -84,9 +84,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <ScrollManager />
         <Providers>
           <Header />
-          <main className="mt-[64px]">
-            {children}
-          </main>
+          <main className="mt-[64px]">{children}</main>
           <Footer />
         </Providers>
         <Analytics />

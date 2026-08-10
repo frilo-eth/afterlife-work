@@ -1,9 +1,9 @@
 'use client'
 
-import Image from 'next/image'
+import type { Logo, Order } from '@prisma/client'
 import { format } from 'date-fns'
 import { Download } from 'lucide-react'
-import type { Logo, Order } from '@prisma/client'
+import Image from 'next/image'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,7 +12,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table'
 
 type OrderWithLogo = Order & {
@@ -44,7 +44,7 @@ export function OrdersTable({ orders }: OrdersTableProps) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {orders.map(order => (
+        {orders.map((order) => (
           <TableRow key={order.id}>
             <TableCell className="font-mono text-xs">{order.id.slice(0, 8)}</TableCell>
             <TableCell>

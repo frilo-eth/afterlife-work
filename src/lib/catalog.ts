@@ -43,10 +43,10 @@ export const getAvailableLogos = unstable_cache(
     prisma.logo.findMany({
       where: { status: 'AVAILABLE' },
       select: { id: true, title: true, thumbnail: true, tags: true },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     }),
   ['catalog-available-logos'],
-  { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS }
+  { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS },
 )
 
 /** Every id that should get a prerendered product page. */
@@ -54,12 +54,12 @@ export const getPublishedLogoIds = unstable_cache(
   async (): Promise<string[]> => {
     const logos = await prisma.logo.findMany({
       where: { status: { in: ['AVAILABLE', 'SOLD'] } },
-      select: { id: true }
+      select: { id: true },
     })
-    return logos.map(logo => logo.id)
+    return logos.map((logo) => logo.id)
   },
   ['catalog-published-ids'],
-  { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS }
+  { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS },
 )
 
 /**
@@ -78,8 +78,8 @@ export const getLogoDetail = unstable_cache(
         description: true,
         status: true,
         price: { select: { summon: true, revival: true, afterlife: true } },
-        gallery: { select: { id: true, imageUrl: true }, orderBy: { id: 'asc' } }
-      }
+        gallery: { select: { id: true, imageUrl: true }, orderBy: { id: 'asc' } },
+      },
     })
 
     if (!logo) return null
@@ -91,9 +91,9 @@ export const getLogoDetail = unstable_cache(
     // seven. The endpoint this replaced merged the two the same way.
     return {
       ...logo,
-      images: [logo.thumbnail, ...logo.gallery.map(item => item.imageUrl)].filter(Boolean)
+      images: [logo.thumbnail, ...logo.gallery.map((item) => item.imageUrl)].filter(Boolean),
     }
   },
-  ['catalog-logo-detail'],
-  { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS }
+  ['catalog-logo-detail', 'prices-v3'],
+  { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS },
 )

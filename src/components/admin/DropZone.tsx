@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
@@ -12,44 +12,45 @@ interface DropZoneProps {
   children?: React.ReactNode
 }
 
-export function DropZone({ 
-  onDrop, 
-  multiple = false, 
+export function DropZone({
+  onDrop,
+  multiple = false,
   className,
   accept = {
-    'image/*': ['.png', '.jpg', '.jpeg', '.webp']
+    'image/*': ['.png', '.jpg', '.jpeg', '.webp'],
   },
-  children 
+  children,
 }: DropZoneProps) {
-  const onDropCallback = useCallback((acceptedFiles: File[]) => {
-    onDrop(acceptedFiles)
-  }, [onDrop])
+  const onDropCallback = useCallback(
+    (acceptedFiles: File[]) => {
+      onDrop(acceptedFiles)
+    },
+    [onDrop],
+  )
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: onDropCallback,
     multiple,
-    accept
+    accept,
   })
 
   return (
     <div
       {...getRootProps()}
       className={cn(
-        "border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors",
-        isDragActive ? "border-primary bg-primary/5" : "border-gray-300",
-        className
+        'border-2 border-dashed rounded-lg p-6 cursor-pointer transition-colors',
+        isDragActive ? 'border-primary bg-primary/5' : 'border-gray-300',
+        className,
       )}
     >
       <input {...getInputProps()} />
       {children || (
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            {isDragActive
-              ? "Drop the files here..."
-              : "Drag & drop files here, or click to select"}
+            {isDragActive ? 'Drop the files here...' : 'Drag & drop files here, or click to select'}
           </p>
         </div>
       )}
     </div>
   )
-} 
+}

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { cloudinary } from '@/lib/cloudinary-server'
+import { prisma } from '@/lib/prisma'
 
 // Signed links are deliberately short-lived: the URL is the only thing
 // standing between the archive and anyone it gets forwarded to.
@@ -15,16 +15,13 @@ const DOWNLOAD_LINK_TTL_SECONDS = 15 * 60
  * Order for this specific logo — holding a session id for one purchase does
  * not grant access to another logo's files.
  */
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: Request, { params }: { params: { id: string } }) {
   const sessionId = new URL(request.url).searchParams.get('session_id')
 
   if (!sessionId) {
     return NextResponse.json(
       { error: 'A session_id is required to access downloads.' },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
@@ -33,18 +30,15 @@ export async function GET(
       where: { stripeSessionId: sessionId },
       include: {
         logo: {
-          include: { gallery: true }
-        }
-      }
+          include: { gallery: true },
+        },
+      },
     })
 
     // Same response for "no such order" and "order is for a different logo",
     // so this cannot be used to probe which sessions or logos exist.
     if (!order || order.logoId !== params.id) {
-      return NextResponse.json(
-        { error: 'No purchase found for this download.' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'No purchase found for this download.' }, { status: 404 })
     }
 
     const { logo } = order
@@ -58,7 +52,7 @@ export async function GET(
         title: logo.title,
         tier: order.tier,
         files: [],
-        sourceFilesPending: true
+        sourceFilesPending: true,
       })
     }
 
@@ -66,15 +60,11 @@ export async function GET(
 
     // The archive is stored with authenticated access, so it has no public
     // URL; this mints a signed one that stops working after the TTL.
-    const url = cloudinary.utils.private_download_url(
-      logo.sourcePackageId,
-      '',
-      {
-        resource_type: 'raw',
-        type: 'authenticated',
-        expires_at: expiresAt
-      }
-    )
+    const url = cloudinary.utils.private_download_url(logo.sourcePackageId, '', {
+      resource_type: 'raw',
+      type: 'authenticated',
+      expires_at: expiresAt,
+    })
 
     return NextResponse.json({
       orderId: order.id,
@@ -85,19 +75,15 @@ export async function GET(
         {
           url,
           filename:
-            logo.sourcePackageName ??
-            `${logo.title.toLowerCase().replace(/\s+/g, '-')}.zip`,
+            logo.sourcePackageName ?? `${logo.title.toLowerCase().replace(/\s+/g, '-')}.zip`,
           type: 'package',
-          expiresAt: new Date(expiresAt * 1000).toISOString()
-        }
+          expiresAt: new Date(expiresAt * 1000).toISOString(),
+        },
       ],
-      sourceFilesPending: false
+      sourceFilesPending: false,
     })
   } catch (error) {
     console.error('Download lookup failed:', error)
-    return NextResponse.json(
-      { error: 'Could not load your download.' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Could not load your download.' }, { status: 500 })
   }
 }

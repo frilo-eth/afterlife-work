@@ -1,11 +1,10 @@
+import { LogoStatus } from '@prisma/client'
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
-import { handleWebhook } from '@/lib/stripe'
-import { db } from '@/lib/db'
-import { stripe } from '@/lib/stripe'
 import type Stripe from 'stripe'
-import { LogoStatus } from '@prisma/client'
+import { db } from '@/lib/db'
 import { handleOrderFulfillment } from '@/lib/order-fulfillment'
+import { handleWebhook } from '@/lib/stripe'
 
 export async function POST(request: Request) {
   try {
@@ -13,10 +12,7 @@ export async function POST(request: Request) {
     const signature = headers().get('stripe-signature')
 
     if (!signature) {
-      return NextResponse.json(
-        { error: 'No signature' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'No signature' }, { status: 400 })
     }
 
     const { event } = await handleWebhook({
@@ -40,7 +36,7 @@ export async function POST(request: Request) {
         // throws, and Stripe retries forever against an order that already
         // exists.
         const existingOrder = await db.order.findUnique({
-          where: { stripeSessionId: session.id }
+          where: { stripeSessionId: session.id },
         })
 
         if (existingOrder) {
@@ -59,14 +55,14 @@ export async function POST(request: Request) {
               tier,
               amount: session.amount_total || 0,
               ...(wordmark ? { wordmark } : {}),
-              ...(domain ? { domain } : {})
-            }
+              ...(domain ? { domain } : {}),
+            },
           }),
           // Mark the logo as sold
           db.logo.update({
             where: { id: logoId },
-            data: { status: LogoStatus.SOLD }
-          })
+            data: { status: LogoStatus.SOLD },
+          }),
         ])
 
         // The payment has been taken and the order is recorded. A fulfilment
@@ -78,7 +74,7 @@ export async function POST(request: Request) {
           await handleOrderFulfillment({
             order,
             logo: updatedLogo,
-            hasWordmark: Boolean(wordmark)
+            hasWordmark: Boolean(wordmark),
           })
         } catch (fulfillmentError) {
           const message =
@@ -88,18 +84,20 @@ export async function POST(request: Request) {
 
           console.error('Fulfillment failed for order:', order.id, message)
 
-          await db.checkoutLog.create({
-            data: {
-              type: 'FULFILLMENT_FAILED',
-              logoId,
-              tier,
-              amount: order.amount,
-              sessionId: session.id,
-              error: message
-            }
-          }).catch((logError: unknown) => {
-            console.error('Could not record fulfillment failure:', logError)
-          })
+          await db.checkoutLog
+            .create({
+              data: {
+                type: 'FULFILLMENT_FAILED',
+                logoId,
+                tier,
+                amount: order.amount,
+                sessionId: session.id,
+                error: message,
+              },
+            })
+            .catch((logError: unknown) => {
+              console.error('Could not record fulfillment failure:', logError)
+            })
         }
 
         break
@@ -107,7 +105,7 @@ export async function POST(request: Request) {
 
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object as Stripe.PaymentIntent
-        
+
         // Since we don't have a status field in the schema,
         // we might want to handle failed payments differently
         // For now, we'll just log it
@@ -127,12 +125,11 @@ export async function POST(request: Request) {
     // let Stripe stop. Anything else (a database blip, a timeout) is worth
     // retrying, which requires a 5xx. Answering 400 for everything, as this
     // previously did, silently discarded recoverable failures.
-    const isSignatureError =
-      error instanceof Error && error.message === 'Invalid webhook signature'
+    const isSignatureError = error instanceof Error && error.message === 'Invalid webhook signature'
 
     return NextResponse.json(
       { error: isSignatureError ? 'Invalid signature' : 'Webhook handler failed' },
-      { status: isSignatureError ? 400 : 500 }
+      { status: isSignatureError ? 400 : 500 },
     )
   }
-} 
+}

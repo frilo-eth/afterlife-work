@@ -1,7 +1,7 @@
 'use client'
 
-import { UploadForm } from "@/components/upload/UploadForm"
 import { useRouter } from 'next/navigation'
+import { UploadForm } from '@/components/upload/UploadForm'
 
 export default function UploadPage() {
   const router = useRouter()
@@ -18,4 +18,4 @@ export default function UploadPage() {
       </div>
     </main>
   )
-} 
+}

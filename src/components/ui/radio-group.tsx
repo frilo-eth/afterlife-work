@@ -1,58 +1,58 @@
-"use client";
+'use client'
 
+import * as RadioGroupPrimitive from '@radix-ui/react-radio-group'
+import { AnimatePresence, motion } from 'framer-motion'
 import {
   Children,
-  useRef,
-  useState,
-  useEffect,
   createContext,
-  useContext,
   forwardRef,
+  type HTMLAttributes,
   isValidElement,
   type ReactNode,
-  type HTMLAttributes,
-} from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
-import { cn } from "@/lib/utils";
-import { spring } from "@/lib/springs";
-import { fontWeights } from "@/lib/font-weight";
-import { useProximityHover } from "@/hooks/use-proximity-hover";
-import { useShape } from "@/lib/shape-context";
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
+import { useProximityHover } from '@/hooks/use-proximity-hover'
+import { fontWeights } from '@/lib/font-weight'
+import { useShape } from '@/lib/shape-context'
+import { spring } from '@/lib/springs'
+import { cn } from '@/lib/utils'
 
 interface RadioGroupContextValue {
-  registerItem: (index: number, element: HTMLElement | null) => void;
-  activeIndex: number | null;
-  selectedIndex: number | null;
-  selectedValue?: string;
-  onValueChange?: (value: string) => void;
+  registerItem: (index: number, element: HTMLElement | null) => void
+  activeIndex: number | null
+  selectedIndex: number | null
+  selectedValue?: string
+  onValueChange?: (value: string) => void
   /** Whether any item in the group is currently selected. Drives the roving
    *  tabindex fallback: with no selection, the first item must stay tabbable
    *  or the whole group becomes unreachable by keyboard. */
-  hasSelection: boolean;
+  hasSelection: boolean
 }
 
-const RadioGroupContext = createContext<RadioGroupContextValue | null>(null);
+const RadioGroupContext = createContext<RadioGroupContextValue | null>(null)
 
 function useRadioGroupContext() {
-  const ctx = useContext(RadioGroupContext);
-  if (!ctx) throw new Error("useRadioGroup must be used within a RadioGroup");
-  return ctx;
+  const ctx = useContext(RadioGroupContext)
+  if (!ctx) throw new Error('useRadioGroup must be used within a RadioGroup')
+  return ctx
 }
 
-interface RadioGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, "onSelect"> {
-  children: ReactNode;
-  selectedIndex?: number;
-  value?: string;
-  onValueChange?: (value: string) => void;
+interface RadioGroupProps extends Omit<HTMLAttributes<HTMLDivElement>, 'onSelect'> {
+  children: ReactNode
+  selectedIndex?: number
+  value?: string
+  onValueChange?: (value: string) => void
 }
 
 const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
   ({ children, selectedIndex, value, onValueChange, className, ...props }, ref) => {
-    const containerRef = useRef<HTMLDivElement | null>(null);
+    const containerRef = useRef<HTMLDivElement | null>(null)
     const childValues = Children.toArray(children)
       .filter(isValidElement)
-      .map((child) => (child.props as { value?: string }).value);
+      .map((child) => (child.props as { value?: string }).value)
     const {
       activeIndex,
       setActiveIndex,
@@ -61,89 +61,83 @@ const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
       handlers,
       registerItem,
       measureItems,
-    } = useProximityHover(containerRef);
+    } = useProximityHover(containerRef)
 
     useEffect(() => {
-      measureItems();
-    }, [measureItems, children]);
+      measureItems()
+    }, [measureItems, children])
 
-    const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
+    const [focusedIndex, setFocusedIndex] = useState<number | null>(null)
     const resolvedSelectedIndex =
       value !== undefined
         ? childValues.findIndex((childValue) => childValue === value)
-        : selectedIndex ?? -1;
+        : (selectedIndex ?? -1)
     // Covers all three selection APIs: value, selectedIndex, per-item selected.
     const hasSelection =
       resolvedSelectedIndex >= 0 ||
       Children.toArray(children)
         .filter(isValidElement)
-        .some((child) => (child.props as { selected?: boolean }).selected === true);
+        .some((child) => (child.props as { selected?: boolean }).selected === true)
 
-    const activeRect = activeIndex !== null ? itemRects[activeIndex] : null;
-    const focusRect = focusedIndex !== null ? itemRects[focusedIndex] : null;
-    const selectedRect =
-      resolvedSelectedIndex >= 0 ? itemRects[resolvedSelectedIndex] : null;
-    const shape = useShape();
+    const activeRect = activeIndex !== null ? itemRects[activeIndex] : null
+    const focusRect = focusedIndex !== null ? itemRects[focusedIndex] : null
+    const selectedRect = resolvedSelectedIndex >= 0 ? itemRects[resolvedSelectedIndex] : null
+    const shape = useShape()
 
     const content = (
       <div
         ref={(node) => {
-          (containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-          if (typeof ref === "function") ref(node);
-          else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          ;(containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+          if (typeof ref === 'function') ref(node)
+          else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
         }}
         onMouseEnter={handlers.onMouseEnter}
         onMouseMove={handlers.onMouseMove}
         onMouseLeave={handlers.onMouseLeave}
         onFocus={(e) => {
           const indexAttr = (e.target as HTMLElement)
-            .closest("[data-proximity-index]")
-            ?.getAttribute("data-proximity-index");
+            .closest('[data-proximity-index]')
+            ?.getAttribute('data-proximity-index')
           if (indexAttr != null) {
-            const idx = Number(indexAttr);
-            setActiveIndex(idx);
-            setFocusedIndex(
-              (e.target as HTMLElement).matches(":focus-visible") ? idx : null
-            );
+            const idx = Number(indexAttr)
+            setActiveIndex(idx)
+            setFocusedIndex((e.target as HTMLElement).matches(':focus-visible') ? idx : null)
           }
         }}
         onBlur={(e) => {
-          if (containerRef.current?.contains(e.relatedTarget as Node)) return;
-          setFocusedIndex(null);
-          setActiveIndex(null);
+          if (containerRef.current?.contains(e.relatedTarget as Node)) return
+          setFocusedIndex(null)
+          setActiveIndex(null)
         }}
         onKeyDown={(e) => {
           // Scope to row wrappers only. The hidden radio primitive also
           // carries role="radio", so a bare [role="radio"] selector matches
           // twice per row and arrows land on the invisible control.
           const items = Array.from(
-            containerRef.current?.querySelectorAll("[data-proximity-index]") ?? []
-          ) as HTMLElement[];
-          const currentIdx = items.indexOf(e.target as HTMLElement);
-          if (currentIdx === -1) return;
+            containerRef.current?.querySelectorAll('[data-proximity-index]') ?? [],
+          ) as HTMLElement[]
+          const currentIdx = items.indexOf(e.target as HTMLElement)
+          if (currentIdx === -1) return
 
-          if (["ArrowDown", "ArrowUp", "ArrowRight", "ArrowLeft"].includes(e.key)) {
-            e.preventDefault();
-            const next = ["ArrowDown", "ArrowRight"].includes(e.key)
+          if (['ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft'].includes(e.key)) {
+            e.preventDefault()
+            const next = ['ArrowDown', 'ArrowRight'].includes(e.key)
               ? (currentIdx + 1) % items.length
-              : (currentIdx - 1 + items.length) % items.length;
-            items[next].focus();
-            items[next].click();
-          } else if (e.key === "Home") {
-            e.preventDefault();
-            items[0]?.focus();
-            items[0]?.click();
-          } else if (e.key === "End") {
-            e.preventDefault();
-            items[items.length - 1]?.focus();
-            items[items.length - 1]?.click();
+              : (currentIdx - 1 + items.length) % items.length
+            items[next].focus()
+            items[next].click()
+          } else if (e.key === 'Home') {
+            e.preventDefault()
+            items[0]?.focus()
+            items[0]?.click()
+          } else if (e.key === 'End') {
+            e.preventDefault()
+            items[items.length - 1]?.focus()
+            items[items.length - 1]?.click()
           }
         }}
         role="radiogroup"
-        className={cn(
-          "relative flex flex-col w-72 max-w-full select-none",
-          className
-        )}
+        className={cn('relative flex flex-col w-72 max-w-full select-none', className)}
         {...props}
       >
         {/* Selected background */}
@@ -217,7 +211,7 @@ const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
 
         {children}
       </div>
-    );
+    )
 
     // If `value` is provided (controlled-by-value mode), always wrap with the
     // Radix RadioGroup primitive — even when `onValueChange` is absent. The
@@ -237,15 +231,11 @@ const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
             hasSelection,
           }}
         >
-          <RadioGroupPrimitive.Root
-            value={value}
-            onValueChange={(v) => onValueChange?.(v)}
-            asChild
-          >
+          <RadioGroupPrimitive.Root value={value} onValueChange={(v) => onValueChange?.(v)} asChild>
             {content}
           </RadioGroupPrimitive.Root>
         </RadioGroupContext.Provider>
-      );
+      )
     }
 
     return (
@@ -259,63 +249,57 @@ const RadioGroup = forwardRef<HTMLDivElement, RadioGroupProps>(
       >
         {content}
       </RadioGroupContext.Provider>
-    );
-  }
-);
+    )
+  },
+)
 
-RadioGroup.displayName = "RadioGroup";
+RadioGroup.displayName = 'RadioGroup'
 
 interface RadioItemProps extends HTMLAttributes<HTMLDivElement> {
-  label: string;
-  index: number;
-  selected?: boolean;
-  onSelect?: () => void;
-  value?: string;
+  label: string
+  index: number
+  selected?: boolean
+  onSelect?: () => void
+  value?: string
 }
 
 const RadioItem = forwardRef<HTMLDivElement, RadioItemProps>(
   ({ label, index, selected, onSelect, value, className, ...props }, ref) => {
-    const internalRef = useRef<HTMLDivElement | null>(null);
-    const hasMounted = useRef(false);
-    const {
-      registerItem,
-      activeIndex,
-      selectedIndex,
-      selectedValue,
-      onValueChange,
-      hasSelection,
-    } = useRadioGroupContext();
+    const internalRef = useRef<HTMLDivElement | null>(null)
+    const hasMounted = useRef(false)
+    const { registerItem, activeIndex, selectedIndex, selectedValue, onValueChange, hasSelection } =
+      useRadioGroupContext()
 
     useEffect(() => {
-      registerItem(index, internalRef.current);
-      return () => registerItem(index, null);
-    }, [index, registerItem]);
+      registerItem(index, internalRef.current)
+      return () => registerItem(index, null)
+    }, [index, registerItem])
 
     useEffect(() => {
-      hasMounted.current = true;
-    }, []);
+      hasMounted.current = true
+    }, [])
 
-    const isActive = activeIndex === index;
-    const skipAnimation = !hasMounted.current;
-    const shape = useShape();
+    const isActive = activeIndex === index
+    const skipAnimation = !hasMounted.current
+    const shape = useShape()
     const isSelected =
       value !== undefined && selectedValue !== undefined
         ? selectedValue === value
-        : selected ?? selectedIndex === index;
+        : (selected ?? selectedIndex === index)
 
     const handleSelect = () => {
       if (value !== undefined) {
-        onValueChange?.(value);
+        onValueChange?.(value)
       }
-      onSelect?.();
-    };
+      onSelect?.()
+    }
 
     return (
       <div
         ref={(node) => {
-          (internalRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
-          if (typeof ref === "function") ref(node);
-          else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          ;(internalRef as React.MutableRefObject<HTMLDivElement | null>).current = node
+          if (typeof ref === 'function') ref(node)
+          else if (ref) (ref as React.MutableRefObject<HTMLDivElement | null>).current = node
         }}
         data-proximity-index={index}
         // Roving tabindex: selected item is the tab stop; with no selection the
@@ -333,23 +317,23 @@ const RadioItem = forwardRef<HTMLDivElement, RadioItemProps>(
           // move (click still fires) and land focus on the row instead. Skip
           // genuinely interactive children so we don't hijack their focus.
           const interactive = (e.target as HTMLElement).closest(
-            'button:not([tabindex="-1"]), a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-          );
-          if (interactive && interactive !== e.currentTarget) return;
-          e.preventDefault();
-          e.currentTarget.focus();
+            'button:not([tabindex="-1"]), a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          )
+          if (interactive && interactive !== e.currentTarget) return
+          e.preventDefault()
+          e.currentTarget.focus()
         }}
         onKeyDown={(e) => {
-          if (e.key === " " || e.key === "Enter") {
-            e.preventDefault();
-            handleSelect();
+          if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault()
+            handleSelect()
           }
         }}
         className={cn(
           // Fixed height (was py-1.5 around a 19.5px line box ≈ 31.5px) so the
           // text-box trim on the label doesn't shrink the row.
           `relative z-10 flex h-8 items-center gap-2.5 ${shape.item} px-3 cursor-pointer outline-none`,
-          className
+          className,
         )}
         {...props}
       >
@@ -358,12 +342,12 @@ const RadioItem = forwardRef<HTMLDivElement, RadioItemProps>(
           {/* Border */}
           <div
             className={cn(
-              "absolute inset-0 rounded-full border-solid transition-all duration-80",
+              'absolute inset-0 rounded-full border-solid transition-all duration-80',
               isSelected
-                ? "border-[1.5px] border-transparent"
+                ? 'border-[1.5px] border-transparent'
                 : isActive
-                ? "border-[1.5px] border-neutral-400 dark:border-neutral-500"
-                : "border-[1.5px] border-border"
+                  ? 'border-[1.5px] border-neutral-400 dark:border-neutral-500'
+                  : 'border-[1.5px] border-border',
             )}
           />
           {/* Dot */}
@@ -398,15 +382,11 @@ const RadioItem = forwardRef<HTMLDivElement, RadioItemProps>(
           </span>
           <span
             className={cn(
-              "col-start-1 row-start-1 transition-[color,font-variation-settings] duration-80 [text-box:trim-both_cap_alphabetic]",
-              isSelected || isActive
-                ? "text-foreground"
-                : "text-muted-foreground"
+              'col-start-1 row-start-1 transition-[color,font-variation-settings] duration-80 [text-box:trim-both_cap_alphabetic]',
+              isSelected || isActive ? 'text-foreground' : 'text-muted-foreground',
             )}
             style={{
-              fontVariationSettings: isSelected
-                ? fontWeights.semibold
-                : fontWeights.normal,
+              fontVariationSettings: isSelected ? fontWeights.semibold : fontWeights.normal,
             }}
           >
             {label}
@@ -415,19 +395,14 @@ const RadioItem = forwardRef<HTMLDivElement, RadioItemProps>(
 
         {/* Hidden Radix radio input for accessibility */}
         {value !== undefined && (
-          <RadioGroupPrimitive.Item
-            value={value}
-            className="sr-only"
-            tabIndex={-1}
-            aria-hidden
-          />
+          <RadioGroupPrimitive.Item value={value} className="sr-only" tabIndex={-1} aria-hidden />
         )}
       </div>
-    );
-  }
-);
+    )
+  },
+)
 
-RadioItem.displayName = "RadioItem";
+RadioItem.displayName = 'RadioItem'
 
-export { RadioGroup, RadioItem };
-export default RadioGroup;
+export { RadioGroup, RadioItem }
+export default RadioGroup

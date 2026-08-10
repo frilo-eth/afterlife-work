@@ -14,7 +14,7 @@ interface LogoSoldEmailProps {
 const formatAmount = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'USD',
   }).format(amount)
 }
 
@@ -25,12 +25,12 @@ export function LogoSoldEmail({
   isEarlyAdopter,
   earlyAdopterNumber,
   estimatedPayout,
-  payoutDate
+  payoutDate,
 }: LogoSoldEmailProps) {
   const formattedSale = formatAmount(saleAmount)
   const formattedCommission = formatAmount(commission)
   const formattedPayout = formatAmount(estimatedPayout)
-  const commissionRate = isEarlyAdopter ? 0 : (commission / saleAmount * 100)
+  const commissionRate = isEarlyAdopter ? 0 : (commission / saleAmount) * 100
 
   return (
     <BaseEmailTemplate
@@ -48,17 +48,18 @@ export function LogoSoldEmail({
                 🏆 Early Adopter Benefit #{earlyAdopterNumber}/100
               </Text>
               <Text style={styles.text}>
-                As one of our first 100 logo creators, you're receiving 100% of the sale price with zero platform fees!
+                As one of our first 100 logo creators, you're receiving 100% of the sale price with
+                zero platform fees!
               </Text>
             </div>
           )}
-          
+
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>Sale Breakdown</Text>
             <div style={styles.detailsGrid}>
               <Text style={styles.label}>Sale Amount:</Text>
               <Text style={styles.value}>{formattedSale}</Text>
-              
+
               <Text style={styles.label}>Platform Fee:</Text>
               <Text style={styles.value}>
                 {isEarlyAdopter ? (
@@ -67,7 +68,7 @@ export function LogoSoldEmail({
                   `${commissionRate}% (${formattedCommission})`
                 )}
               </Text>
-              
+
               <Text style={styles.label}>Your Payout:</Text>
               <Text style={styles.highlight}>{formattedPayout}</Text>
             </div>
@@ -75,12 +76,8 @@ export function LogoSoldEmail({
 
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>What's Next?</Text>
-            <Text style={styles.text}>
-              1. Your payout will be processed on {payoutDate}
-            </Text>
-            <Text style={styles.text}>
-              2. Funds will be sent to your connected payment account
-            </Text>
+            <Text style={styles.text}>1. Your payout will be processed on {payoutDate}</Text>
+            <Text style={styles.text}>2. Funds will be sent to your connected payment account</Text>
             <Text style={styles.text}>
               3. You'll receive a confirmation email once the transfer is complete
             </Text>
@@ -157,5 +154,5 @@ const styles = {
     fontSize: '18px',
     fontWeight: '600',
     margin: '0 0 16px',
-  }
-} 
+  },
+}

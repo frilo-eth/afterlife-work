@@ -1,42 +1,36 @@
-import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
 import { revalidatePath, revalidateTag } from 'next/cache'
-import { cloudinary } from '@/lib/cloudinary-server'
+import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-utils'
 import { CATALOG_TAG } from '@/lib/catalog'
+import { cloudinary } from '@/lib/cloudinary-server'
+import { prisma } from '@/lib/prisma'
 
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
   const denied = await requireAdmin()
   if (denied) return denied
 
   console.log('🗑️ Starting logo deletion process for ID:', params.id)
-  
+
   try {
     // First, get the logo and its gallery to get the image URLs
     console.log('📥 Fetching logo details from database...')
     const logo = await prisma.logo.findUnique({
       where: { id: params.id },
       include: {
-        gallery: true
-      }
+        gallery: true,
+      },
     })
 
     if (!logo) {
       console.log('❌ Logo not found:', params.id)
-      return NextResponse.json(
-        { success: false, message: 'Logo not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ success: false, message: 'Logo not found' }, { status: 404 })
     }
 
     console.log('✅ Found logo:', {
       id: logo.id,
       title: logo.title,
       hasMainImage: !!logo.thumbnail,
-      galleryCount: logo.gallery?.length || 0
+      galleryCount: logo.gallery?.length || 0,
     })
 
     // Delete images from Cloudinary
@@ -47,47 +41,49 @@ export async function DELETE(
       const mainImageUrl = logo.thumbnail
       const mainImagePublicId = `logos/${mainImageUrl.split('/').pop()?.split('.')[0]}`
       console.log('🖼️ Deleting main image:', { url: mainImageUrl, publicId: mainImagePublicId })
-      
+
       deletePromises.push(
-        cloudinary.uploader.destroy(mainImagePublicId)
-          .then(result => {
+        cloudinary.uploader
+          .destroy(mainImagePublicId)
+          .then((result) => {
             console.log('✅ Main image deleted:', result)
             return result
           })
-          .catch(error => {
+          .catch((error) => {
             console.error('❌ Failed to delete main image:', {
               error,
               publicId: mainImagePublicId,
-              url: mainImageUrl
+              url: mainImageUrl,
             })
             return null
-          })
+          }),
       )
     }
 
     // Delete gallery images
     if (logo.gallery?.length > 0) {
       console.log(`🗑️ Processing ${logo.gallery.length} gallery images...`)
-      
+
       for (const item of logo.gallery) {
         const imageUrl = item.imageUrl
         const galleryImagePublicId = `logos/${imageUrl.split('/').pop()?.split('.')[0]}`
         console.log('🖼️ Deleting gallery image:', { url: imageUrl, publicId: galleryImagePublicId })
-        
+
         deletePromises.push(
-          cloudinary.uploader.destroy(galleryImagePublicId)
-            .then(result => {
+          cloudinary.uploader
+            .destroy(galleryImagePublicId)
+            .then((result) => {
               console.log('✅ Gallery image deleted:', { publicId: galleryImagePublicId, result })
               return result
             })
-            .catch(error => {
+            .catch((error) => {
               console.error('❌ Failed to delete gallery image:', {
                 error,
                 publicId: galleryImagePublicId,
-                url: imageUrl
+                url: imageUrl,
               })
               return null
-            })
+            }),
         )
       }
     }
@@ -104,8 +100,8 @@ export async function DELETE(
       if (logo.gallery?.length > 0) {
         await tx.logoGallery.deleteMany({
           where: {
-            logoId: params.id
-          }
+            logoId: params.id,
+          },
         })
         console.log('✅ Gallery items deleted from database')
       }
@@ -113,8 +109,8 @@ export async function DELETE(
       // Then delete the logo itself
       await tx.logo.delete({
         where: {
-          id: params.id
-        }
+          id: params.id,
+        },
       })
       console.log('✅ Logo deleted from database')
     })
@@ -126,50 +122,50 @@ export async function DELETE(
     revalidateTag(CATALOG_TAG)
     console.log('✅ Pages revalidated')
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: 'Logo and associated images deleted successfully'
+      message: 'Logo and associated images deleted successfully',
     })
   } catch (error) {
     console.error('❌ Error deleting logo:', {
       error,
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
-      logoId: params.id
+      logoId: params.id,
     })
-    
+
     // Check for specific error types
     if (error instanceof Error) {
       if (error.message.includes('Record to delete does not exist')) {
         return NextResponse.json(
-          { 
+          {
             success: false,
             message: 'Logo not found',
-            error: error.message
+            error: error.message,
           },
-          { status: 404 }
+          { status: 404 },
         )
       }
-      
+
       if (error.message.includes('Cloudinary')) {
         return NextResponse.json(
-          { 
+          {
             success: false,
             message: 'Failed to delete logo images',
-            error: error.message
+            error: error.message,
           },
-          { status: 500 }
+          { status: 500 },
         )
       }
     }
-    
+
     return NextResponse.json(
-      { 
+      {
         success: false,
         message: 'Failed to delete logo',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
-} 
+}

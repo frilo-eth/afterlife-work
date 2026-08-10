@@ -1,5 +1,5 @@
-import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { LogoDetailView } from '@/components/logo/LogoDetailView'
 import { getLogoDetail, getPublishedLogoIds } from '@/lib/catalog'
 
@@ -11,11 +11,11 @@ export const dynamicParams = true
 
 export async function generateStaticParams() {
   const ids = await getPublishedLogoIds()
-  return ids.map(slug => ({ slug }))
+  return ids.map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({
-  params
+  params,
 }: {
   params: { slug: string }
 }): Promise<Metadata> {
@@ -31,18 +31,14 @@ export async function generateMetadata({
     openGraph: {
       title: logo.title,
       description: logo.description,
-      images: logo.thumbnail ? [logo.thumbnail] : undefined
-    }
+      images: logo.thumbnail ? [logo.thumbnail] : undefined,
+    },
   }
 }
 
-export default async function LogoDetailPage({
-  params
-}: {
-  params: { slug: string }
-}) {
-  // /teaser is a real route handled elsewhere, not a logo id.
-  if (params.slug === 'teaser') {
+export default async function LogoDetailPage({ params }: { params: { slug: string } }) {
+  // Reserved paths that have their own routes — never treat as a logo id.
+  if (params.slug === 'teaser' || params.slug === 'about') {
     notFound()
   }
 

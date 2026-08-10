@@ -1,9 +1,9 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
 import { LogOut } from 'lucide-react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
 export function AdminNav() {
@@ -27,12 +27,7 @@ export function AdminNav() {
             <span className="font-semibold text-foreground/90">God Mode</span>
           </Link>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Log out"
-            onClick={handleLogout}
-          >
+          <Button variant="ghost" size="icon" aria-label="Log out" onClick={handleLogout}>
             <LogOut />
           </Button>
         </div>

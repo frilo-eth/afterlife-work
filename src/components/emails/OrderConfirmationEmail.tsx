@@ -1,11 +1,11 @@
 import { Text } from '@react-email/components'
-import { BaseEmailTemplate } from './BaseEmailTemplate'
 import type { OrderConfirmationEmailProps } from '@/types/index'
+import { BaseEmailTemplate } from './BaseEmailTemplate'
 
 const formatAmount = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'USD',
   }).format(amount)
 }
 
@@ -14,15 +14,15 @@ const capitalizeFirstLetter = (string: string) => {
 }
 
 export function OrderConfirmationEmail({
-  customerEmail,
+  customerEmail: _customerEmail,
   logoTitle,
   amount,
   tier,
-  options
+  options,
 }: OrderConfirmationEmailProps) {
   const formattedAmount = formatAmount(amount)
   const formattedTier = capitalizeFirstLetter(tier)
-  
+
   return (
     <BaseEmailTemplate
       previewText={`Order confirmation for ${logoTitle}`}
@@ -30,18 +30,19 @@ export function OrderConfirmationEmail({
       body={
         <>
           <Text style={styles.text}>
-            We are excited to confirm you purchased the <span style={styles.bold}>{logoTitle}</span> unit.
+            We are excited to confirm you purchased the <span style={styles.bold}>{logoTitle}</span>{' '}
+            unit.
           </Text>
-          
+
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>Order Details</Text>
             <div style={styles.detailsGrid}>
               <Text style={styles.label}>Amount:</Text>
               <Text style={styles.value}>{formattedAmount}</Text>
-              
+
               <Text style={styles.label}>Package:</Text>
               <Text style={styles.value}>{formattedTier}</Text>
-              
+
               {options?.wordmark && (
                 <>
                   <Text style={styles.label}>Wordmark:</Text>

@@ -1,8 +1,8 @@
 'use client'
 
-import type { ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import type { ReactNode } from 'react'
 import { AdminNav } from '@/components/AdminNav'
 import { cn } from '@/lib/utils'
 
@@ -13,7 +13,7 @@ const SECTIONS = [
   { key: 'logos', label: 'Logos', href: '/admin/logos' },
   { key: 'submissions', label: 'Submissions', href: '/admin/submissions' },
   { key: 'orders', label: 'Orders', href: '/admin/orders' },
-  { key: 'designers', label: 'Designers', href: '/admin/designers' }
+  { key: 'designers', label: 'Designers', href: '/admin/designers' },
 ]
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -30,14 +30,14 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             className="absolute inset-0"
             style={{
               backgroundImage: 'radial-gradient(circle at 1px 1px, white 1px, transparent 0)',
-              backgroundSize: '40px 40px'
+              backgroundSize: '40px 40px',
             }}
           />
         </div>
 
         <nav aria-label="Admin sections" className="relative z-10 mb-6 border-b border-border">
           <ul className="flex gap-1">
-            {SECTIONS.map(section => {
+            {SECTIONS.map((section) => {
               const isCurrent = currentSection === section.key
               return (
                 <li key={section.key}>
@@ -49,7 +49,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                       'transition-[color,border-color,font-weight] duration-quick ease-settle',
                       isCurrent
                         ? 'border-foreground font-semibold text-foreground'
-                        : 'border-transparent font-medium text-muted-foreground hover:text-foreground'
+                        : 'border-transparent font-medium text-muted-foreground hover:text-foreground',
                     )}
                   >
                     {section.label}

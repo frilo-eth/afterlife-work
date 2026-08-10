@@ -1,27 +1,27 @@
-"use client";
+'use client'
 
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { motion } from 'framer-motion'
 import {
+  type ComponentPropsWithoutRef,
   createContext,
   forwardRef,
+  type HTMLAttributes,
   useContext,
   useEffect,
   useState,
-  type ComponentPropsWithoutRef,
-  type HTMLAttributes,
-} from "react";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { motion } from "framer-motion";
-import { cn } from "@/lib/utils";
-import { useIcon } from "@/lib/icon-context";
-import { spring, exitFallbackMs } from "@/lib/springs";
-import { useShape } from "@/lib/shape-context";
-import { SurfaceProvider, useSurface } from "@/lib/surface-context";
-import { surfaceClasses } from "@/lib/surface-classes";
-import { Button } from "@/components/ui/button";
+} from 'react'
+import { Button } from '@/components/ui/button'
+import { useIcon } from '@/lib/icon-context'
+import { useShape } from '@/lib/shape-context'
+import { exitFallbackMs, spring } from '@/lib/springs'
+import { surfaceClasses } from '@/lib/surface-classes'
+import { SurfaceProvider, useSurface } from '@/lib/surface-context'
+import { cn } from '@/lib/utils'
 
-const DIALOG_OFFSET = 4;
+const DIALOG_OFFSET = 4
 
-const DialogOpenContext = createContext(false);
+const DialogOpenContext = createContext(false)
 
 function Dialog({
   children,
@@ -35,12 +35,12 @@ function Dialog({
   // uncontrolled dialog with an onOpenChange prop could never open. The Root
   // below is always controlled by `open`, so defaultOpen seeds our state
   // instead of being forwarded.
-  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen ?? false);
-  const open = controlledOpen ?? uncontrolledOpen;
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(defaultOpen ?? false)
+  const open = controlledOpen ?? uncontrolledOpen
   const handleOpenChange = (next: boolean) => {
-    setUncontrolledOpen(next);
-    onOpenChange?.(next);
-  };
+    setUncontrolledOpen(next)
+    onOpenChange?.(next)
+  }
 
   return (
     <DialogOpenContext.Provider value={open}>
@@ -48,35 +48,56 @@ function Dialog({
         {children}
       </DialogPrimitive.Root>
     </DialogOpenContext.Provider>
-  );
+  )
 }
 
-const DialogTrigger = DialogPrimitive.Trigger;
-const DialogClose = DialogPrimitive.Close;
+const DialogTrigger = DialogPrimitive.Trigger
+const DialogClose = DialogPrimitive.Close
 
-interface DialogContentProps
-  extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
-  size?: "sm" | "lg";
+interface DialogContentProps extends ComponentPropsWithoutRef<typeof DialogPrimitive.Content> {
+  size?: 'sm' | 'lg'
+  /** Hide the built-in corner close control when the caller supplies its own. */
+  hideClose?: boolean
+  /**
+   * Where the panel sits.
+   * - `center` — default modal
+   * - `right` — floating panel docked to the right edge
+   * - `fullscreen` — edge-to-edge takeover (submit / success flows)
+   */
+  placement?: 'center' | 'right' | 'fullscreen'
   /** Portal target. When set, the overlay and panel render inside this element
    *  (positioned `absolute`) instead of covering the viewport (`fixed`). Pair
    *  with a `position: relative; overflow: hidden` container — and usually
    *  `<Dialog modal={false}>` — to scope a dialog to a bounded region, e.g. a
    *  docs preview. Defaults to the document body / full-viewport behaviour. */
-  container?: HTMLElement | null;
+  container?: HTMLElement | null
 }
 
 const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
-  ({ className, children, size = "sm", container, ...props }, ref) => {
-    const XIcon = useIcon("x");
-    const open = useContext(DialogOpenContext);
-    const shape = useShape();
-    const substrate = useSurface();
-    const dialogLevel = Math.min(substrate + DIALOG_OFFSET, 8);
-    const [mounted, setMounted] = useState(false);
+  (
+    {
+      className,
+      children,
+      size = 'sm',
+      hideClose = false,
+      placement = 'center',
+      container,
+      ...props
+    },
+    ref,
+  ) => {
+    const XIcon = useIcon('x')
+    const open = useContext(DialogOpenContext)
+    const shape = useShape()
+    const substrate = useSurface()
+    const dialogLevel = Math.min(substrate + DIALOG_OFFSET, 8)
+    const [mounted, setMounted] = useState(false)
+    const isRight = placement === 'right'
+    const isFullscreen = placement === 'fullscreen'
 
     useEffect(() => {
-      if (open) setMounted(true);
-    }, [open]);
+      if (open) setMounted(true)
+    }, [open])
 
     // Fallback release for the deferred unmount: onAnimationComplete on the
     // panel is the primary signal, but rAF-driven animation callbacks can
@@ -84,24 +105,27 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
     // overlay (and Radix's scroll lock) in place. Both exit tweens run at
     // spring.slow.exit, so the fallback tracks that tier.
     useEffect(() => {
-      if (open) return;
-      const id = setTimeout(() => setMounted(false), exitFallbackMs(spring.slow));
-      return () => clearTimeout(id);
-    }, [open]);
+      if (open) return
+      const id = setTimeout(() => setMounted(false), exitFallbackMs(spring.slow))
+      return () => clearTimeout(id)
+    }, [open])
 
     const handleExitComplete = () => {
-      if (!open) setMounted(false);
-    };
+      if (!open) setMounted(false)
+    }
 
-    if (!mounted) return null;
+    if (!mounted) return null
 
     return (
       <DialogPrimitive.Portal forceMount container={container ?? undefined}>
         <DialogPrimitive.Overlay asChild forceMount>
           <motion.div
             className={cn(
-              container ? "absolute" : "fixed",
-              "inset-0 z-50 bg-black/40 dark:bg-black/80"
+              container ? 'absolute' : 'fixed',
+              'inset-0 z-50',
+              // Fullscreen panels own the canvas; keep the dimmer off so the
+              // takeover reads as a page, not a card over a darkened site.
+              isFullscreen ? 'bg-transparent' : 'bg-black/40 dark:bg-black/80',
             )}
             initial={{ opacity: 0 }}
             animate={{ opacity: open ? 1 : 0 }}
@@ -111,62 +135,71 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
         <DialogPrimitive.Content ref={ref} asChild forceMount {...props}>
           <motion.div
             className={cn(
-              container ? "absolute" : "fixed",
-              "left-1/2 top-1/2 z-50 w-[calc(100%-2rem)]",
-              surfaceClasses(dialogLevel),
-              "p-6 focus:outline-none",
-              size === "sm" && "max-w-[400px]",
-              size === "lg" && "max-w-[540px]",
-              shape.container,
-              className
+              container ? 'absolute' : 'fixed',
+              'z-50 focus:outline-none',
+              !isFullscreen && surfaceClasses(dialogLevel),
+              !isFullscreen && 'p-6',
+              isFullscreen && 'inset-0 h-[100dvh] w-screen max-w-none overflow-y-auto rounded-none border-0 bg-background p-0 shadow-none',
+              isRight && 'right-4 top-1/2 w-[min(100%-2rem,28rem)] sm:right-6',
+              !isRight &&
+                !isFullscreen &&
+                'left-1/2 top-1/2 w-[calc(100%-2rem)]',
+              !isRight && !isFullscreen && size === 'sm' && 'max-w-[400px]',
+              !isRight && !isFullscreen && size === 'lg' && 'max-w-[540px]',
+              !isFullscreen && shape.container,
+              className,
             )}
-            initial={{ opacity: 0, scale: 0.97, x: "-50%", y: "-50%" }}
-            animate={{
-              opacity: open ? 1 : 0,
-              scale: open ? 1 : 0.97,
-              x: "-50%",
-              y: "-50%",
-            }}
+            initial={
+              isFullscreen
+                ? { opacity: 0 }
+                : isRight
+                  ? { opacity: 0, x: 20, y: '-50%' }
+                  : { opacity: 0, scale: 0.97, x: '-50%', y: '-50%' }
+            }
+            animate={
+              isFullscreen
+                ? { opacity: open ? 1 : 0 }
+                : isRight
+                  ? {
+                      opacity: open ? 1 : 0,
+                      x: open ? 0 : 20,
+                      y: '-50%',
+                    }
+                  : {
+                      opacity: open ? 1 : 0,
+                      scale: open ? 1 : 0.97,
+                      x: '-50%',
+                      y: '-50%',
+                    }
+            }
             transition={open ? spring.slow : spring.slow.exit}
             onAnimationComplete={handleExitComplete}
           >
-            <SurfaceProvider value={dialogLevel}>
+            <SurfaceProvider value={isFullscreen ? substrate : dialogLevel}>
               {children}
-              <DialogPrimitive.Close asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="absolute right-3 top-3"
-                >
-                  <XIcon />
-                  <span className="sr-only">Close</span>
-                </Button>
-              </DialogPrimitive.Close>
+              {!hideClose && (
+                <DialogPrimitive.Close asChild>
+                  <Button variant="ghost" size="icon-sm" className="absolute right-3 top-3">
+                    <XIcon />
+                    <span className="sr-only">Close</span>
+                  </Button>
+                </DialogPrimitive.Close>
+              )}
             </SurfaceProvider>
           </motion.div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
-    );
-  }
-);
-DialogContent.displayName = "DialogContent";
+    )
+  },
+)
+DialogContent.displayName = 'DialogContent'
 
 function DialogHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("flex flex-col gap-1.5 mb-4", className)}
-      {...props}
-    />
-  );
+  return <div className={cn('flex flex-col gap-1.5 mb-4', className)} {...props} />
 }
 
 function DialogFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={cn("flex justify-end gap-2 mt-6", className)}
-      {...props}
-    />
-  );
+  return <div className={cn('flex justify-end gap-2 mt-6', className)} {...props} />
 }
 
 const DialogTitle = forwardRef<
@@ -175,12 +208,12 @@ const DialogTitle = forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={cn("text-[16px] text-foreground leading-tight", className)}
+    className={cn('text-[16px] text-foreground leading-tight', className)}
     style={{ fontVariationSettings: "'wght' 700" }}
     {...props}
   />
-));
-DialogTitle.displayName = "DialogTitle";
+))
+DialogTitle.displayName = 'DialogTitle'
 
 const DialogDescription = forwardRef<
   HTMLParagraphElement,
@@ -188,19 +221,19 @@ const DialogDescription = forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-[13px] text-muted-foreground", className)}
+    className={cn('text-[13px] text-muted-foreground', className)}
     {...props}
   />
-));
-DialogDescription.displayName = "DialogDescription";
+))
+DialogDescription.displayName = 'DialogDescription'
 
 export {
   Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
   DialogClose,
-};
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+}

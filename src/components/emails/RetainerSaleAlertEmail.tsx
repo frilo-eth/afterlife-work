@@ -14,11 +14,11 @@ export function RetainerSaleAlertEmail({
   buyerEmail,
   retainerAmount,
   purchaseDate,
-  transactionId
+  transactionId,
 }: RetainerSaleAlertEmailProps) {
   const formattedAmount = new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'USD',
   }).format(retainerAmount / 100)
 
   return (
@@ -27,10 +27,8 @@ export function RetainerSaleAlertEmail({
       heading="New Retainer Sale 🎉"
       body={
         <>
-          <Text style={styles.text}>
-            A new retainer has been purchased!
-          </Text>
-          
+          <Text style={styles.text}>A new retainer has been purchased!</Text>
+
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>Sale Details</Text>
             <Text style={styles.text}>
@@ -52,15 +50,9 @@ export function RetainerSaleAlertEmail({
 
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>Required Actions</Text>
-            <Text style={styles.text}>
-              1. Review buyer information
-            </Text>
-            <Text style={styles.text}>
-              2. Verify payment processing
-            </Text>
-            <Text style={styles.text}>
-              3. Set up retainer access
-            </Text>
+            <Text style={styles.text}>1. Review buyer information</Text>
+            <Text style={styles.text}>2. Verify payment processing</Text>
+            <Text style={styles.text}>3. Set up retainer access</Text>
           </div>
         </>
       }
@@ -96,5 +88,5 @@ const styles = {
   label: {
     color: '#666666',
     fontWeight: '600',
-  }
-} 
+  },
+}

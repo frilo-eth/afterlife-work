@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 const data = [
   { name: 'Jan', value: 0 },
   { name: 'Feb', value: 0 },
-  { name: 'Mar', value: 0 }
+  { name: 'Mar', value: 0 },
 ]
 
 export default function AnalyticsPage() {
@@ -31,7 +31,7 @@ export default function AnalyticsPage() {
                     background: 'hsl(var(--popover))',
                     border: '1px solid hsl(var(--border))',
                     borderRadius: 'var(--radius)',
-                    color: 'hsl(var(--popover-foreground))'
+                    color: 'hsl(var(--popover-foreground))',
                   }}
                 />
                 <Bar dataKey="value" fill="hsl(var(--foreground))" radius={[4, 4, 0, 0]} />

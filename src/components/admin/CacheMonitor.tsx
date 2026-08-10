@@ -1,14 +1,14 @@
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 
 interface CacheStats {
-  hitRate: number;
-  missRate: number;
-  keyCount: number;
-  isConnected: boolean;
+  hitRate: number
+  missRate: number
+  keyCount: number
+  isConnected: boolean
 }
 
 export default function CacheMonitor() {
@@ -16,33 +16,33 @@ export default function CacheMonitor() {
     hitRate: 0,
     missRate: 0,
     keyCount: 0,
-    isConnected: false
-  });
-  const [error, setError] = useState<string | null>(null);
+    isConnected: false,
+  })
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/cache/stats');
+        const response = await fetch('/api/cache/stats')
         if (response.ok) {
-          const data = await response.json();
-          setStats(data);
-          setError(null);
+          const data = await response.json()
+          setStats(data)
+          setError(null)
         } else {
-          throw new Error('Failed to fetch cache stats');
+          throw new Error('Failed to fetch cache stats')
         }
       } catch (error) {
-        console.warn('Error fetching cache stats:', error);
-        setError('Failed to connect to cache server');
+        console.warn('Error fetching cache stats:', error)
+        setError('Failed to connect to cache server')
       }
-    };
+    }
 
     // Fetch initially and then every 30 seconds
-    fetchStats();
-    const interval = setInterval(fetchStats, 30000);
+    fetchStats()
+    const interval = setInterval(fetchStats, 30000)
 
-    return () => clearInterval(interval);
-  }, []);
+    return () => clearInterval(interval)
+  }, [])
 
   if (!stats.isConnected) {
     return (
@@ -59,7 +59,7 @@ export default function CacheMonitor() {
           </Alert>
         </CardContent>
       </Card>
-    );
+    )
   }
 
   return (
@@ -99,5 +99,5 @@ export default function CacheMonitor() {
         )}
       </CardContent>
     </Card>
-  );
-} 
+  )
+}

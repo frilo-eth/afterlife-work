@@ -12,7 +12,7 @@ export function LogoRejectionEmail({
   designerName,
   logoTitle,
   reason,
-  feedback
+  feedback,
 }: LogoRejectionEmailProps) {
   return (
     <BaseEmailTemplate
@@ -20,40 +20,29 @@ export function LogoRejectionEmail({
       heading="Logo Submission Update"
       body={
         <>
+          <Text style={styles.text}>Hi {designerName},</Text>
+
           <Text style={styles.text}>
-            Hi {designerName},
+            We've reviewed your logo <span style={styles.bold}>{logoTitle}</span> and unfortunately,
+            we cannot accept it at this time.
           </Text>
-          
-          <Text style={styles.text}>
-            We've reviewed your logo <span style={styles.bold}>{logoTitle}</span> and unfortunately, we cannot accept it at this time.
-          </Text>
-          
+
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>Reason</Text>
-            <Text style={styles.text}>
-              {reason}
-            </Text>
+            <Text style={styles.text}>{reason}</Text>
             {feedback && (
               <>
                 <Text style={styles.detailsHeading}>Additional Feedback</Text>
-                <Text style={styles.text}>
-                  {feedback}
-                </Text>
+                <Text style={styles.text}>{feedback}</Text>
               </>
             )}
           </div>
 
           <div style={styles.details}>
             <Text style={styles.detailsHeading}>What's Next?</Text>
-            <Text style={styles.text}>
-              1. Review our submission guidelines
-            </Text>
-            <Text style={styles.text}>
-              2. Make necessary adjustments based on feedback
-            </Text>
-            <Text style={styles.text}>
-              3. Submit a new version or a different logo
-            </Text>
+            <Text style={styles.text}>1. Review our submission guidelines</Text>
+            <Text style={styles.text}>2. Make necessary adjustments based on feedback</Text>
+            <Text style={styles.text}>3. Submit a new version or a different logo</Text>
           </div>
 
           <Text style={styles.text}>
@@ -92,5 +81,5 @@ const styles = {
     fontSize: '18px',
     fontWeight: '600',
     margin: '0 0 16px',
-  }
-} 
+  },
+}

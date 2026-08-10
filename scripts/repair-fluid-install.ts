@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { execSync } from 'node:child_process'
 /**
  * Repairs the two files the @fluid registry overwrites on every install.
  *
@@ -9,8 +10,7 @@
  *
  * Idempotent — safe to run repeatedly.
  */
-import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
-import { execSync } from 'node:child_process'
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 const UTILS = 'src/lib/utils.ts'
@@ -23,9 +23,7 @@ let changed = false
   const current = readFileSync(UTILS, 'utf8')
   if (!current.includes('generatePublicReference')) {
     // Recover the helpers from the last commit that still had them.
-    const previous = execSync(
-      `git log --format=%H -S generatePublicReference -1 -- ${UTILS}`
-    )
+    const previous = execSync(`git log --format=%H -S generatePublicReference -1 -- ${UTILS}`)
       .toString()
       .trim()
     const original = execSync(`git show ${previous}:${UTILS}`).toString()
@@ -47,12 +45,12 @@ let changed = false
   if (!source.includes('| LucideIcon')) {
     source = source.replace(
       'export type IconComponent = ComponentType<IconComponentProps>;',
-      'export type IconComponent = ComponentType<IconComponentProps> | LucideIcon;'
+      'export type IconComponent = ComponentType<IconComponentProps> | LucideIcon;',
     )
     if (!source.includes('type LucideIcon')) {
       source = source.replace(
         '"use client";\n',
-        '"use client";\n\nimport type { LucideIcon } from "lucide-react";\n'
+        '"use client";\n\nimport type { LucideIcon } from "lucide-react";\n',
       )
     }
   }
@@ -61,7 +59,7 @@ let changed = false
   const mapStart = source.indexOf('export const defaultIcons')
   const mapEnd = source.indexOf('const IconContext')
   const used = new Set(
-    [...source.slice(mapStart, mapEnd).matchAll(/:\s*([A-Z][A-Za-z0-9_]*)\s*,/g)].map(m => m[1])
+    [...source.slice(mapStart, mapEnd).matchAll(/:\s*([A-Z][A-Za-z0-9_]*)\s*,/g)].map((m) => m[1]),
   )
   const importMatch = source.match(/import \{([^}]*)\} from "lucide-react";/)
 
@@ -69,10 +67,10 @@ let changed = false
     const imported = new Set(
       importMatch[1]
         .split(',')
-        .map(name => name.trim())
-        .filter(Boolean)
+        .map((name) => name.trim())
+        .filter(Boolean),
     )
-    const missing = [...used].filter(name => !imported.has(name)).sort()
+    const missing = [...used].filter((name) => !imported.has(name)).sort()
 
     if (missing.length > 0) {
       const merged = `${importMatch[1].trimEnd().replace(/,$/, '')},\n  ${missing.join(',\n  ')},\n`
@@ -100,7 +98,7 @@ let changed = false
     const source = readFileSync(path, 'utf8')
     const rewritten = source.replace(
       /from "@\/components\/(?!ui\/)([a-z0-9-]+)"/g,
-      'from "@/components/ui/$1"'
+      'from "@/components/ui/$1"',
     )
     if (rewritten !== source) {
       writeFileSync(path, rewritten)
@@ -122,7 +120,7 @@ let changed = false
     const source = readFileSync(path, 'utf8')
     const rewritten = source.replace(
       /useRef<((?:[^<>()]|<[^<>]*>|\([^()]*\))+?)>\(null\)/g,
-      (match, type: string) => (type.includes('| null') ? match : `useRef<${type} | null>(null)`)
+      (match, type: string) => (type.includes('| null') ? match : `useRef<${type} | null>(null)`),
     )
     if (rewritten !== source) {
       writeFileSync(path, rewritten)
@@ -144,8 +142,8 @@ let changed = false
       path,
       source.replace(
         transparentRest,
-        '      bgClass = "bg-card";\n      ringClass = "ring-border";'
-      )
+        '      bgClass = "bg-card";\n      ringClass = "ring-border";',
+      ),
     )
     console.log('  restored input resting surface in input-group.tsx')
     changed = true

@@ -1,7 +1,6 @@
 'use client'
 
-import { Card } from '@nextui-org/react'
-import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react'
+import { DollarSign, TrendingDown, TrendingUp } from 'lucide-react'
 
 interface CostMetric {
   name: string
@@ -22,7 +21,7 @@ export function CostAnalysis({ metrics, burnRate, estimatedAnnual }: CostAnalysi
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
-      minimumFractionDigits: 2
+      minimumFractionDigits: 2,
     }).format(amount / 100)
   }
 
@@ -43,10 +42,7 @@ export function CostAnalysis({ metrics, burnRate, estimatedAnnual }: CostAnalysi
       {/* Cost Metrics */}
       <div className="space-y-4">
         {metrics.map((metric) => (
-          <div 
-            key={metric.name}
-            className="rounded-lg bg-background/40"
-          >
+          <div key={metric.name} className="rounded-lg bg-background/40">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-foreground">{metric.name}</span>
               <div className="flex items-center gap-1">
@@ -55,25 +51,22 @@ export function CostAnalysis({ metrics, burnRate, estimatedAnnual }: CostAnalysi
                 ) : (
                   <TrendingDown className="w-4 h-4 text-green-500" />
                 )}
-                <span className={`text-xs ${
-                  metric.trend > 0 ? 'text-red-500' : 'text-green-500'
-                }`}>
+                <span className={`text-xs ${metric.trend > 0 ? 'text-red-500' : 'text-green-500'}`}>
                   {Math.abs(metric.trend)}%
                 </span>
               </div>
             </div>
             <div className="flex items-baseline justify-between">
               <p className="text-lg font-medium">
-                {metric.unit === 'currency' 
+                {metric.unit === 'currency'
                   ? formatCurrency(metric.current)
-                  : `${metric.current}${metric.unit}`
-                }
+                  : `${metric.current}${metric.unit}`}
               </p>
               <p className="text-sm text-foreground-subtle">
-                vs {metric.unit === 'currency'
+                vs{' '}
+                {metric.unit === 'currency'
                   ? formatCurrency(metric.previous)
-                  : `${metric.previous}${metric.unit}`
-                }
+                  : `${metric.previous}${metric.unit}`}
               </p>
             </div>
           </div>
@@ -81,4 +74,4 @@ export function CostAnalysis({ metrics, burnRate, estimatedAnnual }: CostAnalysi
       </div>
     </div>
   )
-} 
+}

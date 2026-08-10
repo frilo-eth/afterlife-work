@@ -1,9 +1,9 @@
 'use client'
 
-import React from 'react'
-import { XCircle, Maximize2, Loader2 } from 'lucide-react'
 import { Button } from '@nextui-org/react'
+import { Loader2, Maximize2, XCircle } from 'lucide-react'
 import Image from 'next/image'
+import React from 'react'
 import { toast } from 'sonner'
 
 interface FilePreviewProps {
@@ -16,23 +16,23 @@ interface FilePreviewProps {
   file?: File
 }
 
-export const FilePreview = ({ 
-  preview, 
-  loading, 
-  error, 
+export const FilePreview = ({
+  preview,
+  loading,
+  error,
   onRemove,
   onPreview,
-  className = "",
-  file
+  className = '',
+  file,
 }: FilePreviewProps) => {
   // Helper to check if file is a vector (excluding SVG)
   const isNonPreviewableVector = file?.name.match(/\.(ai|eps|pdf)$/i)
   const isSvg = file?.name.toLowerCase().endsWith('.svg')
-  
+
   const handleRemove = () => {
     if (onRemove && window.confirm('Are you sure you want to delete this file?')) {
       onRemove()
-      toast.success("File deleted successfully")
+      toast.success('File deleted successfully')
     }
   }
 
@@ -47,35 +47,19 @@ export const FilePreview = ({
           <p className="text-xs text-red-500">{error}</p>
         </div>
       ) : null}
-      
+
       <div className="group relative aspect-square">
         {isNonPreviewableVector ? (
           <div className="w-full h-full flex flex-col items-center justify-center bg-black/5 rounded-lg p-4">
-            <img 
-              src="/file-vector.svg"
-              alt="File icon" 
-              className="w-12 h-12 mb-2"
-            />
-            <p className="text-sm text-gray-600 truncate max-w-full">
-              {file?.name}
-            </p>
+            <img src="/file-vector.svg" alt="File icon" className="w-12 h-12 mb-2" />
+            <p className="text-sm text-gray-600 truncate max-w-full">{file?.name}</p>
           </div>
         ) : isSvg ? (
-          <Image
-            src={preview}
-            alt="SVG preview"
-            fill
-            className="object-contain rounded-lg p-4"
-          />
+          <Image src={preview} alt="SVG preview" fill className="object-contain rounded-lg p-4" />
         ) : (
-          <Image
-            src={preview}
-            alt="File preview"
-            fill
-            className="object-cover rounded-lg"
-          />
+          <Image src={preview} alt="File preview" fill className="object-cover rounded-lg" />
         )}
-        
+
         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           {/* Only show preview for SVG files */}
           {isSvg && onPreview && (
@@ -102,4 +86,4 @@ export const FilePreview = ({
       </div>
     </div>
   )
-} 
+}

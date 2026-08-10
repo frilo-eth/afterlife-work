@@ -1,15 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { ChevronLeft } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
+import { useState } from 'react'
 import { ImageGallery } from '@/components/logo/ImageGallery'
 import { PricingSelectorTabs } from '@/components/ui/PricingSelectorTabs'
-import { BookCallModal } from '@/components/modals/BookCallModal'
-import { generatePublicReference } from '@/lib/utils'
 import type { LogoDetail } from '@/lib/catalog'
+import { AFTERLIFE_PRICE_LABEL } from '@/lib/price-constants'
+import { generatePublicReference } from '@/lib/utils'
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
   ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
@@ -23,7 +20,7 @@ const formatTitle = (title: string) =>
     .replace(/_/g, ' ')
     .split(' ')
     .filter(Boolean)
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
     .trim()
 
@@ -33,24 +30,16 @@ interface LogoDetailViewProps {
 
 /**
  * Interactive half of the product page. The logo itself is rendered by the
- * server; this owns checkout, the booking modal, and their error states.
+ * server; this owns checkout and its error states.
  */
 export function LogoDetailView({ logo }: LogoDetailViewProps) {
-  const router = useRouter()
-  const [isCallModalOpen, setIsCallModalOpen] = useState(false)
   const [checkoutError, setCheckoutError] = useState('')
   const [isRedirecting, setIsRedirecting] = useState(false)
 
   const handleSelect = async (
     tier: 'summon' | 'revival' | 'afterlife',
-    options?: { wordmark?: string; domain?: string }
+    options?: { wordmark?: boolean | string; domain?: string },
   ) => {
-    if (tier === 'afterlife') {
-      setCheckoutError('')
-      setIsCallModalOpen(true)
-      return
-    }
-
     if (!stripePromise) {
       setCheckoutError('Payments are unavailable right now. Please try again later.')
       return
@@ -63,7 +52,7 @@ export function LogoDetailView({ logo }: LogoDetailViewProps) {
       const response = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ logoId: logo.id, tier, options })
+        body: JSON.stringify({ logoId: logo.id, tier, options }),
       })
 
       const data = await response.json()
@@ -74,50 +63,18 @@ export function LogoDetailView({ logo }: LogoDetailViewProps) {
 
       window.location.href = data.url
     } catch (error) {
-      setCheckoutError(
-        error instanceof Error ? error.message : 'We could not start checkout.'
-      )
+      setCheckoutError(error instanceof Error ? error.message : 'We could not start checkout.')
       setIsRedirecting(false)
     }
   }
 
   return (
     <div className="container mx-auto px-4 pt-8 pb-8">
-      <div className="sticky top-16 z-30 bg-gradient-to-b from-background via-background/95 to-transparent pb-4 -mx-4 px-4 pt-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          leadingIcon={ChevronLeft}
-          onClick={() => router.push('/')}
-        >
-          Back to Collection
-        </Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        <div className="lg:col-span-2 space-y-6">
-          <ImageGallery images={logo.images} title={formatTitle(logo.title)} />
-
-          <div className="space-y-4">
-            <span className="font-mono text-sm tracking-wider uppercase text-foreground-subtle">
-              {generatePublicReference(logo.id)}
-            </span>
-            <h1 className="text-4xl font-bold">{formatTitle(logo.title)}</h1>
-            <div className="flex gap-2">
-              {logo.tags?.map(tag => (
-                <span key={tag} className="text-xs px-2 py-1 rounded-full bg-accent">
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <p className="text-foreground-muted">{logo.description}</p>
-          </div>
-        </div>
-
-        <div>
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-3">
+        <div className="space-y-8">
           {logo.status === 'SOLD' ? (
-            <div className="rounded-lg border border-border bg-secondary p-6">
-              <h2 className="text-lg font-medium mb-1">This one has been revived</h2>
+            <div className="rounded-xl border border-border bg-secondary p-6">
+              <h2 className="mb-1 text-lg font-medium">This one has been revived</h2>
               <p className="text-sm text-foreground-muted">
                 It already found an owner and is no longer for sale.
               </p>
@@ -130,21 +87,42 @@ export function LogoDetailView({ logo }: LogoDetailViewProps) {
               // figures regardless of what was set in the database.
               price={
                 logo.price ?? {
-                  summon: 1000,
+                  summon: 2500,
                   revival: 5000,
-                  afterlife: 'Custom'
+                  afterlife: AFTERLIFE_PRICE_LABEL,
                 }
               }
               onSelect={handleSelect}
             />
           )}
+
+          <div className="space-y-3 px-1">
+            <span className="block font-mono text-metadata uppercase tracking-wider text-foreground-subtle">
+              {generatePublicReference(logo.id)}
+            </span>
+            <h1 className="text-heading-24 text-foreground">{formatTitle(logo.title)}</h1>
+            {logo.tags && logo.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {logo.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-lg border border-border bg-muted/40 px-2 py-0.5 text-caption text-foreground-subtle"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
+            {logo.description && (
+              <p className="text-caption text-foreground-muted text-pretty">{logo.description}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="lg:col-span-2">
+          <ImageGallery images={logo.images} title={formatTitle(logo.title)} />
         </div>
       </div>
-
-      <BookCallModal
-        isOpen={isCallModalOpen}
-        onClose={() => setIsCallModalOpen(false)}
-      />
 
       {checkoutError && (
         <div

@@ -1,5 +1,5 @@
-import { Hero } from '@/components/hero/Hero'
 import { CatalogSection } from '@/components/catalog/CatalogSection'
+import { Hero } from '@/components/hero/Hero'
 import { getAvailableLogos } from '@/lib/catalog'
 
 // Prerendered and served from the edge, revalidated hourly or on demand when
