@@ -5,6 +5,7 @@ import { Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { InputGroup, InputField } from '@/components/ui/input-group'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useRowOverflow } from '@/hooks/useRowOverflow'
 import { LOGO_TAGS } from '@/lib/constants'
 import { cn } from '@/lib/utils'
 
@@ -18,12 +19,6 @@ interface FilterBarProps {
   /** How many logos carry each tag, so the panel can show weight. */
   tagCounts?: Record<string, number>
 }
-
-// The row shows a fixed set and defers the rest to the panel. Deciding how
-// many fit by measurement means reading layout on every resize and still
-// clipping a pill at some width; a fixed count is stable, and the panel holds
-// the full vocabulary.
-const VISIBLE_TAGS = 8
 
 function FilterPill({
   label,
@@ -84,12 +79,16 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
     setSearchInput('')
   }, [])
 
-  // A tag chosen from the panel stays on the row even when it sits outside
-  // the visible slice — otherwise an active filter would be invisible.
-  const rowTags = useMemo(() => {
-    const head: string[] = LOGO_TAGS.slice(0, VISIBLE_TAGS)
-    return [...head, ...styles.filter(tag => !head.includes(tag))]
+  // Selected tags lead the row, so an active filter is never the one pushed
+  // into the overflow panel.
+  const orderedTags = useMemo(() => {
+    const all: string[] = [...LOGO_TAGS]
+    return [...styles, ...all.filter(tag => !styles.includes(tag))]
   }, [styles])
+
+  // How many actually fit on one line, measured. The row must never wrap —
+  // that is the entire reason the overflow panel exists.
+  const { containerRef, trailingRef, visibleCount } = useRowOverflow(orderedTags.length)
 
   const hasFilters = selectedStyles.size > 0 || searchInput.length > 0
 
@@ -108,36 +107,56 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
             />
           </InputGroup>
 
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-            {rowTags.map(style => (
-              <FilterPill
+          <div
+            ref={containerRef}
+            className="flex min-w-0 flex-1 flex-nowrap items-center gap-2 overflow-hidden"
+          >
+            {orderedTags.map((style, index) => (
+              <div
                 key={style}
-                label={style}
-                active={selectedStyles.has(style)}
-                onToggle={() => toggleFilter(style)}
-              />
+                data-row-item="true"
+                // Every tag is measured, but only those that fit are shown.
+                // Overflow items are taken out of flow rather than unmounted,
+                // so they keep real dimensions for the next measurement — and
+                // a display:contents wrapper would have no box to measure at
+                // all.
+                className={
+                  index < visibleCount
+                    ? 'shrink-0'
+                    : 'pointer-events-none invisible absolute -z-10 shrink-0'
+                }
+                aria-hidden={index >= visibleCount}
+              >
+                <FilterPill
+                  label={style}
+                  active={selectedStyles.has(style)}
+                  onToggle={() => toggleFilter(style)}
+                />
+              </div>
             ))}
 
-            <Button
-              variant="ghost"
-              size="md"
-              className="shrink-0 rounded-full"
-              aria-haspopup="dialog"
-              onClick={() => setTagsOpen(true)}
-            >
-              All tags
-            </Button>
-
-            {hasFilters && (
+            <div ref={trailingRef} className="ml-auto flex shrink-0 items-center gap-2">
               <Button
                 variant="ghost"
                 size="md"
-                onClick={clearAll}
-                className="shrink-0 rounded-full text-foreground-subtle"
+                className="shrink-0 rounded-full"
+                aria-haspopup="dialog"
+                onClick={() => setTagsOpen(true)}
               >
-                Clear
+                All tags
               </Button>
-            )}
+
+              {hasFilters && (
+                <Button
+                  variant="ghost"
+                  size="md"
+                  onClick={clearAll}
+                  className="shrink-0 rounded-full text-foreground-subtle"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </div>
