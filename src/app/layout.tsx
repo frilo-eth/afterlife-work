@@ -4,7 +4,6 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { Header } from "../components/layout/Header"
 import { Footer } from "../components/layout/Footer"
-import { LoadingScreen } from "@/components/LoadingScreen"
 import { Analytics } from "@vercel/analytics/react"
 import type { Metadata } from 'next'
 import "./globals.css"
@@ -82,7 +81,6 @@ export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={`dark ${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <LoadingScreen />
         <ScrollManager />
         <Providers>
           <Header />

@@ -6,7 +6,11 @@ import { LogoApprovalEmail } from '@/components/emails/LogoApprovalEmail'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL
-const SITE_EMAIL = 'notifications@afterlife.com'
+// afterlife.com was never a domain this project owns, let alone a verified
+// sender. Notifications go out from the same verified domain as everything else.
+import { EMAIL_DOMAIN } from './email'
+
+const SITE_EMAIL = `notifications@${EMAIL_DOMAIN}`
 
 export async function sendNewLogoNotification(logo: Logo) {
   if (!ADMIN_EMAIL) {

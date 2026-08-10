@@ -40,14 +40,25 @@ export type EmailTemplate =
   | 'NewAfterlifeProject'
   | 'NewOrderNotification'
 
+/**
+ * Sending addresses.
+ *
+ * Every one of these must sit on a domain verified in Resend or the send is
+ * rejected outright. This block previously used @afterlife.design, and
+ * lib/notifications used @afterlife.com, while the only verified domain is
+ * updates.afterlife.work — so order confirmations, designer notifications and
+ * approval mail could never have been delivered.
+ */
+export const EMAIL_DOMAIN = process.env.EMAIL_DOMAIN ?? 'updates.afterlife.work'
+
 export const EmailConfig = {
-  customer: 'orders@afterlife.design',
-  designer: 'design@afterlife.design',
-  submissions: 'submissions@afterlife.design',
-  orders: 'orders@afterlife.design',
-  system: 'system@afterlife.design',
-  admin: 'admin@afterlife.design',
-  payouts: 'payouts@afterlife.design',
+  customer: `orders@${EMAIL_DOMAIN}`,
+  designer: `design@${EMAIL_DOMAIN}`,
+  submissions: `submissions@${EMAIL_DOMAIN}`,
+  orders: `orders@${EMAIL_DOMAIN}`,
+  system: `system@${EMAIL_DOMAIN}`,
+  admin: `admin@${EMAIL_DOMAIN}`,
+  payouts: `payouts@${EMAIL_DOMAIN}`,
 } as const
 
 interface EmailData {

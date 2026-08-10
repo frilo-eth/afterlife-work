@@ -20,6 +20,17 @@ export function CatalogSection({ logos }: CatalogSectionProps) {
   const router = useRouter()
   const [filters, setFilters] = useState<FilterState>({ styles: [], search: '' })
 
+  // Counted from the whole catalog, not the filtered view: a tag's weight is
+  // a property of the collection, and recomputing it per filter would make the
+  // numbers shift underneath the person reading them.
+  const tagCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const logo of logos) {
+      for (const tag of logo.tags) counts[tag] = (counts[tag] ?? 0) + 1
+    }
+    return counts
+  }, [logos])
+
   const visibleLogos = useMemo(() => {
     const search = filters.search.trim().toLowerCase()
 
@@ -39,7 +50,7 @@ export function CatalogSection({ logos }: CatalogSectionProps) {
 
   return (
     <>
-      <FilterBar onFiltersChange={setFilters} />
+      <FilterBar onFiltersChange={setFilters} tagCounts={tagCounts} />
 
       <div className="container mx-auto px-4 py-24">
         <div className="mb-12 space-y-3">

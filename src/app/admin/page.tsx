@@ -20,7 +20,7 @@ import { CardHeader, CardTitle, CardDescription, CardContent } from '@/component
 import { Separator } from '@/components/ui/separator'
 import { toast } from '@/components/ui/use-toast'
 import { useRouter } from 'next/navigation'
-import { LoadingScreen } from '@/components/LoadingScreen'
+import { Spinner } from '@/components/ui/spinner'
 
 interface AnalyticsSection {
   title: string
@@ -37,7 +37,11 @@ export default function AdminPage() {
   }, [router])
   
   // Show loading while redirecting
-  return <LoadingScreen isLoading={true} />
+  return (
+    <div className="flex h-[50vh] items-center justify-center">
+      <Spinner className="h-8 w-8" label="Loading dashboard" />
+    </div>
+  )
 }
 
 // Renamed function and REMOVED the export keyword to avoid Next.js errors
