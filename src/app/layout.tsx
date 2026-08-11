@@ -3,8 +3,7 @@ import { GeistMono } from 'geist/font/mono'
 import { GeistSans } from 'geist/font/sans'
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import { Footer } from '../components/layout/Footer'
-import { Header } from '../components/layout/Header'
+import { AppChrome } from '../components/layout/AppChrome'
 import { Providers } from './providers'
 import './globals.css'
 import { ScrollManager } from '@/components/ScrollManager'
@@ -83,9 +82,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <ScrollManager />
         <Providers>
-          <Header />
-          <main className="mt-[64px]">{children}</main>
-          <Footer />
+          <AppChrome>{children}</AppChrome>
         </Providers>
         <Analytics />
       </body>

@@ -2,7 +2,9 @@ import { NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { NewLogoSubmissionEmail } from '@/components/emails/NewLogoSubmission'
 import { SubmissionConfirmationEmail } from '@/components/emails/SubmissionConfirmationEmail'
+import { REPLY_TO_EMAIL } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
+import { allocateLogoSlug } from '@/lib/slug'
 import { uploadFile } from '@/lib/uploadFile'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -62,10 +64,12 @@ export async function POST(request: Request) {
 
       const resolvedTitle = logoTitle || `Logo by ${designerName}`
       const thumbnail = mockupUploads[0]?.secure_url || logoUpload.secure_url
+      const slug = await allocateLogoSlug(prisma, resolvedTitle)
 
       const logo = await prisma.logo.create({
         data: {
           title: resolvedTitle,
+          slug,
           description,
           thumbnail,
           images: [logoUpload.secure_url],
@@ -107,7 +111,7 @@ export async function POST(request: Request) {
             from: 'Afterlife <notifications@updates.afterlife.work>',
             to: email,
             subject: 'Logo Submission Received',
-            reply_to: 'hi@afterlife.work',
+            reply_to: REPLY_TO_EMAIL,
             react: SubmissionConfirmationEmail({
               designerName,
               logoName: logoFile.name,

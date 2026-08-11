@@ -1,7 +1,8 @@
 'use client'
 
-import { Button, Card, Select, SelectItem } from '@nextui-org/react'
 import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 const templates = [
   { value: 'order-confirmation', label: 'Order Confirmation' },
@@ -14,39 +15,47 @@ export default function EmailPreviewPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">Email Preview</h1>
+      <header className="space-y-1">
+        <h1 className="text-heading-24 text-foreground">Email preview</h1>
+        <p className="text-caption text-foreground-muted">Open a template in a new tab.</p>
+      </header>
 
-      <Card className="p-6 bg-default-50">
-        <div className="space-y-4">
-          <Select
-            label="Select Template"
-            value={selectedTemplate}
-            onChange={(e) => setSelectedTemplate(e.target.value)}
-            variant="bordered"
-            classNames={{
-              trigger: 'bg-default-100',
-              value: 'text-foreground',
-            }}
-          >
-            {templates.map((template) => (
-              <SelectItem key={template.value} value={template.value}>
+      <div className="max-w-md space-y-4 rounded-lg border border-border bg-card p-5">
+        <div className="space-y-2" role="listbox" aria-label="Email templates">
+          {templates.map((template) => {
+            const selected = selectedTemplate === template.value
+            return (
+              <button
+                key={template.value}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                onClick={() => setSelectedTemplate(template.value)}
+                className={cn(
+                  'flex w-full items-center rounded-md border px-3 py-2.5 text-left text-label',
+                  'transition-[border-color,color] duration-80',
+                  selected
+                    ? 'border-border-strong text-foreground'
+                    : 'border-border text-foreground-muted hover:border-border-strong hover:text-foreground',
+                )}
+              >
                 {template.label}
-              </SelectItem>
-            ))}
-          </Select>
-
-          <Button
-            variant="flat"
-            className="bg-default-100 text-foreground"
-            isDisabled={!selectedTemplate}
-            onPress={() => {
-              window.open(`/api/email/preview?template=${selectedTemplate}`, '_blank')
-            }}
-          >
-            Preview Email
-          </Button>
+              </button>
+            )
+          })}
         </div>
-      </Card>
+
+        <Button
+          variant="primary"
+          size="md"
+          disabled={!selectedTemplate}
+          onClick={() => {
+            window.open(`/api/email/preview?template=${selectedTemplate}`, '_blank')
+          }}
+        >
+          Preview email
+        </Button>
+      </div>
     </div>
   )
 }

@@ -1,3 +1,4 @@
+import type { LogoStatus, Prisma } from '@prisma/client'
 import { unstable_cache } from 'next/cache'
 import { prisma } from './prisma'
 
@@ -13,6 +14,7 @@ const CATALOG_REVALIDATE_SECONDS = 3600
 
 export type CatalogLogo = {
   id: string
+  slug: string
   title: string
   thumbnail: string
   tags: string[]
@@ -28,6 +30,52 @@ export type LogoDetail = CatalogLogo & {
     afterlife: string
   } | null
   gallery: { id: string; imageUrl: string }[]
+  designer: {
+    id: string
+    name: string
+    email: string
+    twitter: string | null
+    website: string | null
+    logos: CatalogLogo[]
+  } | null
+}
+
+const PUBLISHED_STATUSES: LogoStatus[] = ['AVAILABLE', 'SOLD']
+
+const designerDetailSelect = {
+  id: true,
+  name: true,
+  email: true,
+  twitter: true,
+  website: true,
+  logos: {
+    where: { status: { in: PUBLISHED_STATUSES } },
+    select: { id: true, slug: true, title: true, thumbnail: true, tags: true },
+    orderBy: { createdAt: 'desc' as const },
+    take: 6,
+  },
+} satisfies Prisma.DesignerSelect
+
+const logoDetailSelect = {
+  id: true,
+  slug: true,
+  title: true,
+  thumbnail: true,
+  tags: true,
+  description: true,
+  status: true,
+  price: { select: { summon: true, revival: true, afterlife: true } },
+  gallery: { select: { id: true, imageUrl: true }, orderBy: { id: 'asc' as const } },
+  designer: { select: designerDetailSelect },
+} satisfies Prisma.LogoSelect
+
+function toLogoDetail(
+  logo: Prisma.LogoGetPayload<{ select: typeof logoDetailSelect }>,
+): LogoDetail {
+  return {
+    ...logo,
+    images: [logo.thumbnail, ...logo.gallery.map((item) => item.imageUrl)].filter(Boolean),
+  }
 }
 
 /**
@@ -42,58 +90,61 @@ export const getAvailableLogos = unstable_cache(
   async (): Promise<CatalogLogo[]> =>
     prisma.logo.findMany({
       where: { status: 'AVAILABLE' },
-      select: { id: true, title: true, thumbnail: true, tags: true },
+      select: { id: true, slug: true, title: true, thumbnail: true, tags: true },
       orderBy: { createdAt: 'desc' },
     }),
-  ['catalog-available-logos'],
+  ['catalog-available-logos', 'slug-v1'],
   { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS },
 )
 
-/** Every id that should get a prerendered product page. */
-export const getPublishedLogoIds = unstable_cache(
+/** Every slug that should get a prerendered product page. */
+export const getPublishedLogoSlugs = unstable_cache(
   async (): Promise<string[]> => {
     const logos = await prisma.logo.findMany({
-      where: { status: { in: ['AVAILABLE', 'SOLD'] } },
-      select: { id: true },
+      where: { status: { in: PUBLISHED_STATUSES } },
+      select: { slug: true },
     })
-    return logos.map((logo) => logo.id)
+    return logos.map((logo) => logo.slug)
   },
-  ['catalog-published-ids'],
+  ['catalog-published-slugs', 'slug-v1'],
   { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS },
 )
+
+/** @deprecated Prefer getPublishedLogoSlugs */
+export const getPublishedLogoIds = getPublishedLogoSlugs
 
 /**
  * A single logo's public detail. Returns null for hidden, draft, and
  * in-review listings so unreleased work is not reachable by guessing an id.
+ * Looks up by pretty slug first, then by id so old links still resolve.
  */
 export const getLogoDetail = unstable_cache(
-  async (id: string): Promise<LogoDetail | null> => {
-    const logo = await prisma.logo.findFirst({
-      where: { id, status: { in: ['AVAILABLE', 'SOLD'] } },
-      select: {
-        id: true,
-        title: true,
-        thumbnail: true,
-        tags: true,
-        description: true,
-        status: true,
-        price: { select: { summon: true, revival: true, afterlife: true } },
-        gallery: { select: { id: true, imageUrl: true }, orderBy: { id: 'asc' } },
-      },
-    })
+  async (slugOrId: string): Promise<LogoDetail | null> => {
+    const logo =
+      (await prisma.logo.findFirst({
+        where: { slug: slugOrId, status: { in: PUBLISHED_STATUSES } },
+        select: logoDetailSelect,
+      })) ??
+      (await prisma.logo.findFirst({
+        where: { id: slugOrId, status: { in: PUBLISHED_STATUSES } },
+        select: logoDetailSelect,
+      }))
 
     if (!logo) return null
-
-    // The gallery viewer takes a single ordered list, so the thumbnail leads
-    // and the gallery rows follow. The Logo.images column is deliberately not
-    // used here: it holds only the main image (one entry against six gallery
-    // rows on current records), so reading it directly showed one image of
-    // seven. The endpoint this replaced merged the two the same way.
-    return {
-      ...logo,
-      images: [logo.thumbnail, ...logo.gallery.map((item) => item.imageUrl)].filter(Boolean),
-    }
+    return toLogoDetail(logo)
   },
-  ['catalog-logo-detail', 'prices-v3'],
+  ['catalog-logo-detail', 'prices-v3', 'designer-v3', 'slug-v1'],
   { tags: [CATALOG_TAG], revalidate: CATALOG_REVALIDATE_SECONDS },
 )
+
+/**
+ * Admin preview of any logo id, including draft / rejected / review / trash.
+ * Uncached — status can change from the admin table at any moment.
+ */
+export async function getLogoDetailForAdmin(id: string): Promise<LogoDetail | null> {
+  const logo = await prisma.logo.findUnique({
+    where: { id },
+    select: logoDetailSelect,
+  })
+  return logo ? toLogoDetail(logo) : null
+}

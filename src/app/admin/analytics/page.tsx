@@ -12,7 +12,10 @@ const data = [
 export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">Analytics</h1>
+      <header className="space-y-1">
+        <h1 className="text-heading-24 text-foreground">Analytics</h1>
+        <p className="text-caption text-foreground-muted">Placeholder revenue view.</p>
+      </header>
 
       <Card>
         <CardHeader>

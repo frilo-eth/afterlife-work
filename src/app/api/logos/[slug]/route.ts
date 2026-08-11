@@ -3,15 +3,21 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(_request: Request, { params }: { params: { slug: string } }) {
   try {
-    const logo = await prisma.logo.findUnique({
-      where: {
-        id: params.slug,
-      },
-      include: {
-        price: true,
-        gallery: true,
-      },
-    })
+    const logo =
+      (await prisma.logo.findUnique({
+        where: { slug: params.slug },
+        include: {
+          price: true,
+          gallery: true,
+        },
+      })) ??
+      (await prisma.logo.findUnique({
+        where: { id: params.slug },
+        include: {
+          price: true,
+          gallery: true,
+        },
+      }))
 
     if (!logo) {
       return errorResponse(

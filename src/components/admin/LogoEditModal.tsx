@@ -1,26 +1,31 @@
 'use client'
 
-import { Button, Input, Modal, ModalContent, Textarea } from '@nextui-org/react'
+import { Field } from '@base-ui/react/field'
 import { ChevronLeft, ChevronRight, Eye, Plus, Trash2, Upload, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
-import type { LogoStatus, LogoWithDetails } from '@/types'
-
-// Add gallery type to match Prisma schema
-interface LogoGalleryItem {
-  id: string
-  imageUrl: string
-  logoId: string
-}
+import {
+  DesignerField,
+  type DesignerFieldValue,
+  designerFieldChanged,
+  designerFieldFromLogo,
+  designerFieldToFormData,
+  isDesignerFieldValid,
+} from '@/components/admin/DesignerField'
+import { LogoStatusDropdown } from '@/components/admin/LogoStatusDropdown'
+import { Button } from '@/components/ui/button'
+import { ConfirmDestructiveDialog } from '@/components/ui/confirm-destructive-dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { InputField, InputGroup } from '@/components/ui/input-group'
+import { fontWeights } from '@/lib/font-weight'
+import { isStatusLocked, MANUAL_STATUSES } from '@/lib/logo-status'
+import { useShape } from '@/lib/shape-context'
+import { cn } from '@/lib/utils'
+import type { LogoGalleryItem, LogoStatus, LogoWithDetails } from '@/types'
 
 interface LogoEditModalProps {
-  logo: LogoWithDetails & {
-    gallery?: {
-      id: string
-      imageUrl: string
-    }[]
-  }
+  logo: LogoWithDetails
   isOpen: boolean
   onClose: () => void
 }
@@ -46,17 +51,6 @@ interface MainImageState {
     size: number
     type: string
   }
-}
-
-const statusColorMap: Record<
-  LogoStatus,
-  'default' | 'primary' | 'secondary' | 'success' | 'warning' | 'danger'
-> = {
-  AVAILABLE: 'success',
-  SOLD: 'primary',
-  REVIEW: 'warning',
-  DRAFT: 'default',
-  HIDDEN: 'danger',
 }
 
 const AVAILABLE_TAGS = [
@@ -130,6 +124,81 @@ const _createFilePreview = async (file: File): Promise<string> => {
   })
 }
 
+/** Matches InputField chrome so multi-line fields sit in the same family. */
+function FormTextarea({
+  id,
+  label,
+  value,
+  onChange,
+  placeholder,
+  error,
+  required,
+  rows = 4,
+}: {
+  id: string
+  label: string
+  value: string
+  onChange: (value: string) => void
+  placeholder?: string
+  error?: string
+  required?: boolean
+  rows?: number
+}) {
+  const shape = useShape()
+  const [isFocused, setIsFocused] = useState(false)
+
+  let bgClass: string
+  let ringClass: string
+
+  if (error) {
+    bgClass = isFocused ? 'bg-card' : 'bg-destructive-light/60'
+    ringClass = isFocused ? 'ring-destructive/50' : 'ring-transparent'
+  } else if (isFocused) {
+    bgClass = 'bg-card'
+    ringClass = 'ring-border'
+  } else {
+    bgClass = 'bg-card'
+    ringClass = 'ring-border'
+  }
+
+  return (
+    <Field.Root invalid={!!error} className="flex flex-col gap-1">
+      <Field.Label htmlFor={id} className="sr-only">
+        {label}
+      </Field.Label>
+      <textarea
+        id={id}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        placeholder={placeholder ?? label}
+        required={required}
+        rows={rows}
+        aria-invalid={!!error}
+        className={cn(
+          'w-full px-3 py-2 text-[13px] text-foreground',
+          'placeholder:text-muted-foreground outline-none font-[inherit]',
+          'ring-1 transition-all duration-80 resize-y min-h-[96px]',
+          shape.input,
+          bgClass,
+          ringClass,
+        )}
+        style={{ fontVariationSettings: fontWeights.normal }}
+      />
+      {error && (
+        <Field.Error
+          match
+          className="pl-3 text-[12px] text-destructive"
+          style={{ fontVariationSettings: fontWeights.medium }}
+        >
+          {error}
+        </Field.Error>
+      )}
+    </Field.Root>
+  )
+}
+
 // Add debug mode constant
 const DEBUG = process.env.NODE_ENV === 'development'
 
@@ -160,6 +229,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
   const [description, setDescription] = useState(logo?.description || '')
   const [status, setStatus] = useState<LogoStatus>(logo.status || 'DRAFT')
   const [selectedTags, setSelectedTags] = useState<string[]>(logo?.tags || [])
+  const [designer, setDesigner] = useState<DesignerFieldValue>(() => designerFieldFromLogo(logo))
   const [isLoading, setIsLoading] = useState(false)
   const [mainImage, setMainImage] = useState<MainImageState>({ preview: null })
   const [_galleryImages, setGalleryImages] = useState<FilePreviewData[]>([])
@@ -188,6 +258,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
   const _router = useRouter()
   const [error, setError] = useState<string | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
+  const [discardOpen, setDiscardOpen] = useState(false)
 
   const MAX_GALLERY_IMAGES = 6
   const _ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp']
@@ -201,6 +272,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
       setDescription(logo.description)
       setStatus(logo.status as LogoStatus)
       setSelectedTags(logo.tags)
+      setDesigner(designerFieldFromLogo(logo))
 
       // Reset gallery previews when logo changes with distinct cache-busting timestamp
       const uniqueTimestamp = Date.now()
@@ -258,6 +330,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
       setPreviewOpen(null)
       setMainImage({ preview: null })
       setIsDeleting(false)
+      setDiscardOpen(false)
       if (mainImageInputRef.current) {
         mainImageInputRef.current.value = ''
       }
@@ -958,6 +1031,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
       formData.append('description', description.trim())
       formData.append('status', status)
       formData.append('tags', JSON.stringify(selectedTags))
+      designerFieldToFormData(designer, formData)
 
       // Handle main image
       if (mainImageFileRef.current) {
@@ -1274,40 +1348,79 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
       return false
     }
 
-    if (!status || !['AVAILABLE', 'SOLD', 'REVIEW', 'DRAFT', 'HIDDEN'].includes(status)) {
+    if (!status || !MANUAL_STATUSES.includes(status as (typeof MANUAL_STATUSES)[number])) {
       console.error('Invalid status:', status)
       toast.error(`Invalid status: ${status}`)
+      return false
+    }
+
+    if (!isDesignerFieldValid(designer)) {
+      toast.error('Designer name and a valid email are required')
       return false
     }
 
     return true
   }
 
+  const baselineTitle = useMemo(() => {
+    if (!logo?.title) return ''
+    const cleanTitle = logo.title
+      .replace(/^Logo_/i, '')
+      .replace(/_placeholder.*$/, '')
+      .replace(/_/g, ' ')
+    return formatTitle(cleanTitle)
+  }, [logo?.title])
+
   const handleClose = useCallback(() => {
     if (hasChanges) {
-      const confirmed = window.confirm('You have unsaved changes. Are you sure you want to close?')
-      if (!confirmed) return
+      setDiscardOpen(true)
+      return
     }
+    toast.message('No changes made')
     onClose()
   }, [hasChanges, onClose])
 
+  const confirmDiscard = useCallback(() => {
+    setDiscardOpen(false)
+    setHasChanges(false)
+    onClose()
+  }, [onClose])
+
   // Track changes in form data
   useEffect(() => {
+    if (!isOpen) {
+      setHasChanges(false)
+      return
+    }
+
+    const tagsChanged =
+      JSON.stringify([...selectedTags].sort()) !== JSON.stringify([...(logo.tags ?? [])].sort())
+
     const hasModifications =
-      mainImage.preview !== null ||
-      description !== logo.description ||
+      !!mainImage.fileInfo ||
+      displayTitle.trim() !== baselineTitle.trim() ||
+      description !== (logo.description ?? '') ||
       status !== logo.status ||
-      JSON.stringify(selectedTags) !== JSON.stringify(logo.tags) ||
+      tagsChanged ||
+      designerFieldChanged(designer, logo) ||
       deletedGalleryIds.length > 0 ||
       galleryPreviews.some((p) => p.fileInfo !== undefined)
 
     setHasChanges(hasModifications)
   }, [
-    mainImage.preview,
+    isOpen,
+    mainImage.fileInfo,
+    displayTitle,
+    baselineTitle,
     description,
     status,
     selectedTags,
-    logo,
+    designer,
+    logo.description,
+    logo.status,
+    logo.tags,
+    logo.designerId,
+    logo.designer,
     deletedGalleryIds,
     galleryPreviews,
   ])
@@ -1369,391 +1482,369 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
   if (error) {
     console.error('Rendering error state:', error)
     return (
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalContent>
-          <div className="p-4">
-            <h3 className="text-red-500">Error occurred</h3>
-            <p>{error}</p>
-            <Button onPress={onClose}>Close</Button>
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) onClose()
+        }}
+      >
+        <DialogContent hideClose className="max-w-md border border-border bg-background">
+          <DialogTitle className="sr-only">Error</DialogTitle>
+          <div className="space-y-4 p-2">
+            <h3 className="text-heading-24 text-destructive">Error occurred</h3>
+            <p className="text-caption text-foreground-muted">{error}</p>
+            <Button type="button" variant="primary" onClick={onClose}>
+              Close
+            </Button>
           </div>
-        </ModalContent>
-      </Modal>
+        </DialogContent>
+      </Dialog>
     )
   }
 
+  const mainPreviewSrc = mainImage.preview || logo.thumbnail || null
+  const locked = isStatusLocked(logo.status)
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      classNames={{
-        base: 'bg-background/95 backdrop-blur-xl',
-        wrapper: 'p-0 max-w-full h-[100dvh] max-h-[100dvh] overflow-hidden',
-        body: 'p-0 max-h-[100dvh] overflow-hidden',
-        closeButton: 'hidden',
-      }}
-      size="full"
-      scrollBehavior="inside"
-      hideCloseButton
-    >
-      <ModalContent className="max-h-[100dvh] overflow-hidden">
-        <div className="relative h-[100dvh] overflow-y-auto">
-          {/* Close Button */}
+    <>
+      <Dialog
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) handleClose()
+        }}
+      >
+        <DialogContent hideClose placement="fullscreen">
+          <DialogTitle className="sr-only">Edit logo</DialogTitle>
+
           <Button
-            isIconOnly
-            className="fixed right-4 top-4 z-[101] bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
-            size="sm"
-            onPress={handleClose}
+            type="button"
+            variant="tertiary"
+            size="icon"
             aria-label="Close modal"
+            onClick={handleClose}
+            className="fixed right-4 top-4 z-[101]"
           >
-            <X size={18} />
+            <X className="h-4 w-4" />
           </Button>
 
-          <div className="container mx-auto px-4 py-24">
-            <div className="space-y-4 text-center mb-16">
-              <span className="font-mono text-sm tracking-wider opacity-50 uppercase block">
-                Edit Logo
-              </span>
-              <h2 className="text-4xl md:text-5xl font-bold">Update Logo Details</h2>
-            </div>
-
-            <form
-              className="max-w-xl mx-auto space-y-8"
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleSaveWithValidation()
-              }}
-            >
-              {/* Title Input */}
-              <div className="space-y-2">
-                <Input
-                  id="title-input"
-                  label="Title"
-                  labelPlacement="outside"
-                  value={displayTitle}
-                  onChange={(e) => handleTitleChange(e.target.value)}
-                  classNames={{
-                    label: 'text-foreground-muted text-sm',
-                    input: 'bg-transparent text-sm',
-                    inputWrapper: [
-                      'bg-background/20',
-                      'backdrop-blur-sm',
-                      'border border-border',
-                      'hover:border-border-strong',
-                      'px-3',
-                      '!rounded-lg',
-                    ],
-                  }}
-                />
-              </div>
-
-              {/* Status Pills */}
-              <div className="space-y-2">
-                <span
-                  id="status-group-label"
-                  className="block text-sm font-medium text-foreground-muted"
-                >
-                  Status
+          <div className="container mx-auto px-4 py-20 sm:py-24">
+            <div className="mx-auto max-w-xl">
+              <div className="mb-10 space-y-3 sm:mb-14">
+                <span className="block font-mono text-metadata uppercase text-foreground-subtle">
+                  Edit logo
                 </span>
-                <div
-                  role="group"
-                  aria-labelledby="status-group-label"
-                  className="flex flex-wrap gap-2"
-                >
-                  {Object.entries(statusColorMap).map(([statusKey, _color]) => (
-                    <Button
-                      key={statusKey}
-                      size="sm"
-                      aria-pressed={status === statusKey}
-                      variant={status === statusKey ? 'solid' : 'bordered'}
-                      className={`
-                        rounded-full px-4 h-10 text-sm transition-all
-                        ${
-                          status === statusKey
-                            ? 'bg-foreground text-background hover:bg-foreground/90'
-                            : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
-                        }
-                      `}
-                      onPress={() => handleStatusChange(statusKey as LogoStatus)}
+                <h2 className="text-heading-24 text-foreground">Update logo details</h2>
+                <p className="text-caption text-foreground-muted">
+                  {locked
+                    ? 'This logo is sold. Checkout set the status — admin edits are locked.'
+                    : 'Edit title, status, images, and tags for this logo.'}
+                </p>
+              </div>
+
+              <form
+                className="space-y-6"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  if (locked) {
+                    toast.error('Sold logos cannot be edited')
+                    return
+                  }
+                  handleSaveWithValidation()
+                }}
+              >
+                <fieldset disabled={locked} className="space-y-6 disabled:opacity-70">
+                  <InputGroup className="w-full">
+                    <InputField
+                      index={0}
+                      label="Title"
+                      hideLabel
+                      placeholder="Title"
+                      value={displayTitle}
+                      onChange={handleTitleChange}
+                    />
+                  </InputGroup>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <span
+                      id="status-group-label"
+                      className="shrink-0 text-caption text-foreground-muted"
                     >
-                      {statusKey}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Main Image Upload */}
-              <div className="space-y-4">
-                <Input
-                  type="file"
-                  className="hidden"
-                  ref={mainImageInputRef}
-                  accept="image/*"
-                  onChange={() => console.log('Native input change event - not used anymore')}
-                  aria-label="Upload main image"
-                />
-
-                {mainImage.preview ? (
-                  <div className="relative group">
-                    <img src={mainImage.preview} alt="Logo preview" className="w-full rounded-lg" />
-                    <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        onPress={triggerFileInput}
-                        className="bg-accent backdrop-blur-sm"
-                        aria-label="Replace main image"
-                      >
-                        <Upload className="text-foreground" size={20} />
-                      </Button>
-                    </div>
-                  </div>
-                ) : logo.thumbnail ? (
-                  <div className="relative group">
-                    <img src={logo.thumbnail} alt="Logo preview" className="w-full rounded-lg" />
-                    <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <Button
-                        isIconOnly
-                        variant="light"
-                        onPress={triggerFileInput}
-                        className="bg-accent backdrop-blur-sm"
-                        aria-label="Replace main image"
-                      >
-                        <Upload className="text-foreground" size={20} />
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    className="w-full h-full flex flex-col items-center justify-center bg-transparent"
-                    onPress={triggerFileInput}
-                    aria-label="Upload image"
-                  >
-                    <Upload className="text-foreground-muted" size={24} />
-                    <p className="text-foreground-muted">Drop your image or click to browse</p>
-                  </Button>
-                )}
-              </div>
-
-              {/* Gallery Images with fixed accessibility */}
-              <div className="space-y-2">
-                <Input
-                  id="gallery-images-input"
-                  type="file"
-                  className="hidden"
-                  ref={galleryInputRef}
-                  accept="image/*"
-                  multiple
-                  onChange={() => console.log('Native gallery input change - not used anymore')}
-                  aria-label="Gallery images upload"
-                />
-                <div className="flex items-center justify-between">
-                  <span
-                    id="gallery-images-label"
-                    aria-label="Gallery images count"
-                    role="status"
-                    className="block text-sm font-medium text-foreground-muted"
-                  >
-                    Gallery Images ({visibleGalleryCount}/{MAX_GALLERY_IMAGES})
-                    {deletedGalleryIds.length > 0 && (
-                      <span className="ml-2 text-xs text-foreground-subtle">
-                        ({deletedGalleryIds.length} marked for deletion)
-                      </span>
-                    )}
-                  </span>
-                  {visibleGalleryCount < MAX_GALLERY_IMAGES && (
-                    <span className="text-xs text-green-400">
-                      {MAX_GALLERY_IMAGES - visibleGalleryCount} slot
-                      {MAX_GALLERY_IMAGES - visibleGalleryCount !== 1 ? 's' : ''} available
+                      Status
                     </span>
-                  )}
-                </div>
-                <div
-                  role="group"
-                  aria-labelledby="gallery-images-label"
-                  className="grid grid-cols-3 gap-4"
-                >
-                  {/* Existing gallery images */}
-                  {galleryPreviews
-                    .filter((item) => !deletedGalleryIds.includes(item.id))
-                    .map((item) => (
-                      <div
-                        key={item.id}
-                        className="relative aspect-square bg-background/20 rounded-lg overflow-hidden group"
-                      >
-                        <img
-                          src={item.preview}
-                          alt={`Gallery pic ${item.id}`}
-                          className="w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <LogoStatusDropdown
+                      value={status}
+                      options={MANUAL_STATUSES}
+                      onChange={handleStatusChange}
+                      readOnly={locked}
+                      aria-labelledby="status-group-label"
+                    />
+                  </div>
+
+                  <DesignerField
+                    value={designer}
+                    onChange={setDesigner}
+                    disabled={locked}
+                    currentDesigner={
+                      logo.designer
+                        ? {
+                            id: logo.designer.id,
+                            name: logo.designer.name,
+                            email: logo.designer.email,
+                          }
+                        : null
+                    }
+                  />
+
+                  <div className="space-y-2">
+                    <input
+                      type="file"
+                      className="hidden"
+                      ref={mainImageInputRef}
+                      accept="image/*"
+                      onChange={() => console.log('Native input change event - not used anymore')}
+                      aria-label="Upload main image"
+                    />
+
+                    {mainPreviewSrc ? (
+                      <div className="group relative overflow-hidden rounded-xl border border-border bg-card">
+                        <img src={mainPreviewSrc} alt="Logo preview" className="w-full" />
+                        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/40 opacity-0 transition-opacity duration-80 group-hover:opacity-100">
                           <Button
-                            isIconOnly
-                            variant="light"
-                            onPress={() => handlePreviewOpen(item.preview)}
-                            className="bg-accent backdrop-blur-sm"
-                            aria-label={`Preview gallery image ${item.id}`}
+                            type="button"
+                            variant="tertiary"
+                            size="icon"
+                            onClick={triggerFileInput}
+                            aria-label="Replace main image"
                           >
-                            <Eye size={20} />
-                          </Button>
-                          <Button
-                            isIconOnly
-                            variant="light"
-                            onPress={() =>
-                              item.fileInfo
-                                ? handleDeleteNewGalleryImage(item.id)
-                                : handleDeleteGalleryImage(item.id)
-                            }
-                            className="bg-accent backdrop-blur-sm"
-                            aria-label={`Delete gallery image ${item.id}`}
-                          >
-                            <Trash2 size={20} />
+                            <Upload className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
-                    ))}
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={triggerFileInput}
+                        aria-label="Upload image"
+                        className="relative flex w-full flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card p-8 text-center transition-colors duration-80 hover:border-border-strong"
+                      >
+                        <Upload className="h-6 w-6 text-foreground-muted" />
+                        <p className="text-caption text-foreground-muted">
+                          Drop your image or click to browse
+                        </p>
+                      </button>
+                    )}
+                  </div>
 
-                  {/* Upload button - show if we have less than MAX_GALLERY_IMAGES visible images */}
-                  {visibleGalleryCount < MAX_GALLERY_IMAGES && (
-                    <Button
-                      className="aspect-square rounded-lg border-2 border-dashed border-border hover:border-border-strong flex items-center justify-center bg-transparent"
-                      onPress={triggerGalleryInput}
+                  <div className="space-y-2">
+                    <input
+                      id="gallery-images-input"
+                      type="file"
+                      className="hidden"
+                      ref={galleryInputRef}
+                      accept="image/*"
+                      multiple
+                      onChange={() => console.log('Native gallery input change - not used anymore')}
+                      aria-label="Gallery images upload"
+                    />
+                    <div className="flex items-center justify-between">
+                      <span
+                        id="gallery-images-label"
+                        aria-label="Gallery images count"
+                        role="status"
+                        className="block text-caption text-foreground-muted"
+                      >
+                        Gallery Images ({visibleGalleryCount}/{MAX_GALLERY_IMAGES})
+                        {deletedGalleryIds.length > 0 && (
+                          <span className="ml-2 text-metadata text-foreground-subtle">
+                            ({deletedGalleryIds.length} marked for deletion)
+                          </span>
+                        )}
+                      </span>
+                      {visibleGalleryCount < MAX_GALLERY_IMAGES && (
+                        <span className="text-metadata text-foreground-subtle">
+                          {MAX_GALLERY_IMAGES - visibleGalleryCount} slot
+                          {MAX_GALLERY_IMAGES - visibleGalleryCount !== 1 ? 's' : ''} available
+                        </span>
+                      )}
+                    </div>
+                    <div
+                      role="group"
+                      aria-labelledby="gallery-images-label"
+                      className="grid grid-cols-2 gap-2 sm:grid-cols-3"
                     >
-                      <Plus size={24} className="text-foreground-muted" />
-                    </Button>
-                  )}
-                </div>
-              </div>
+                      {galleryPreviews
+                        .filter((item) => !deletedGalleryIds.includes(item.id))
+                        .map((item) => (
+                          <div
+                            key={item.id}
+                            className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-card"
+                          >
+                            <img
+                              src={item.preview}
+                              alt={`Gallery pic ${item.id}`}
+                              className="h-full w-full object-cover"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/40 opacity-0 transition-opacity duration-80 group-hover:opacity-100">
+                              <Button
+                                type="button"
+                                variant="tertiary"
+                                size="icon"
+                                onClick={() => handlePreviewOpen(item.preview)}
+                                aria-label={`Preview gallery image ${item.id}`}
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="tertiary"
+                                size="icon"
+                                onClick={() =>
+                                  item.fileInfo
+                                    ? handleDeleteNewGalleryImage(item.id)
+                                    : handleDeleteGalleryImage(item.id)
+                                }
+                                aria-label={`Delete gallery image ${item.id}`}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
 
-              {/* Tags */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span
-                    id="tags-group-label"
-                    className="block text-sm font-medium text-foreground-muted"
-                  >
-                    Tags (max 2)
-                  </span>
-                </div>
-                <div
-                  role="group"
-                  aria-labelledby="tags-group-label"
-                  className="flex flex-wrap gap-2"
-                >
-                  {AVAILABLE_TAGS.map((tag) => (
-                    <Button
-                      key={tag}
-                      size="sm"
-                      aria-pressed={selectedTags.includes(tag)}
-                      variant={selectedTags.includes(tag) ? 'solid' : 'bordered'}
-                      className={`
-                        rounded-full px-4 h-10 text-sm transition-all
-                        ${
-                          selectedTags.includes(tag)
-                            ? 'bg-foreground text-background hover:bg-foreground/90'
-                            : 'bg-background/20 backdrop-blur-sm border border-border hover:border-border-strong text-foreground'
-                        }
-                      `}
-                      endContent={selectedTags.includes(tag) && <X size={14} className="ml-1" />}
-                      onPress={() => handleTagToggle(tag)}
+                      {visibleGalleryCount < MAX_GALLERY_IMAGES && (
+                        <button
+                          type="button"
+                          onClick={triggerGalleryInput}
+                          className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-border text-foreground-muted transition-colors duration-80 hover:border-border-strong hover:text-foreground"
+                          aria-label="Add gallery image"
+                        >
+                          <Plus className="h-6 w-6" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span
+                        id="tags-group-label"
+                        className="block text-caption text-foreground-muted"
+                      >
+                        Tags (max 2)
+                      </span>
+                    </div>
+                    <div
+                      role="group"
+                      aria-labelledby="tags-group-label"
+                      className="flex flex-wrap gap-2"
                     >
-                      {tag}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+                      {AVAILABLE_TAGS.map((tag) => (
+                        <Button
+                          key={tag}
+                          type="button"
+                          size="sm"
+                          variant={selectedTags.includes(tag) ? 'primary' : 'tertiary'}
+                          aria-pressed={selectedTags.includes(tag)}
+                          onClick={() => handleTagToggle(tag)}
+                        >
+                          {tag}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
 
-              {/* Description */}
-              <div className="space-y-2">
-                <Textarea
-                  id="description-input"
-                  label="Description"
-                  labelPlacement="outside"
-                  value={description}
-                  onChange={(e) => handleDescriptionChange(e.target.value)}
-                  classNames={{
-                    label: 'text-foreground-muted text-sm',
-                    input: 'bg-transparent text-sm',
-                    inputWrapper: [
-                      'bg-background/20',
-                      'backdrop-blur-sm',
-                      'border border-border',
-                      'hover:border-border-strong',
-                      'px-3',
-                      '!rounded-lg',
-                    ],
-                  }}
-                />
-              </div>
+                  <FormTextarea
+                    id="edit-logo-description"
+                    label="Description"
+                    value={description}
+                    onChange={handleDescriptionChange}
+                    placeholder="Description"
+                  />
+                </fieldset>
 
-              {/* Save Button */}
-              <div className="space-y-4">
-                {/* Auto-refresh UI is hidden but functionality remains enabled */}
-                <Button
-                  type="submit"
-                  className="w-full bg-foreground text-background hover:bg-foreground/90 h-12"
-                  isLoading={isLoading}
-                  aria-label="Save changes"
-                >
-                  Save Changes
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-
-        {/* Image Preview Modal */}
-        <Modal
-          isOpen={!!previewOpen}
-          onClose={() => setPreviewOpen(null)}
-          size="2xl"
-          hideCloseButton
-          classNames={{
-            base: 'bg-background/95 backdrop-blur-xl',
-            wrapper: 'p-4',
-          }}
-        >
-          <ModalContent>
-            <div className="relative">
-              <Button
-                isIconOnly
-                className="absolute right-4 top-4 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
-                size="sm"
-                onPress={() => setPreviewOpen(null)}
-              >
-                <X size={18} />
-              </Button>
-
-              {/* Add navigation buttons for gallery preview */}
-              {visibleGalleryCount > 1 && (
-                <>
+                {!locked && (
                   <Button
-                    isIconOnly
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
-                    size="sm"
-                    onPress={handlePreviousImage}
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    loading={isLoading}
+                    className="w-full"
+                    aria-label="Save changes"
                   >
-                    <ChevronLeft size={18} />
+                    Save Changes
                   </Button>
-
-                  <Button
-                    isIconOnly
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-background/20 backdrop-blur-sm border border-border hover:bg-accent"
-                    size="sm"
-                    onPress={handleNextImage}
-                  >
-                    <ChevronRight size={18} />
-                  </Button>
-                </>
-              )}
-
-              {previewOpen && (
-                <img src={previewOpen} alt="Preview" className="w-full object-contain" />
-              )}
+                )}
+              </form>
             </div>
-          </ModalContent>
-        </Modal>
-      </ModalContent>
-    </Modal>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!previewOpen} onOpenChange={(open) => !open && setPreviewOpen(null)}>
+        <DialogContent
+          hideClose
+          className="max-w-3xl border border-border bg-background p-0 shadow-none"
+        >
+          <DialogTitle className="sr-only">Image preview</DialogTitle>
+          <div className="relative">
+            <Button
+              type="button"
+              variant="tertiary"
+              size="icon"
+              aria-label="Close preview"
+              onClick={() => setPreviewOpen(null)}
+              className="absolute right-3 top-3 z-10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+
+            {visibleGalleryCount > 1 && (
+              <>
+                <Button
+                  type="button"
+                  variant="tertiary"
+                  size="icon"
+                  aria-label="Previous image"
+                  onClick={handlePreviousImage}
+                  className="absolute left-3 top-1/2 z-10 -translate-y-1/2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="tertiary"
+                  size="icon"
+                  aria-label="Next image"
+                  onClick={handleNextImage}
+                  className="absolute right-3 top-1/2 z-10 -translate-y-1/2"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </>
+            )}
+
+            {previewOpen && (
+              <img src={previewOpen} alt="Preview" className="w-full object-contain" />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <ConfirmDestructiveDialog
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        title="Discard edits?"
+        description={
+          <>
+            You changed this logo but haven’t saved. If you leave now, those edits will be lost and
+            the logo will stay as it was.
+          </>
+        }
+        confirmLabel="Discard edits"
+        cancelLabel="Keep editing"
+        onConfirm={confirmDiscard}
+      />
+    </>
   )
 })
 

@@ -8,6 +8,7 @@ import { LogoCard } from './LogoCard'
 // public catalog's trimmed rows and the admin's full Logo records satisfy it.
 interface LogoGridItem {
   id: string
+  slug?: string
   title: string
   thumbnail: string
   tags: string[]
@@ -48,6 +49,7 @@ export function LogoGrid({ logos }: LogoGridProps) {
           index={index}
           registerItem={registerItem}
           id={logo.id}
+          slug={logo.slug}
           title={logo.title}
           thumbnail={logo.thumbnail}
           tags={logo.tags}

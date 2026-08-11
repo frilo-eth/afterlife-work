@@ -1,24 +1,36 @@
 // Base types from Prisma
-export type LogoStatus = 'AVAILABLE' | 'SOLD' | 'REVIEW' | 'DRAFT' | 'HIDDEN'
+export type LogoStatus = 'AVAILABLE' | 'SOLD' | 'REVIEW' | 'DRAFT' | 'HIDDEN' | 'TRASH'
+
+export interface LogoGalleryItem {
+  id: string
+  imageUrl: string
+  logoId?: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
 
 export interface Logo {
   id: string
+  slug: string
   title: string
   description: string
-  images: string[]
+  images?: string[]
   thumbnail: string
   tags: string[]
-  priceId: string
-  price: {
+  priceId?: string
+  price?: {
     id: string
     summon: number
     revival: number
     afterlife: string
-  }
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  } | null
   status: LogoStatus
-  createdAt: Date
-  updatedAt: Date
-  designerEmail?: string
+  createdAt: Date | string
+  updatedAt?: Date | string
+  designerEmail?: string | null
+  designerId?: string | null
 }
 
 export type OrderStatus = 'pending' | 'completed' | 'cancelled' | 'SUMMONED' | 'REVIVED'
@@ -42,6 +54,12 @@ export interface OrderWithLogo extends Order {
 
 export interface LogoWithDetails extends Logo {
   orders?: Order[]
+  gallery?: LogoGalleryItem[]
+  designer?: {
+    id: string
+    name: string
+    email: string
+  } | null
 }
 
 export interface Price {

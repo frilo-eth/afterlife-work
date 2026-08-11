@@ -68,7 +68,7 @@ export const Header = () => {
         <div className="container relative mx-auto px-4">
           <div className="flex h-16 items-center justify-between gap-4">
             <Link href="/" aria-label="Afterlife home" className="flex items-center gap-2.5">
-              <Image src="/logo.svg" alt="" width={36} height={36} priority />
+              <Image src="/logo.svg" alt="" width={28} height={28} priority />
               <span className="text-heading-24 tracking-tight text-foreground">Afterlife</span>
             </Link>
 

@@ -1,15 +1,8 @@
-import type { Logo, Price } from '@prisma/client'
-
-export type LogoStatus = 'AVAILABLE' | 'SOLD' | 'HIDDEN' | 'REVIEW' | 'DRAFT'
+export type LogoStatus = 'AVAILABLE' | 'SOLD' | 'HIDDEN' | 'REVIEW' | 'DRAFT' | 'TRASH'
 export type OrderStatus = 'SUMMONED' | 'REVIVED'
 export type OrderTier = 'summon' | 'revival' | 'afterlife'
 
-export interface LogoWithDetails extends Omit<Logo, 'designerEmail' | 'status'> {
-  price: Price
-  designerEmail: string | null
-  status: LogoStatus
-  wordmark?: string
-}
+export type { LogoWithDetails } from '@/types'
 
 export interface AnalyticsItem {
   name: string

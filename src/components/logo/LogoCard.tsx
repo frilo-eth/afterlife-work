@@ -11,6 +11,8 @@ interface LogoCardProps {
   index: number
   registerItem: (index: number, element: HTMLElement | null) => void
   id: string
+  /** Pretty public path — `/agave-sunshine`. Falls back to id for legacy rows. */
+  slug?: string
   title: string
   thumbnail: string
   tags: string[]
@@ -31,12 +33,14 @@ export function LogoCard({
   index,
   registerItem,
   id,
+  slug,
   title,
   thumbnail,
   tags,
   isNearest = false,
 }: LogoCardProps) {
   const label = formatTitle(title)
+  const href = `/${slug || id}`
   const ref = useRef<HTMLAnchorElement>(null)
 
   // Register with the grid's proximity tracker so it can measure this card.
@@ -48,7 +52,7 @@ export function LogoCard({
   return (
     <Link
       ref={ref}
-      href={`/${id}`}
+      href={href}
       prefetch
       aria-label={`View ${label}`}
       className="group block w-full text-left"
@@ -99,9 +103,18 @@ export function LogoCard({
 
       <div className="mt-3 flex items-baseline justify-between gap-3">
         <h3 className="min-w-0 truncate text-label font-medium text-foreground">{label}</h3>
-        <span className="shrink-0 text-caption text-foreground-subtle">
-          {tags.slice(0, 2).join(' · ')}
-        </span>
+        {tags.length > 0 ? (
+          <div className="flex shrink-0 flex-wrap justify-end gap-1">
+            {tags.slice(0, 2).map((tag) => (
+              <span
+                key={tag}
+                className="rounded-md border border-border bg-muted/40 px-1.5 py-0.5 text-metadata text-foreground-subtle"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        ) : null}
       </div>
     </Link>
   )

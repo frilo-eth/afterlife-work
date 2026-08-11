@@ -1,7 +1,8 @@
 import type { Metadata } from 'next'
-import { notFound } from 'next/navigation'
+import { permanentRedirect } from 'next/navigation'
 import { LogoDetailView } from '@/components/logo/LogoDetailView'
-import { getLogoDetail, getPublishedLogoIds } from '@/lib/catalog'
+import { LogoUnavailableView } from '@/components/logo/LogoUnavailableView'
+import { getLogoDetail, getPublishedLogoSlugs } from '@/lib/catalog'
 
 export const revalidate = 3600
 
@@ -10,8 +11,8 @@ export const revalidate = 3600
 export const dynamicParams = true
 
 export async function generateStaticParams() {
-  const ids = await getPublishedLogoIds()
-  return ids.map((slug) => ({ slug }))
+  const slugs = await getPublishedLogoSlugs()
+  return slugs.map((slug) => ({ slug }))
 }
 
 export async function generateMetadata({
@@ -19,10 +20,18 @@ export async function generateMetadata({
 }: {
   params: { slug: string }
 }): Promise<Metadata> {
+  if (params.slug === 'teaser' || params.slug === 'about') {
+    return { title: 'Afterlife' }
+  }
+
   const logo = await getLogoDetail(params.slug)
 
   if (!logo) {
-    return { title: 'Logo not found' }
+    // Same title for missing and private — no existence leak in the tab.
+    return {
+      title: 'Afterlife',
+      robots: { index: false, follow: false },
+    }
   }
 
   return {
@@ -32,6 +41,10 @@ export async function generateMetadata({
       title: logo.title,
       description: logo.description,
       images: logo.thumbnail ? [logo.thumbnail] : undefined,
+      url: `/${logo.slug}`,
+    },
+    alternates: {
+      canonical: `/${logo.slug}`,
     },
   }
 }
@@ -39,15 +52,22 @@ export async function generateMetadata({
 export default async function LogoDetailPage({ params }: { params: { slug: string } }) {
   // Reserved paths that have their own routes — never treat as a logo id.
   if (params.slug === 'teaser' || params.slug === 'about') {
-    notFound()
+    return <LogoUnavailableView />
   }
 
   const logo = await getLogoDetail(params.slug)
 
-  // getLogoDetail only returns AVAILABLE and SOLD listings, so hidden, draft,
-  // and in-review work is not reachable by guessing an id.
+  // getLogoDetail only returns AVAILABLE and SOLD listings. Missing ids and
+  // private statuses share the same empty shell so guessing an id cannot
+  // confirm a draft, hidden, or trashed logo exists.
+  // Admins preview private logos at /admin/logos/preview/[id].
   if (!logo) {
-    notFound()
+    return <LogoUnavailableView />
+  }
+
+  // Old cuid links permanently redirect to the pretty slug.
+  if (params.slug !== logo.slug) {
+    permanentRedirect(`/${logo.slug}`)
   }
 
   return <LogoDetailView logo={logo} />

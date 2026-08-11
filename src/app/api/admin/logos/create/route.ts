@@ -6,7 +6,9 @@ import { z } from 'zod'
 import { requireAdmin } from '@/lib/api-utils'
 import { CATALOG_TAG } from '@/lib/catalog'
 import { cloudinary } from '@/lib/cloudinary-server'
+import { resolveDesignerForLogo } from '@/lib/designer-resolve'
 import { prisma } from '@/lib/prisma'
+import { allocateLogoSlug } from '@/lib/slug'
 
 // Add better debugging for environment variables
 console.log('Environment check:', {
@@ -83,7 +85,7 @@ const LogoCreateSchema = z.object({
     .string()
     .min(1, 'Description is required')
     .max(500, 'Description must be less than 500 characters'),
-  status: z.enum(['AVAILABLE', 'SOLD', 'HIDDEN', 'REVIEW', 'DRAFT']),
+  status: z.enum(['AVAILABLE', 'DRAFT']),
   tags: z.array(z.string()).min(1).max(5),
 })
 
@@ -292,26 +294,48 @@ export async function POST(request: Request) {
 
     // Create the logo in the database
     try {
+      let designer: Awaited<ReturnType<typeof resolveDesignerForLogo>> = null
+      try {
+        designer = await resolveDesignerForLogo({
+          designerId: formData.get('designerId') as string | null,
+          designerName: formData.get('designerName') as string | null,
+          designerEmail: formData.get('designerEmail') as string | null,
+        })
+      } catch (error) {
+        return NextResponse.json(
+          { error: error instanceof Error ? error.message : 'Invalid designer' },
+          { status: 400 },
+        )
+      }
+
+      const price = await prisma.price.create({
+        data: {
+          summon: 2500,
+          revival: 5000,
+          afterlife: '$10,000/mo',
+        },
+      })
+
+      const slug = await allocateLogoSlug(prisma, title)
+
       const logo = await prisma.logo.create({
         data: {
           title,
+          slug,
           description,
           thumbnail: mainImageUrl,
           status: status as 'AVAILABLE' | 'SOLD' | 'HIDDEN' | 'REVIEW' | 'DRAFT',
           tags,
-          price: {
-            create: {
-              summon: 2500,
-              revival: 5000,
-              afterlife: '$10,000/mo',
-            },
-          },
+          designerId: designer?.id ?? null,
+          designerEmail: designer?.email ?? null,
+          priceId: price.id,
           gallery: {
             create: galleryData,
           },
         },
         include: {
           gallery: true,
+          designer: true,
         },
       })
 

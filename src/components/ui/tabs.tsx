@@ -21,7 +21,7 @@ import { fontWeights } from '@/lib/font-weight'
 import type { IconComponent } from '@/lib/icon-context'
 import { useShape } from '@/lib/shape-context'
 import { spring } from '@/lib/springs'
-import { surfaceClasses } from '@/lib/surface-classes'
+import { SURFACE_BG, surfaceClasses } from '@/lib/surface-classes'
 import { useSurface } from '@/lib/surface-context'
 import { cn } from '@/lib/utils'
 
@@ -144,10 +144,11 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
     const isMouseInside = useRef(false)
     const shape = useShape()
     const substrate = useSurface()
-    // Active pill lifts 3 levels above substrate (1 above the muted track + 2 for pop).
-    // On the page (substrate 1) this lands on surface 4 — matches the original design.
-    // Inside a dialog (substrate 5) it lifts to surface 8 instead of staying at 4.
-    const indicatorLevel = Math.min(substrate + 3, 8)
+    // Track sits one step below the surrounding surface so the well reads as
+    // recessed. The active pill then lifts above the track (and typically
+    // matches or clears the parent card).
+    const trackLevel = Math.max(1, Math.min(substrate - 1, 8))
+    const indicatorLevel = Math.min(trackLevel + 2, 8)
     const valueOrderCtx = useContext(TabsValueOrderContext)
     const [optimisticIdx, setOptimisticIdx] = useState<number | null>(null)
 
@@ -262,7 +263,8 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
             setHoveredIndex(null)
           }}
           className={cn(
-            'relative inline-flex items-center gap-0.5 p-1 select-none bg-muted',
+            'relative inline-flex items-center gap-0.5 p-1 select-none',
+            SURFACE_BG[trackLevel],
             shape.container,
             className,
           )}
@@ -273,7 +275,8 @@ const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
             <motion.div
               className={cn(
                 'absolute pointer-events-none',
-                surfaceClasses(indicatorLevel),
+                // Pill is lighter than the recessed track; keep shadow soft.
+                surfaceClasses(indicatorLevel, 1),
                 shape.bg,
               )}
               initial={false}
@@ -375,12 +378,14 @@ interface TabItemProps extends ComponentPropsWithoutRef<typeof TabsPrimitive.Tri
   icon?: IconComponent
   /** Text label. */
   label: string
+  /** Optional count shown as a compact trailing badge. */
+  count?: number
   /** @internal Auto-assigned by TabsList. */
   _index?: number
 }
 
 const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(
-  ({ value, icon: Icon, label, _index = 0, className, onClick, ...props }, ref) => {
+  ({ value, icon: Icon, label, count, _index = 0, className, onClick, ...props }, ref) => {
     const internalRef = useRef<HTMLButtonElement | null>(null)
     const { registerTab, hoveredIndex, selectedValue, setOptimisticIdx } = useTabsList()
 
@@ -410,7 +415,7 @@ const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(
         className={cn(
           // Fixed height (not py) so the text-box trim below doesn't shrink
           // the tab — browsers without text-box support render identically.
-          'relative z-10 flex h-8 items-center gap-2 px-3 cursor-pointer bg-transparent border-none outline-none',
+          'relative z-10 flex h-8 items-center gap-1.5 px-3 cursor-pointer bg-transparent border-none outline-none',
           className,
         )}
         {...props}
@@ -447,6 +452,21 @@ const TabItem = forwardRef<HTMLButtonElement, TabItemProps>(
             {label}
           </span>
         </span>
+        {count != null && (
+          <span
+            className={cn(
+              'inline-flex h-4 min-w-4 items-center justify-center rounded-md px-1',
+              'text-[10px] tabular-nums leading-none',
+              'transition-colors duration-80',
+              isActive
+                ? 'bg-foreground/10 text-foreground'
+                : 'bg-foreground/[0.06] text-muted-foreground',
+            )}
+            aria-label={`${count}`}
+          >
+            {count}
+          </span>
+        )}
       </TabsPrimitive.Trigger>
     )
   },

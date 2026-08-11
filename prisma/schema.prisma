@@ -10,6 +10,8 @@ datasource db {
 model Logo {
   id            String        @id @default(cuid())
   title         String
+  /// Public path segment — `/agave-sunshine`. Stable after create; unique.
+  slug          String        @unique
   description   String
   images        String[]
   thumbnail     String
@@ -120,6 +122,8 @@ enum LogoStatus {
   HIDDEN
   REVIEW
   DRAFT
+  /// Soft-deleted. Hidden from the storefront; purgeable from admin Trash.
+  TRASH
 }
 
 enum OrderStatus {

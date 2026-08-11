@@ -167,9 +167,7 @@ function dropZoneChrome({
       active ? 'border-foreground/40' : 'border-border hover:border-foreground/20',
       invalid && 'border-destructive/50',
     ),
-    style: nested
-      ? { borderRadius: nestedOuterRadius(bgRadius, DROP_NEST_PAD) }
-      : undefined,
+    style: nested ? { borderRadius: nestedOuterRadius(bgRadius, DROP_NEST_PAD) } : undefined,
   }
 }
 

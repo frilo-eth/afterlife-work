@@ -70,7 +70,9 @@ const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
           }
       : {}
 
-    const dotColor = color === 'gray' ? 'var(--muted-foreground)' : colorValue
+    // Use the palette hex for gray — `--muted-foreground` is channel-only
+    // (`0 0% 63%`) and is invisible if applied as a raw `backgroundColor`.
+    const dotColor = color === 'gray' ? badgeColors.gray : colorValue
 
     return (
       <span

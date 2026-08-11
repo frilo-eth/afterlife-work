@@ -1,44 +1,37 @@
 'use client'
+
+import { format } from 'date-fns'
 import { generatePublicReference } from '@/lib/utils'
 import type { OrderWithLogo } from '@/types/admin'
 
-function getOrderStatus(order: OrderWithLogo): string {
-  return order.tier === 'summon' ? 'Delivered' : 'Deadline 3 days'
-}
-
 export function RecentOrders({ orders }: { orders: OrderWithLogo[] }) {
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        {orders.map((order) => (
-          <div key={order.id} className="flex items-center justify-between group">
-            <div className="flex items-center gap-4">
-              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-background/20 border border-border">
-                <img
-                  src={order.logo.thumbnail}
-                  alt={order.wordmark}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-medium text-foreground">{order.wordmark}</h3>
-                  <span className="text-sm text-foreground-subtle">
-                    {generatePublicReference(order.logoId)}
-                  </span>
-                </div>
-                <p className="text-sm text-foreground-subtle">{getOrderStatus(order)}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-6">
-              <span className="text-sm text-foreground-muted">{order.tier}</span>
-              <span className="text-lg font-medium text-foreground">
-                ${(order.amount / 100).toLocaleString()}
-              </span>
+    <ul className="divide-y divide-border border-y border-border">
+      {orders.map((order) => (
+        <li key={order.id} className="flex items-center justify-between gap-4 py-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <img
+              src={order.logo.thumbnail}
+              alt=""
+              className="h-10 w-10 shrink-0 rounded-md border border-border object-cover"
+            />
+            <div className="min-w-0">
+              <p className="truncate text-label text-foreground">
+                {order.wordmark || order.logo.title}
+              </p>
+              <p className="text-caption text-foreground-subtle">
+                {generatePublicReference(order.logoId)}
+                <span className="mx-1.5 text-foreground-subtle/50">·</span>
+                {format(new Date(order.createdAt), 'MMM d, yyyy')}
+              </p>
             </div>
           </div>
-        ))}
-      </div>
-    </div>
+          <div className="shrink-0 text-right">
+            <p className="text-label text-foreground">${(order.amount / 100).toLocaleString()}</p>
+            <p className="text-caption capitalize text-foreground-subtle">{order.tier}</p>
+          </div>
+        </li>
+      ))}
+    </ul>
   )
 }

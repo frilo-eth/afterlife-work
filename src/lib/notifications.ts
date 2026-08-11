@@ -8,7 +8,7 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL
 
 // afterlife.com was never a domain this project owns, let alone a verified
 // sender. Notifications go out from the same verified domain as everything else.
-import { EMAIL_DOMAIN } from './email'
+import { EMAIL_DOMAIN, REPLY_TO_EMAIL } from './email'
 
 const SITE_EMAIL = `notifications@${EMAIL_DOMAIN}`
 
@@ -23,7 +23,7 @@ export async function sendNewLogoNotification(logo: Logo) {
       from: `Afterlife <${SITE_EMAIL}>`,
       to: ADMIN_EMAIL,
       subject: `New Logo Submission: ${logo.title}`,
-      reply_to: 'hi@afterlife.work',
+      reply_to: REPLY_TO_EMAIL,
       react: NewLogoSubmissionEmail({
         logoId: logo.id,
         title: logo.title,
@@ -49,7 +49,7 @@ export async function sendLogoApprovalNotification(logo: Logo) {
       from: `Afterlife <${SITE_EMAIL}>`,
       to: designerEmail,
       subject: 'Your Logo Has Been Approved',
-      reply_to: 'hi@afterlife.work',
+      reply_to: REPLY_TO_EMAIL,
       react: LogoApprovalEmail({
         logoId: logo.id,
         title: logo.title,

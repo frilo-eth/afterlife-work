@@ -2,6 +2,7 @@
 
 import { loadStripe } from '@stripe/stripe-js'
 import { useState } from 'react'
+import { DesignerHoverCard } from '@/components/logo/DesignerHoverCard'
 import { ImageGallery } from '@/components/logo/ImageGallery'
 import { PricingSelectorTabs } from '@/components/ui/PricingSelectorTabs'
 import type { LogoDetail } from '@/lib/catalog'
@@ -116,6 +117,11 @@ export function LogoDetailView({ logo }: LogoDetailViewProps) {
             {logo.description && (
               <p className="text-caption text-foreground-muted text-pretty">{logo.description}</p>
             )}
+            {logo.designer ? (
+              <p className="pt-1 text-caption text-foreground-muted">
+                Designed by <DesignerHoverCard designer={logo.designer} />
+              </p>
+            ) : null}
           </div>
         </div>
 

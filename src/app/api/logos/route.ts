@@ -27,6 +27,13 @@ export async function GET() {
       include: {
         price: true,
         gallery: true,
+        designer: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
     })
@@ -48,6 +55,13 @@ export async function GET() {
         createdAt: g.createdAt.toISOString(),
         updatedAt: g.updatedAt.toISOString(),
       })),
+      designer: logo.designer
+        ? {
+            id: logo.designer.id,
+            name: logo.designer.name,
+            email: logo.designer.email,
+          }
+        : null,
     })) as LogoWithDetails[]
 
     // Group logos by status
@@ -88,7 +102,7 @@ function groupLogosByStatus(logos: LogoWithDetails[]): Record<LogoStatus, LogoWi
   )
 
   // Ensure all status groups exist
-  const allStatuses: LogoStatus[] = ['AVAILABLE', 'SOLD', 'REVIEW', 'DRAFT', 'HIDDEN']
+  const allStatuses: LogoStatus[] = ['AVAILABLE', 'SOLD', 'REVIEW', 'DRAFT', 'HIDDEN', 'TRASH']
   for (const status of allStatuses) {
     if (!grouped[status]) {
       grouped[status] = []

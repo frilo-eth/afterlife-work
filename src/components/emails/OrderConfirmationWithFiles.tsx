@@ -6,11 +6,11 @@ import {
   Hr,
   Html,
   Link,
-  Preview,
   Section,
   Text,
 } from '@react-email/components'
 import type { FileDelivery } from '@/lib/order-fulfillment'
+import { SafePreview } from './BaseEmailTemplate'
 
 interface OrderConfirmationWithFilesProps {
   orderId: string
@@ -30,7 +30,7 @@ export const OrderConfirmationWithFiles = ({
   return (
     <Html>
       <Head />
-      <Preview>Your logo files are ready for download</Preview>
+      <SafePreview text="Your logo files are ready for download" />
       <Body style={main}>
         <Container style={container}>
           <Heading style={h1}>Thank you for your purchase!</Heading>
@@ -107,6 +107,7 @@ const h1 = {
   fontWeight: '600',
   lineHeight: '1.3',
   margin: '16px 0',
+  textAlign: 'left' as const,
 }
 
 const h2 = {

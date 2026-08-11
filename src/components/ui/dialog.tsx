@@ -139,11 +139,10 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
               'z-50 focus:outline-none',
               !isFullscreen && surfaceClasses(dialogLevel),
               !isFullscreen && 'p-6',
-              isFullscreen && 'inset-0 h-[100dvh] w-screen max-w-none overflow-y-auto rounded-none border-0 bg-background p-0 shadow-none',
+              isFullscreen &&
+                'inset-0 h-[100dvh] w-screen max-w-none overflow-y-auto rounded-none border-0 bg-background p-0 shadow-none',
               isRight && 'right-4 top-1/2 w-[min(100%-2rem,28rem)] sm:right-6',
-              !isRight &&
-                !isFullscreen &&
-                'left-1/2 top-1/2 w-[calc(100%-2rem)]',
+              !isRight && !isFullscreen && 'left-1/2 top-1/2 w-[calc(100%-2rem)]',
               !isRight && !isFullscreen && size === 'sm' && 'max-w-[400px]',
               !isRight && !isFullscreen && size === 'lg' && 'max-w-[540px]',
               !isFullscreen && shape.container,

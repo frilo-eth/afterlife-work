@@ -1,4 +1,4 @@
-export type LogoStatus = 'AVAILABLE' | 'SOLD' | 'REVIEW' | 'DRAFT' | 'HIDDEN'
+export type LogoStatus = 'AVAILABLE' | 'SOLD' | 'REVIEW' | 'DRAFT' | 'HIDDEN' | 'TRASH'
 
 interface Order {
   id: string

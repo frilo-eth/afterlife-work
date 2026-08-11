@@ -89,8 +89,11 @@ const Dropdown = forwardRef<HTMLDivElement, DropdownProps>(
     return (
       <DropdownContext.Provider value={{ registerItem, activeIndex, checkedIndex }}>
         <Elevated
-          offset={2}
-          shadowLevel={3}
+          // +2 over the Fluid default (offset 2 / shadow 3) so menus separate
+          // cleanly from page/table substrates in dark mode.
+          // https://www.fluidfunctionalism.com/docs/surfaces
+          offset={4}
+          shadowLevel={5}
           ref={(node) => {
             ;(containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node
             if (typeof ref === 'function') ref(node)
@@ -485,8 +488,11 @@ const DropdownContent = forwardRef<HTMLDivElement, DropdownContentProps>(
           >
             <DropdownContext.Provider value={contentCtx}>
               <Elevated
-                offset={2}
-                shadowLevel={3}
+                // +2 over the Fluid default (offset 2 / shadow 3) so menus
+                // separate cleanly from page/table substrates in dark mode.
+                // https://www.fluidfunctionalism.com/docs/surfaces
+                offset={4}
+                shadowLevel={5}
                 ref={(node: HTMLDivElement | null) => {
                   ;(containerRef as React.MutableRefObject<HTMLDivElement | null>).current = node
                   if (typeof ref === 'function') ref(node)

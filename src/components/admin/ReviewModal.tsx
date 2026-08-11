@@ -62,7 +62,7 @@ export function ReviewModal({ isOpen, onClose, onSubmit, title, action }: Review
             same neutral "primary" the request-changes flow uses.
           */}
           <Button
-            variant={action === 'REJECT' ? 'secondary' : 'primary'}
+            variant={action === 'REJECT' ? 'destructive' : 'primary'}
             onClick={handleSubmit}
             disabled={!message.trim()}
           >

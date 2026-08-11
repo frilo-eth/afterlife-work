@@ -1,14 +1,4 @@
-import {
-  Body,
-  Container,
-  Head,
-  Html,
-  Img,
-  Link,
-  Preview,
-  Section,
-  Text,
-} from '@react-email/components'
+import { Body, Container, Head, Html, Img, Link, Section, Text } from '@react-email/components'
 
 interface BaseEmailProps {
   previewText: string
@@ -16,9 +6,33 @@ interface BaseEmailProps {
   body: React.ReactNode
   ctaText?: string
   ctaUrl?: string
+  /** Skip UTM params — cleaner for person-to-person / Apple filters. */
+  trackLinks?: boolean
   utmSource?: string
   utmMedium?: string
   utmCampaign?: string
+  unsubscribeUrl?: string
+}
+
+/**
+ * Hidden inbox preview without React Email's zero-width padding characters.
+ * Those invisible runes are a common Apple iCloud "content rejected" trigger.
+ */
+export function SafePreview({ text }: { text: string }) {
+  return (
+    <div
+      style={{
+        display: 'none',
+        overflow: 'hidden',
+        lineHeight: '1px',
+        opacity: 0,
+        maxHeight: 0,
+        maxWidth: 0,
+      }}
+    >
+      {text.replace(/\s+/g, ' ').trim()}
+    </div>
+  )
 }
 
 export const BaseEmailTemplate = ({
@@ -27,20 +41,24 @@ export const BaseEmailTemplate = ({
   body,
   ctaText,
   ctaUrl,
+  trackLinks = true,
   utmSource = 'email',
   utmMedium = 'transactional',
   utmCampaign = 'system',
+  unsubscribeUrl,
 }: BaseEmailProps) => {
   const year = new Date().getFullYear()
-  const trackingParams = `utm_source=${utmSource}&utm_medium=${utmMedium}&utm_campaign=${utmCampaign}`
+  const href =
+    ctaUrl && trackLinks
+      ? `${ctaUrl}${ctaUrl.includes('?') ? '&' : '?'}utm_source=${utmSource}&utm_medium=${utmMedium}&utm_campaign=${utmCampaign}`
+      : ctaUrl
 
   return (
     <Html>
       <Head />
-      <Preview>{previewText}</Preview>
+      <SafePreview text={previewText} />
       <Body style={styles.body}>
         <Container style={styles.container}>
-          {/* Header with centered logo */}
           <Section style={styles.logoSection}>
             {/*
               PNG, not SVG: most clients strip or block SVG images, which leaves
@@ -55,24 +73,19 @@ export const BaseEmailTemplate = ({
             />
           </Section>
 
-          {/* Main Content */}
           <Section style={styles.content}>
             <Text style={styles.heading}>{heading}</Text>
             {body}
 
-            {ctaText && ctaUrl && (
+            {ctaText && href && (
               <Section style={styles.ctaContainer}>
-                <Link href={`${ctaUrl}?${trackingParams}`} style={styles.button}>
+                <Link href={href} style={styles.button}>
                   {ctaText}
                 </Link>
               </Section>
             )}
           </Section>
 
-          {/*
-            No divider above the footer — the card border already separates
-            content from what follows.
-          */}
           <Section style={styles.footer}>
             <Text style={styles.footerText}>© {year} Afterlife. All rights reserved.</Text>
             <Text style={styles.footerLinks}>
@@ -84,6 +97,13 @@ export const BaseEmailTemplate = ({
                 hi@afterlife.work
               </Link>
             </Text>
+            {unsubscribeUrl ? (
+              <Text style={styles.footerLinks}>
+                <Link href={unsubscribeUrl} style={styles.link}>
+                  Unsubscribe
+                </Link>
+              </Text>
+            ) : null}
           </Section>
         </Container>
       </Body>
@@ -126,7 +146,7 @@ const styles = {
     fontWeight: '600',
     margin: '0 0 24px',
     padding: '0',
-    textAlign: 'center' as const,
+    textAlign: 'left' as const,
   },
   ctaContainer: {
     textAlign: 'center' as const,
@@ -158,7 +178,7 @@ const styles = {
     color: '#666666',
     fontSize: '12px',
     lineHeight: '1.5',
-    margin: '0',
+    margin: '0 0 8px',
   },
   link: {
     color: '#666666',

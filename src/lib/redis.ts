@@ -55,7 +55,7 @@ const _CACHE_WARM_UP_INTERVAL = 240 // 4 minutes in seconds
 
 // Cache keys
 export const CACHE_KEYS = {
-  ALL_LOGOS: 'all_logos',
+  ALL_LOGOS: 'all_logos_v3',
   LOGO_BY_ID: (id: string) => `logo:${id}`,
   GROUPED_LOGOS: 'grouped_logos',
 }

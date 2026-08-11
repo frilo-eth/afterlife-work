@@ -7,15 +7,17 @@ export async function GET() {
   if (denied) return denied
 
   try {
-    const [recentOrders, recentSubmissions] = await prisma.$transaction([
+    const [recentOrders, recentReviews] = await prisma.$transaction([
       prisma.order.findMany({
         take: 10,
         orderBy: { createdAt: 'desc' },
         include: { logo: true },
       }),
-      prisma.logoSubmission.findMany({
+      prisma.logo.findMany({
         take: 10,
+        where: { status: 'REVIEW' },
         orderBy: { createdAt: 'desc' },
+        include: { designer: true },
       }),
     ])
 
@@ -26,11 +28,11 @@ export async function GET() {
         description: `New order for ${order.logo.title}`,
         timestamp: order.createdAt,
       })),
-      ...recentSubmissions.map((submission) => ({
-        id: `submission-${submission.id}`,
+      ...recentReviews.map((logo) => ({
+        id: `submission-${logo.id}`,
         type: 'SUBMISSION' as const,
-        description: `New logo submission from ${submission.designerName}`,
-        timestamp: submission.createdAt,
+        description: `New logo submission${logo.designer?.name ? ` from ${logo.designer.name}` : ''}: ${logo.title}`,
+        timestamp: logo.createdAt,
       })),
     ]
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
@@ -38,7 +40,7 @@ export async function GET() {
 
     return NextResponse.json({ events })
   } catch (error) {
-    console.error('Timeline fetch error:', error)
-    return NextResponse.json({ error: 'Failed to fetch timeline' }, { status: 500 })
+    console.error('Timeline error:', error)
+    return NextResponse.json({ error: 'Failed to load timeline' }, { status: 500 })
   }
 }

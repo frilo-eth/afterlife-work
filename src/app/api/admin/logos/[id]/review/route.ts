@@ -40,8 +40,9 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ error: 'Logo not found' }, { status: 404 })
     }
 
-    // Update logo status based on action
-    const newStatus = action === 'APPROVE' ? 'AVAILABLE' : 'HIDDEN'
+    // Update logo status based on action.
+    // REQUEST_CHANGES keeps the logo in the submitted queue.
+    const newStatus = action === 'APPROVE' ? 'AVAILABLE' : action === 'REJECT' ? 'HIDDEN' : 'REVIEW'
     const updatedLogo = await prisma.logo.update({
       where: { id: params.id },
       data: { status: newStatus },

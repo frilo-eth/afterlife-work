@@ -90,9 +90,14 @@ export async function seedFromCloudinary(force = false) {
         const baseName = fileName.split('.')[0] || ''
 
         // Create the main logo
+        const title = generateTitle(logo.public_id)
         const createdLogo = await prisma.logo.create({
           data: {
-            title: generateTitle(logo.public_id),
+            title,
+            slug: title
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-|-$/g, ''),
             description: 'A unique design from our collection',
             images: [logo.secure_url],
             thumbnail: logo.secure_url,

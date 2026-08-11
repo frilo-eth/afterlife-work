@@ -74,12 +74,9 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
     })
   }, [])
 
-  // Selected tags lead the row, so an active filter is never the one pushed
-  // into the overflow panel.
-  const orderedTags = useMemo(() => {
-    const all: string[] = [...LOGO_TAGS]
-    return [...styles, ...all.filter((tag) => !styles.includes(tag))]
-  }, [styles])
+  // Keep catalog order stable — reordering selected tags to the front made
+  // the row jump left on every click.
+  const orderedTags = LOGO_TAGS
 
   // How many actually fit on one line, measured. The row must never wrap —
   // that is the entire reason the overflow panel exists.
@@ -150,10 +147,7 @@ export const FilterBar = ({ onFiltersChange, tagCounts }: FilterBarProps) => {
         nudging the eight already in front of you.
       */}
       <Dialog open={tagsOpen} onOpenChange={setTagsOpen}>
-        <DialogContent
-          placement="right"
-          className="border border-border bg-background shadow-none"
-        >
+        <DialogContent placement="right" className="border border-border bg-background shadow-none">
           <DialogHeader>
             <DialogTitle>Tags</DialogTitle>
           </DialogHeader>

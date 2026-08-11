@@ -1,9 +1,9 @@
 'use client'
 
 import { Mail } from 'lucide-react'
-import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FriloPill } from '@/components/layout/FriloPill'
+import { AboutModal } from '@/components/modals/AboutModal'
 import { SubmitLogoModal } from '@/components/modals/SubmitLogoModal'
 import { Button } from '@/components/ui/button'
 
@@ -19,25 +19,45 @@ function XIcon({ className }: { className?: string }) {
   )
 }
 
+function clearAboutQuery() {
+  const url = new URL(window.location.href)
+  if (!url.searchParams.has('about')) return
+  url.searchParams.delete('about')
+  const next = `${url.pathname}${url.search}${url.hash}`
+  window.history.replaceState({}, '', next)
+}
+
 export const Footer = () => {
   const [isSubmitOpen, setIsSubmitOpen] = useState(false)
+  const [isAboutOpen, setIsAboutOpen] = useState(false)
   const year = new Date().getFullYear()
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('about') === '1') {
+      setIsAboutOpen(true)
+    }
+  }, [])
+
+  const closeAbout = () => {
+    setIsAboutOpen(false)
+    clearAboutQuery()
+  }
 
   return (
     <>
       <footer className="border-t border-border">
         <div className="container mx-auto flex flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
           <p className="flex flex-wrap items-center gap-1.5 text-caption text-foreground-subtle">
-            © {year} Afterlife
-            Made with soul by
+            © {year} Afterlife. Made with soul by
             <FriloPill />
           </p>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <nav aria-label="Footer" className="flex flex-wrap gap-x-5 gap-y-2">
-              <Link href="/about" className={linkClass}>
+              <button type="button" className={linkClass} onClick={() => setIsAboutOpen(true)}>
                 About
-              </Link>
+              </button>
               <button type="button" className={linkClass} onClick={() => setIsSubmitOpen(true)}>
                 Submit
               </button>
@@ -64,6 +84,7 @@ export const Footer = () => {
         </div>
       </footer>
 
+      <AboutModal isOpen={isAboutOpen} onClose={closeAbout} />
       <SubmitLogoModal isOpen={isSubmitOpen} onClose={() => setIsSubmitOpen(false)} />
     </>
   )

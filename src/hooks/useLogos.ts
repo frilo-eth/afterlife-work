@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { scheduleUndoableAction } from '@/lib/destructive-action'
 import type { LogoStatus, LogoWithDetails } from '@/types'
 
 interface LogosResponse {
@@ -9,10 +10,33 @@ interface LogosResponse {
   groupedLogos: Record<LogoStatus, LogoWithDetails[]>
 }
 
-// Add cache management
+const STATUS_LABEL: Record<LogoStatus, string> = {
+  AVAILABLE: 'Live',
+  REVIEW: 'Submitted',
+  DRAFT: 'Draft',
+  HIDDEN: 'Rejected',
+  SOLD: 'Sold',
+  TRASH: 'Trash',
+}
+
 const CACHE_DURATION = 5000 // 5 seconds
 let lastFetchTime = 0
 let cachedResponse: LogosResponse | null = null
+
+function moveLogoStatus(
+  prev: Record<LogoStatus, LogoWithDetails[]> | undefined,
+  logo: LogoWithDetails,
+  to: LogoStatus,
+): Record<LogoStatus, LogoWithDetails[]> | undefined {
+  if (!prev) return prev
+  const next: Record<LogoStatus, LogoWithDetails[]> = { ...prev }
+  for (const status of Object.keys(next) as LogoStatus[]) {
+    next[status] = next[status].filter((l) => l.id !== logo.id)
+  }
+  const moved = { ...logo, status: to }
+  next[to] = [moved, ...(next[to] ?? [])]
+  return next
+}
 
 export function useLogos() {
   const [logos, setLogos] = useState<LogoWithDetails[]>([])
@@ -21,12 +45,29 @@ export function useLogos() {
   const [error, setError] = useState<Error | null>(null)
   const isMounted = useRef(true)
   const activeRequest = useRef<Promise<LogosResponse> | null>(null)
+  const logosRef = useRef(logos)
+  logosRef.current = logos
 
-  // Memoize state setters to avoid dependency issues
   const updateState = useCallback((data: LogosResponse) => {
     if (isMounted.current) {
-      setLogos(data.logos)
-      setGroupedLogos(data.groupedLogos)
+      const logos = (data.logos ?? []).filter((logo) => !!logo?.id)
+      const groupedLogos = data.groupedLogos
+        ? (Object.fromEntries(
+            Object.entries(data.groupedLogos).map(([status, items]) => [
+              status,
+              (items ?? []).filter((logo) => !!logo?.id),
+            ]),
+          ) as Record<LogoStatus, LogoWithDetails[]>)
+        : undefined
+
+      // Drop poisoned in-memory cache entries (e.g. review responses stored as logos).
+      if (logos.length !== (data.logos?.length ?? 0)) {
+        cachedResponse = null
+        lastFetchTime = 0
+      }
+
+      setLogos(logos)
+      setGroupedLogos(groupedLogos)
       setError(null)
     }
   }, [])
@@ -35,21 +76,18 @@ export function useLogos() {
     async (force = false) => {
       const now = Date.now()
 
-      // Use cached data if available and not forced refresh
       if (!force && cachedResponse && now - lastFetchTime < CACHE_DURATION) {
         updateState(cachedResponse)
         setIsLoading(false)
         return
       }
 
-      // Prevent concurrent requests
       if (activeRequest.current) {
         try {
           const data = await activeRequest.current
           updateState(data)
           return
         } catch (_err) {
-          // If the existing request fails, proceed with a new one
           activeRequest.current = null
         }
       }
@@ -57,7 +95,6 @@ export function useLogos() {
       try {
         setIsLoading(true)
 
-        // Create the new request
         const fetchPromise = (async () => {
           const res = await fetch('/api/logos', {
             headers: {
@@ -73,13 +110,11 @@ export function useLogos() {
           return data
         })()
 
-        // Store the active request
         activeRequest.current = fetchPromise
 
         const data = await fetchPromise
         updateState(data)
 
-        // Update cache
         cachedResponse = data
         lastFetchTime = now
       } catch (err) {
@@ -97,7 +132,6 @@ export function useLogos() {
     [updateState],
   )
 
-  // Set up cleanup
   useEffect(() => {
     isMounted.current = true
     return () => {
@@ -105,114 +139,143 @@ export function useLogos() {
     }
   }, [])
 
-  // Initial fetch
   useEffect(() => {
     fetchLogos()
   }, [fetchLogos])
 
-  const updateLogoStatus = useCallback(
-    async (logoId: string, newStatus: LogoStatus) => {
-      const toastId = toast.loading('Updating status...')
-      try {
-        const formData = new FormData()
-        const logo = logos.find((l) => l.id === logoId)
-        if (!logo) throw new Error('Logo not found')
+  const updateLogoStatus = useCallback(async (logoId: string, newStatus: LogoStatus) => {
+    if (newStatus === 'SOLD') {
+      toast.error('Sold is set automatically by Stripe checkout')
+      return
+    }
 
-        formData.append('status', newStatus)
-        formData.append('title', logo.title)
-        formData.append('description', logo.description || '')
-        formData.append('tags', JSON.stringify(logo.tags || []))
+    const logo = logosRef.current.find((l) => l.id === logoId)
+    if (!logo) {
+      toast.error('Logo not found')
+      return
+    }
+    if (logo.status === 'SOLD') {
+      toast.error('Sold logos are locked')
+      return
+    }
+    if (logo.status === newStatus) return
 
-        const response = await fetch(`/api/admin/logos/${logoId}/edit`, {
-          method: 'PATCH',
-          body: formData,
+    const previousStatus = logo.status
+    const moved = { ...logo, status: newStatus }
+
+    // Optimistic: update UI in the same tick as the click.
+    setLogos((prev) => prev.map((l) => (l.id === logoId ? moved : l)))
+    setGroupedLogos((prev) => moveLogoStatus(prev, logo, newStatus))
+    cachedResponse = null
+    lastFetchTime = 0
+
+    try {
+      const response = await fetch(`/api/admin/logos/${logoId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || errorData.message || 'Failed to update status')
+      }
+
+      if (newStatus === 'TRASH') {
+        toast.success('Moved to Trash')
+      } else if (previousStatus === 'TRASH') {
+        toast.success(`Restored to ${STATUS_LABEL[newStatus]}`)
+      }
+    } catch (error) {
+      setLogos((prev) => prev.map((l) => (l.id === logoId ? { ...l, status: previousStatus } : l)))
+      setGroupedLogos((prev) => moveLogoStatus(prev, moved, previousStatus))
+      console.error('Error updating logo status:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to update status')
+      throw error
+    }
+  }, [])
+
+  const deleteLogo = useCallback((logoId: string) => {
+    const logo = logosRef.current.find((l) => l.id === logoId)
+    if (!logo) {
+      toast.error('Logo not found')
+      return
+    }
+    if (logo.status === 'SOLD') {
+      toast.error('Sold logos cannot be deleted from admin')
+      return
+    }
+    if (logo.status !== 'TRASH') {
+      toast.error('Move the logo to Trash first')
+      return
+    }
+
+    const snapshot = logo
+
+    setLogos((prev) => prev.filter((l) => l.id !== logoId))
+    setGroupedLogos((prev) => {
+      if (!prev) return prev
+      const next = { ...prev }
+      for (const status of Object.keys(next)) {
+        next[status as LogoStatus] = next[status as LogoStatus].filter((l) => l.id !== logoId)
+      }
+      return next
+    })
+    cachedResponse = null
+    lastFetchTime = 0
+
+    scheduleUndoableAction({
+      message: `Permanently deleted “${logo.title}”`,
+      description: 'Removed from the database. Undo available for a few seconds.',
+      onUndo: () => {
+        setLogos((prev) => {
+          if (prev.some((l) => l.id === snapshot.id)) return prev
+          return [snapshot, ...prev]
         })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || 'Failed to update status')
-        }
-
-        const _updatedLogo = await response.json()
-
-        // Update local state optimistically
-        setLogos((prev) => prev.map((l) => (l.id === logoId ? { ...l, status: newStatus } : l)))
-
-        // Update grouped logos state
         setGroupedLogos((prev) => {
-          if (!prev) return prev
-          const newGroupedLogos = { ...prev }
-          // Remove from old status group
-          for (const status of Object.keys(newGroupedLogos)) {
-            newGroupedLogos[status as LogoStatus] = newGroupedLogos[status as LogoStatus].filter(
-              (l) => l.id !== logoId,
-            )
+          if (!prev) {
+            return { [snapshot.status]: [snapshot] } as Record<LogoStatus, LogoWithDetails[]>
           }
-          // Add to new status group
-          if (!newGroupedLogos[newStatus]) newGroupedLogos[newStatus] = []
-          newGroupedLogos[newStatus].push({ ...logo, status: newStatus })
-          return newGroupedLogos
+          const next = { ...prev }
+          const bucket = next[snapshot.status] ?? []
+          if (bucket.some((l) => l.id === snapshot.id)) return prev
+          next[snapshot.status] = [snapshot, ...bucket]
+          return next
         })
-
-        // Invalidate cache
         cachedResponse = null
         lastFetchTime = 0
-
-        toast.success(`Updated status to ${newStatus}`, { id: toastId })
-      } catch (error) {
-        console.error('Error updating logo status:', error)
-        toast.error(error instanceof Error ? error.message : 'Failed to update status', {
-          id: toastId,
-        })
-        throw error
-      }
-    },
-    [logos],
-  )
-
-  const deleteLogo = useCallback(
-    async (logoId: string) => {
-      const toastId = toast.loading('Deleting logo...')
-      try {
+      },
+      onCommit: async () => {
         const response = await fetch(`/api/admin/logos/${logoId}/delete`, {
           method: 'DELETE',
         })
-
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.message || 'Failed to delete logo')
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || errorData.error || 'Failed to delete logo')
         }
+      },
+    })
+  }, [])
 
-        // Update local state optimistically
-        setLogos((prev) => prev.filter((l) => l.id !== logoId))
-
-        if (groupedLogos) {
-          setGroupedLogos((prev) => {
-            if (!prev) return prev
-            const newGroupedLogos = { ...prev }
-            for (const status of Object.keys(newGroupedLogos)) {
-              newGroupedLogos[status as LogoStatus] = newGroupedLogos[status as LogoStatus].filter(
-                (l) => l.id !== logoId,
-              )
-            }
-            return newGroupedLogos
-          })
-        }
-
-        // Invalidate cache
-        cachedResponse = null
-        lastFetchTime = 0
-
-        toast.success('Logo deleted successfully', { id: toastId })
-      } catch (error) {
-        console.error('Error deleting logo:', error)
-        toast.error(error instanceof Error ? error.message : 'Failed to delete logo', {
-          id: toastId,
-        })
-        throw error
+  const trashLogo = useCallback(
+    async (logoId: string) => {
+      const logo = logosRef.current.find((l) => l.id === logoId)
+      if (!logo) {
+        toast.error('Logo not found')
+        return
       }
+      if (logo.status === 'SOLD') {
+        toast.error('Sold logos cannot be moved to Trash')
+        return
+      }
+      if (logo.status === 'TRASH') {
+        toast.error('Logo is already in Trash')
+        return
+      }
+
+      await updateLogoStatus(logoId, 'TRASH')
     },
-    [groupedLogos],
+    [updateLogoStatus],
   )
 
   const reviewLogo = useCallback(
@@ -228,31 +291,33 @@ export function useLogos() {
         })
 
         if (!response.ok) {
-          const error = await response.json()
-          throw new Error(error.message || 'Failed to process review action')
+          const err = await response.json().catch(() => ({}))
+          throw new Error(err.message || err.error || 'Failed to process review action')
         }
 
-        const updatedLogo = await response.json()
-
-        // Update local state optimistically
-        setLogos((prev) => prev.map((l) => (l.id === logoId ? updatedLogo : l)))
-
-        if (groupedLogos) {
-          setGroupedLogos((prev) => {
-            if (!prev) return prev
-            const newGroupedLogos = { ...prev }
-            // Remove from REVIEW status
-            newGroupedLogos.REVIEW = newGroupedLogos.REVIEW.filter((l) => l.id !== logoId)
-            // Add to appropriate status based on action
-            const newStatus =
-              action === 'APPROVE' ? 'AVAILABLE' : action === 'REJECT' ? 'HIDDEN' : 'REVIEW'
-            if (!newGroupedLogos[newStatus]) newGroupedLogos[newStatus] = []
-            newGroupedLogos[newStatus].push(updatedLogo)
-            return newGroupedLogos
-          })
+        const payload = await response.json()
+        const updatedLogo = (payload.logo ?? payload) as LogoWithDetails
+        if (!updatedLogo?.id) {
+          throw new Error('Review succeeded but the response was missing the logo')
         }
 
-        // Invalidate cache
+        const newStatus: LogoStatus =
+          action === 'APPROVE' ? 'AVAILABLE' : action === 'REJECT' ? 'HIDDEN' : 'REVIEW'
+        const nextLogo = { ...updatedLogo, status: newStatus }
+
+        setLogos((prev) => prev.map((l) => (l.id === logoId ? nextLogo : l)))
+
+        setGroupedLogos((prev) => {
+          if (!prev) return prev
+          const newGroupedLogos = { ...prev }
+          for (const status of Object.keys(newGroupedLogos) as LogoStatus[]) {
+            newGroupedLogos[status] = newGroupedLogos[status].filter((l) => l.id !== logoId)
+          }
+          if (!newGroupedLogos[newStatus]) newGroupedLogos[newStatus] = []
+          newGroupedLogos[newStatus] = [nextLogo, ...newGroupedLogos[newStatus]]
+          return newGroupedLogos
+        })
+
         cachedResponse = null
         lastFetchTime = 0
 
@@ -272,7 +337,7 @@ export function useLogos() {
         throw error
       }
     },
-    [groupedLogos],
+    [],
   )
 
   return {
@@ -282,6 +347,7 @@ export function useLogos() {
     error,
     updateLogoStatus,
     deleteLogo,
+    trashLogo,
     reviewLogo,
     refresh: useCallback((force = true) => fetchLogos(force), [fetchLogos]),
   }

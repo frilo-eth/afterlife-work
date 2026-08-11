@@ -13,7 +13,10 @@ export default async function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-4xl font-bold">Orders</h1>
+      <header className="space-y-1">
+        <h1 className="text-heading-24 text-foreground">Orders</h1>
+        <p className="text-caption text-foreground-muted">Purchases and downloads.</p>
+      </header>
       <OrdersTable orders={orders} />
     </div>
   )

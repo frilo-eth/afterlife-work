@@ -1,79 +1,88 @@
-import { Database, HardDrive, Twitter } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Package, Receipt, UserRound, Wallet } from 'lucide-react'
+import Link from 'next/link'
+import { cn } from '@/lib/utils'
 
 interface DashboardStatsProps {
-  submissionCount: number
-  storageUsed: number
-  twitterFollowers: number
-  dbSize: number
+  totalLogos: number
+  pendingSubmissions: number
+  totalOrders: number
+  totalRevenue: number
+  totalDesigners: number
+  fulfilledThisMonth: number
 }
 
-// Sizes arrive in bytes; showing "1234567.00 B" is technically true and
-// practically unreadable, so they are scaled to the nearest sensible unit.
-const formatBytes = (bytes: number) => {
-  if (bytes < 1024) return `${bytes} B`
-  const units = ['KB', 'MB', 'GB', 'TB']
-  let value = bytes
-  let unit = -1
-  while (value >= 1024 && unit < units.length - 1) {
-    value /= 1024
-    unit += 1
-  }
-  return `${value.toFixed(1)} ${units[unit]}`
+function formatCents(cents: number) {
+  return `$${(cents / 100).toLocaleString(undefined, {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })}`
 }
 
 export function DashboardStats({
-  submissionCount = 0,
-  storageUsed = 0,
-  twitterFollowers = 0,
-  dbSize = 0,
+  totalLogos = 0,
+  pendingSubmissions = 0,
+  totalOrders = 0,
+  totalRevenue = 0,
+  totalDesigners = 0,
+  fulfilledThisMonth = 0,
 }: DashboardStatsProps) {
   const stats = [
     {
-      label: 'Logo submissions',
-      value: String(submissionCount),
-      icon: HardDrive,
-      description: 'Total submissions',
+      label: 'Logos',
+      value: String(totalLogos),
+      description: pendingSubmissions > 0 ? `${pendingSubmissions} submitted` : 'Catalog live',
+      href: pendingSubmissions > 0 ? '/admin/logos?status=REVIEW' : '/admin/logos',
+      icon: Package,
     },
     {
-      label: 'Storage used',
-      value: formatBytes(storageUsed),
-      icon: HardDrive,
-      description: 'Across Cloudinary',
+      label: 'Revenue',
+      value: formatCents(totalRevenue),
+      description: `${totalOrders} orders total`,
+      href: '/admin/orders',
+      icon: Wallet,
     },
     {
-      label: 'Twitter followers',
-      value: String(twitterFollowers),
-      icon: Twitter,
-      description: 'Social reach',
+      label: 'This month',
+      value: String(fulfilledThisMonth),
+      description: 'Orders fulfilled',
+      href: '/admin/orders',
+      icon: Receipt,
     },
     {
-      label: 'Database size',
-      value: formatBytes(dbSize),
-      icon: Database,
-      description: 'Total database size',
+      label: 'Designers',
+      value: String(totalDesigners),
+      description: 'With logos on Afterlife',
+      href: '/admin/designers',
+      icon: UserRound,
     },
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
       {stats.map((stat) => {
         const Icon = stat.icon
         return (
-          <Card key={stat.label}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="rounded-full bg-secondary p-3">
-                  <Icon className="h-6 w-6 text-foreground/90" aria-hidden="true" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">{stat.label}</p>
-                  <div className="text-2xl font-bold text-foreground/90">{stat.value}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{stat.description}</p>
-                </div>
+          <Link
+            key={stat.label}
+            href={stat.href}
+            className={cn(
+              'group block border border-border bg-card p-5 rounded-lg',
+              'transition-[border-color] duration-quick ease-settle',
+              'hover:border-border-strong',
+            )}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="space-y-1">
+                <p className="text-caption text-foreground-muted">{stat.label}</p>
+                <p className="text-heading-24 text-foreground">{stat.value}</p>
+                <p className="text-caption text-foreground-subtle">{stat.description}</p>
               </div>
-            </CardContent>
-          </Card>
+              <Icon
+                className="h-4 w-4 shrink-0 text-foreground-subtle transition-colors duration-80 group-hover:text-foreground"
+                aria-hidden="true"
+              />
+            </div>
+          </Link>
         )
       })}
     </div>

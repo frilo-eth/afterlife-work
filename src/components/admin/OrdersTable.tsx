@@ -25,7 +25,7 @@ interface OrdersTableProps {
 
 export function OrdersTable({ orders }: OrdersTableProps) {
   if (orders.length === 0) {
-    return <p className="text-sm text-muted-foreground">No orders yet.</p>
+    return <p className="text-caption text-foreground-muted">No orders yet.</p>
   }
 
   return (
@@ -46,7 +46,9 @@ export function OrdersTable({ orders }: OrdersTableProps) {
       <TableBody>
         {orders.map((order) => (
           <TableRow key={order.id}>
-            <TableCell className="font-mono text-xs">{order.id.slice(0, 8)}</TableCell>
+            <TableCell className="font-mono text-caption text-foreground-muted">
+              {order.id.slice(0, 8)}
+            </TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
                 {order.logo.thumbnail && (
@@ -55,19 +57,25 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                     alt=""
                     width={32}
                     height={32}
-                    className="h-8 w-8 rounded object-cover"
+                    className="h-8 w-8 rounded-md border border-border object-cover"
                   />
                 )}
-                <span>{order.logo.title}</span>
+                <span className="text-label text-foreground">{order.logo.title}</span>
               </div>
             </TableCell>
-            <TableCell>{order.customerEmail}</TableCell>
-            <TableCell>{format(order.createdAt, 'MMM d, yyyy')}</TableCell>
+            <TableCell className="text-caption text-foreground-muted">
+              {order.customerEmail}
+            </TableCell>
+            <TableCell className="text-caption text-foreground-muted">
+              {format(order.createdAt, 'MMM d, yyyy')}
+            </TableCell>
             <TableCell>
               <Badge>{order.tier}</Badge>
             </TableCell>
             {/* Amounts are stored in cents. */}
-            <TableCell>${(order.amount / 100).toLocaleString()}</TableCell>
+            <TableCell className="text-label text-foreground">
+              ${(order.amount / 100).toLocaleString()}
+            </TableCell>
             <TableCell>
               <Button
                 variant="ghost"

@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { requireAdmin } from '@/lib/api-utils'
 import { CATALOG_TAG } from '@/lib/catalog'
 import { cloudinary } from '@/lib/cloudinary-server'
+import { resolveDesignerForLogo } from '@/lib/designer-resolve'
 import { prisma } from '@/lib/prisma'
 
 // Add better debugging for environment variables
@@ -75,7 +76,7 @@ const LogoUpdateSchema = z.object({
     .string()
     .min(1, 'Description is required')
     .max(500, 'Description must be less than 500 characters'),
-  status: z.enum(['AVAILABLE', 'SOLD', 'HIDDEN', 'REVIEW', 'DRAFT']),
+  status: z.enum(['AVAILABLE', 'HIDDEN', 'REVIEW', 'DRAFT', 'TRASH']),
   tags: z.array(z.string()).min(1).max(2),
 })
 
@@ -377,12 +378,17 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Ensure status is a valid enum value
-    const validStatuses = ['AVAILABLE', 'SOLD', 'HIDDEN', 'REVIEW', 'DRAFT']
+    // Ensure status is a valid admin-settable enum value (SOLD is Stripe-only).
+    const validStatuses = ['AVAILABLE', 'HIDDEN', 'REVIEW', 'DRAFT', 'TRASH']
     if (!validStatuses.includes(rawUpdateData.status)) {
       console.error(`❌ ${logPrefix} Invalid status value:`, rawUpdateData.status)
       return NextResponse.json(
-        { error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` },
+        {
+          error:
+            rawUpdateData.status === 'SOLD'
+              ? 'Sold is set automatically by Stripe checkout and cannot be chosen manually.'
+              : `Invalid status. Must be one of: ${validStatuses.join(', ')}`,
+        },
         { status: 400 },
       )
     }
@@ -411,6 +417,15 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (!existingLogo) {
       console.error(`❌ ${logPrefix} Logo not found with ID:`, params.id)
       return NextResponse.json({ error: 'Logo not found' }, { status: 404 })
+    }
+
+    if (existingLogo.status === 'SOLD') {
+      return NextResponse.json(
+        {
+          error: 'Sold logos are locked. Status and details are set by the completed checkout.',
+        },
+        { status: 409 },
+      )
     }
 
     console.log(
@@ -561,6 +576,33 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     // Update logo with validated data
     console.log(`📝 ${logPrefix} Updating logo in database with new data...`)
+
+    let designer: Awaited<ReturnType<typeof resolveDesignerForLogo>> = null
+    const designerIdRaw = formData.get('designerId')
+    const designerNameRaw = formData.get('designerName')
+    const designerEmailRaw = formData.get('designerEmail')
+    const clearDesigner = formData.get('clearDesigner') === 'true'
+
+    try {
+      if (clearDesigner) {
+        designer = null
+      } else if (designerIdRaw != null || designerNameRaw != null || designerEmailRaw != null) {
+        designer = await resolveDesignerForLogo({
+          designerId: typeof designerIdRaw === 'string' ? designerIdRaw : null,
+          designerName: typeof designerNameRaw === 'string' ? designerNameRaw : null,
+          designerEmail: typeof designerEmailRaw === 'string' ? designerEmailRaw : null,
+        })
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : 'Invalid designer' },
+        { status: 400 },
+      )
+    }
+
+    const designerTouched =
+      clearDesigner || designerIdRaw != null || designerNameRaw != null || designerEmailRaw != null
+
     const updatedLogo = await prisma.logo.update({
       where: { id: params.id },
       data: {
@@ -572,9 +614,16 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         gallery: {
           create: newGalleryImages,
         },
+        ...(designerTouched
+          ? {
+              designerId: designer?.id ?? null,
+              designerEmail: designer?.email ?? null,
+            }
+          : {}),
       },
       include: {
         gallery: true,
+        designer: true,
       },
     })
 

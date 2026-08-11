@@ -6,10 +6,12 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Generates a display-only reference number from an existing ID
- * No database changes required
+ * Generates a display-only reference number from an existing ID.
+ * No database changes required.
  */
-export function generatePublicReference(id: string): string {
+export function generatePublicReference(id: string | null | undefined): string {
+  if (!id) return '#------'
+
   // Convert the string id to a number-based hash
   const numericHash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
 

@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-utils'
 import { CATALOG_TAG } from '@/lib/catalog'
 import { cloudinary } from '@/lib/cloudinary-server'
+import { assertPermanentDelete } from '@/lib/logo-status'
 import { prisma } from '@/lib/prisma'
 
 export async function DELETE(_request: Request, { params }: { params: { id: string } }) {
@@ -12,7 +13,6 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
   console.log('🗑️ Starting logo deletion process for ID:', params.id)
 
   try {
-    // First, get the logo and its gallery to get the image URLs
     console.log('📥 Fetching logo details from database...')
     const logo = await prisma.logo.findUnique({
       where: { id: params.id },
@@ -26,6 +26,11 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
       return NextResponse.json({ success: false, message: 'Logo not found' }, { status: 404 })
     }
 
+    const allowed = assertPermanentDelete(logo.status)
+    if (!allowed.ok) {
+      return NextResponse.json({ success: false, message: allowed.message }, { status: 409 })
+    }
+
     console.log('✅ Found logo:', {
       id: logo.id,
       title: logo.title,
@@ -33,10 +38,8 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
       galleryCount: logo.gallery?.length || 0,
     })
 
-    // Delete images from Cloudinary
     const deletePromises = []
 
-    // Delete main image
     if (logo.thumbnail) {
       const mainImageUrl = logo.thumbnail
       const mainImagePublicId = `logos/${mainImageUrl.split('/').pop()?.split('.')[0]}`
@@ -60,7 +63,6 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
       )
     }
 
-    // Delete gallery images
     if (logo.gallery?.length > 0) {
       console.log(`🗑️ Processing ${logo.gallery.length} gallery images...`)
 
@@ -88,15 +90,12 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
       }
     }
 
-    // Wait for all Cloudinary deletions to complete
     console.log('⏳ Waiting for all Cloudinary deletions to complete...')
     const cloudinaryResults = await Promise.all(deletePromises)
     console.log('✅ Cloudinary cleanup completed:', cloudinaryResults)
 
-    // Delete the logo and all related data from the database using a transaction
     console.log('🗑️ Deleting logo and related data from database...')
     await prisma.$transaction(async (tx) => {
-      // First delete all gallery items
       if (logo.gallery?.length > 0) {
         await tx.logoGallery.deleteMany({
           where: {
@@ -106,7 +105,6 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
         console.log('✅ Gallery items deleted from database')
       }
 
-      // Then delete the logo itself
       await tx.logo.delete({
         where: {
           id: params.id,
@@ -115,7 +113,6 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
       console.log('✅ Logo deleted from database')
     })
 
-    // Revalidate the logos page and individual logo page
     console.log('🔄 Revalidating pages...')
     revalidatePath('/admin/logos')
     revalidatePath(`/${params.id}`)
@@ -134,7 +131,6 @@ export async function DELETE(_request: Request, { params }: { params: { id: stri
       logoId: params.id,
     })
 
-    // Check for specific error types
     if (error instanceof Error) {
       if (error.message.includes('Record to delete does not exist')) {
         return NextResponse.json(

@@ -1,18 +1,39 @@
 'use client'
 
 import Image from 'next/image'
-import Link from 'next/link'
 import { FriloPill } from '@/components/layout/FriloPill'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 
-export function AboutContent() {
+interface AboutModalProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export function AboutModal({ isOpen, onClose }: AboutModalProps) {
   return (
-    <div className="container mx-auto px-4 py-20 sm:py-24">
-      <h1 className="sr-only">About Afterlife</h1>
-      <Card className="mx-auto max-w-xl rounded-xl border border-border bg-card pb-0">
-        <CardContent className="space-y-6 p-5 sm:p-6">
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) onClose()
+      }}
+    >
+      <DialogContent size="lg" className="border border-border bg-background shadow-none">
+        <DialogHeader className="sr-only">
+          <DialogTitle>About Afterlife</DialogTitle>
+          <DialogDescription>
+            Logos get shelved when projects stall. Afterlife puts finished marks back in play.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-6">
           <div className="relative mx-auto aspect-[12/5] w-full">
             <Image
               src="/about-arch.jpg"
@@ -25,11 +46,11 @@ export function AboutContent() {
           </div>
 
           <div className="space-y-3 text-left">
-            <p className="text-body text-foreground-muted text-pretty">
+            <p className="text-pretty text-body text-foreground-muted">
               Logos get shelved when projects stall, briefs change, or a client walks. The work is
               often finished. The world never sees it.
             </p>
-            <p className="text-body text-foreground-muted text-pretty">
+            <p className="text-pretty text-body text-foreground-muted">
               Afterlife puts those marks back in play. Buy a finished identity today. Or submit one
               and get paid when it finds a home.
             </p>
@@ -47,13 +68,25 @@ export function AboutContent() {
               <Button asChild variant="tertiary" size="lg">
                 <a href="mailto:hi@afterlife.work">Get in touch</a>
               </Button>
-              <Button asChild variant="primary" size="lg">
-                <Link href="/">Browse collection</Link>
+              <Button
+                type="button"
+                variant="primary"
+                size="lg"
+                onClick={() => {
+                  onClose()
+                  if (window.location.pathname === '/') {
+                    document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' })
+                    return
+                  }
+                  window.location.assign('/#collection')
+                }}
+              >
+                Browse collection
               </Button>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
