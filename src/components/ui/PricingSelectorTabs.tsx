@@ -80,7 +80,6 @@ const TIERS: Record<
       'Weekly meeting',
       'Senior designer',
       'Web, brand, or product design',
-      'Pause or cancel anytime',
     ],
   },
 }
