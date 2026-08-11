@@ -162,6 +162,27 @@
     outline: 2px solid var(--focus-ring);
     outline-offset: 2px;
   }
+
+  /*
+   * Chrome/Safari paint a solid autofill plate over inputs. On a dark field
+   * that becomes a blue-grey rectangle inside the shell. Force the fill and
+   * text back onto our tokens so autofill reads like a normal value.
+   */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: hsl(var(--foreground));
+    caret-color: hsl(var(--foreground));
+    /* inset shadow covers the browser fill; background-clip keeps it flush */
+    box-shadow: 0 0 0 1000px hsl(var(--card)) inset;
+    transition: background-color 99999s ease-out 0s;
+  }
+
   .dark {
     --surface-1: #171717;
     --surface-2: #1e1e1e;
