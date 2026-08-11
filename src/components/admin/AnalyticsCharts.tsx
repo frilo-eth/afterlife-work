@@ -1,74 +1,101 @@
 'use client'
 
 import { format } from 'date-fns'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 import type { DayPoint, TopLogoRow } from '@/app/actions/analytics'
+import {
+  type ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from '@/components/ui/chart'
 
-const tooltipStyle = {
-  background: 'hsl(var(--popover))',
-  border: '1px solid hsl(var(--border))',
-  borderRadius: 'var(--radius)',
-  color: 'hsl(var(--popover-foreground))',
-  fontSize: 12,
-}
+const dailyConfig = {
+  views: {
+    label: 'Views',
+    color: 'hsl(var(--chart-1))',
+  },
+  checkouts: {
+    label: 'Checkouts',
+    color: 'hsl(var(--chart-2))',
+  },
+  orders: {
+    label: 'Orders',
+    color: 'hsl(var(--chart-3))',
+  },
+} satisfies ChartConfig
+
+const topLogosConfig = {
+  views: {
+    label: 'Views',
+    color: 'hsl(var(--chart-1))',
+  },
+} satisfies ChartConfig
 
 export function AnalyticsDailyChart({ data }: { data: DayPoint[] }) {
   return (
-    <div className="h-[320px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="day"
-            stroke="hsl(var(--muted-foreground))"
-            tick={{ fontSize: 11 }}
-            tickFormatter={(d) => format(new Date(`${d}T00:00:00`), 'MMM d')}
-          />
-          <YAxis
-            stroke="hsl(var(--muted-foreground))"
-            tick={{ fontSize: 11 }}
-            allowDecimals={false}
-          />
-          <Tooltip contentStyle={tooltipStyle} />
-          <Legend />
-          <Line
-            type="monotone"
-            dataKey="views"
-            name="Views"
-            stroke="hsl(var(--foreground))"
-            strokeWidth={1.5}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="checkouts"
-            name="Checkouts"
-            stroke="hsl(var(--muted-foreground))"
-            strokeWidth={1.5}
-            dot={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="orders"
-            name="Orders"
-            stroke="hsl(var(--foreground-subtle))"
-            strokeWidth={1.5}
-            dot={false}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
+    <ChartContainer config={dailyConfig} className="aspect-auto h-[320px] w-full">
+      <AreaChart
+        accessibilityLayer
+        data={data}
+        margin={{ left: 8, right: 8, top: 8 }}
+      >
+        <CartesianGrid vertical={false} />
+        <XAxis
+          dataKey="day"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          minTickGap={28}
+          tickFormatter={(d) => format(new Date(`${d}T00:00:00`), 'MMM d')}
+        />
+        <YAxis
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          allowDecimals={false}
+          width={36}
+        />
+        <ChartTooltip
+          cursor={false}
+          content={
+            <ChartTooltipContent
+              labelFormatter={(value) =>
+                format(new Date(`${String(value)}T00:00:00`), 'MMM d, yyyy')
+              }
+              indicator="dot"
+            />
+          }
+        />
+        <ChartLegend content={<ChartLegendContent />} />
+        <Area
+          dataKey="views"
+          type="natural"
+          fill="var(--color-views)"
+          fillOpacity={0.15}
+          stroke="var(--color-views)"
+          strokeWidth={1.5}
+        />
+        <Area
+          dataKey="checkouts"
+          type="natural"
+          fill="var(--color-checkouts)"
+          fillOpacity={0.2}
+          stroke="var(--color-checkouts)"
+          strokeWidth={1.5}
+        />
+        <Area
+          dataKey="orders"
+          type="natural"
+          fill="var(--color-orders)"
+          fillOpacity={0.25}
+          stroke="var(--color-orders)"
+          strokeWidth={1.5}
+        />
+      </AreaChart>
+    </ChartContainer>
   )
 }
 
@@ -78,22 +105,29 @@ export function AnalyticsTopLogosChart({ data }: { data: TopLogoRow[] }) {
   }
 
   return (
-    <div className="h-[280px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} layout="vertical" margin={{ left: 8, right: 8, top: 4, bottom: 4 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-          <XAxis type="number" allowDecimals={false} stroke="hsl(var(--muted-foreground))" />
-          <YAxis
-            type="category"
-            dataKey="title"
-            width={120}
-            tick={{ fontSize: 11 }}
-            stroke="hsl(var(--muted-foreground))"
-          />
-          <Tooltip contentStyle={tooltipStyle} />
-          <Bar dataKey="views" name="Views" fill="hsl(var(--foreground))" radius={[0, 4, 4, 0]} />
-        </BarChart>
-      </ResponsiveContainer>
-    </div>
+    <ChartContainer config={topLogosConfig} className="aspect-auto h-[280px] w-full">
+      <BarChart
+        accessibilityLayer
+        data={data}
+        layout="vertical"
+        margin={{ left: 4, right: 8, top: 4, bottom: 4 }}
+      >
+        <CartesianGrid horizontal={false} />
+        <XAxis type="number" dataKey="views" hide allowDecimals={false} />
+        <YAxis
+          dataKey="title"
+          type="category"
+          tickLine={false}
+          axisLine={false}
+          width={120}
+          tickMargin={8}
+          tickFormatter={(value) =>
+            String(value).length > 16 ? `${String(value).slice(0, 16)}…` : String(value)
+          }
+        />
+        <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel />} />
+        <Bar dataKey="views" fill="var(--color-views)" radius={4} />
+      </BarChart>
+    </ChartContainer>
   )
 }

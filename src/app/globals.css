@@ -41,6 +41,13 @@
 
     --radius: 0.5rem;
 
+    /* Chart series (shadcn ChartContainer). Monochrome ladder for dark UI. */
+    --chart-1: 0 0% 100%;
+    --chart-2: 0 0% 63%;
+    --chart-3: 0 0% 40%;
+    --chart-4: 0 0% 28%;
+    --chart-5: 0 0% 18%;
+
     /*
      * Foreground ladder. The codebase carried sixteen ad-hoc alpha steps
      * (white/60 alone appeared 106 times); these are the three that actually

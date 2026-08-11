@@ -45,6 +45,8 @@ Nav tab: **Analytics** in the admin layout.
 
 Aggregations live in `src/app/actions/analytics.ts`.
 
+Charts use the [shadcn/ui chart](https://ui.shadcn.com/charts/area) primitives (`ChartContainer`, area + horizontal bar) in `src/components/admin/AnalyticsCharts.tsx`.
+
 ## Deploy note
 
 Ensure migration `20260811220000_add_analytics_events` is applied on the production database before or with the deploy.
