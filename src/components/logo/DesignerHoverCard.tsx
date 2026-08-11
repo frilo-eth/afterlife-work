@@ -7,8 +7,8 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Elevated } from '@/lib/elevated'
 import { useShape } from '@/lib/shape-context'
-import { exitFallbackMs, spring } from '@/lib/springs'
 import { normalizeTwitterHandle } from '@/lib/slug'
+import { exitFallbackMs, spring } from '@/lib/springs'
 import { cn } from '@/lib/utils'
 
 export type DesignerHoverData = {
