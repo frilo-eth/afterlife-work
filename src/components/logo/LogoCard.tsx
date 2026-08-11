@@ -3,21 +3,15 @@
 import { ArrowRight, Skull } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useEffect, useRef } from 'react'
 import { cn } from '@/lib/utils'
 
 interface LogoCardProps {
-  /** Position in the grid, used to register with proximity tracking. */
-  index: number
-  registerItem: (index: number, element: HTMLElement | null) => void
   id: string
   /** Pretty public path — `/agave-sunshine`. Falls back to id for legacy rows. */
   slug?: string
   title: string
   thumbnail: string
   tags: string[]
-  /** True when this card is the pointer's nearest target. */
-  isNearest?: boolean
 }
 
 const formatTitle = (title: string) =>
@@ -29,34 +23,12 @@ const formatTitle = (title: string) =>
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ')
 
-export function LogoCard({
-  index,
-  registerItem,
-  id,
-  slug,
-  title,
-  thumbnail,
-  tags,
-  isNearest = false,
-}: LogoCardProps) {
+export function LogoCard({ id, slug, title, thumbnail, tags }: LogoCardProps) {
   const label = formatTitle(title)
   const href = `/${slug || id}`
-  const ref = useRef<HTMLAnchorElement>(null)
-
-  // Register with the grid's proximity tracker so it can measure this card.
-  useEffect(() => {
-    registerItem(index, ref.current)
-    return () => registerItem(index, null)
-  }, [index, registerItem])
 
   return (
-    <Link
-      ref={ref}
-      href={href}
-      prefetch
-      aria-label={`View ${label}`}
-      className="group block w-full text-left"
-    >
+    <Link href={href} prefetch aria-label={`View ${label}`} className="group block w-full text-left">
       {/*
         Title and tags sit below the frame rather than over it. Overlaying them
         required a gradient scrim to keep the text legible, which dimmed the one
@@ -65,8 +37,8 @@ export function LogoCard({
       <div
         className={cn(
           'relative aspect-[4/3] w-full overflow-hidden rounded-lg border bg-card',
-          'transition-colors duration-quick ease-settle',
-          isNearest ? 'border-border-strong' : 'border-border',
+          'border-border transition-colors duration-quick ease-settle',
+          'group-hover:border-border-strong',
         )}
       >
         {thumbnail ? (
@@ -86,6 +58,7 @@ export function LogoCard({
         {/*
           Soft circle affordance — same geometry as the email submit control,
           but secondary fill so it doesn't compete with the mark itself.
+          Only on this card's hover — not gallery-wide proximity.
         */}
         <span
           aria-hidden="true"
@@ -93,8 +66,8 @@ export function LogoCard({
             'pointer-events-none absolute bottom-3 right-3',
             'inline-flex h-9 w-9 items-center justify-center rounded-lg',
             'border border-border bg-card/80 text-foreground-muted backdrop-blur-sm',
-            'transition-opacity duration-quick ease-settle',
-            isNearest ? 'opacity-100' : 'opacity-0',
+            'opacity-0 transition-opacity duration-quick ease-settle',
+            'group-hover:opacity-100',
           )}
         >
           <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
