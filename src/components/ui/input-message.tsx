@@ -564,7 +564,7 @@ const InputMessage = forwardRef<HTMLDivElement, InputMessageProps>(
           }
         }
 
-        if (e.key === 'Enter' && !e.shiftKey) {
+        if (e.key === 'Enter' && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
           e.preventDefault()
           handleSend()
         }

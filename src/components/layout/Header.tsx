@@ -79,7 +79,7 @@ export const Header = () => {
                 size="md"
                 onClick={() => setIsSubmitOpen(true)}
               >
-                Submit
+                Submit a logo
               </Button>
             </nav>
           </div>

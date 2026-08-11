@@ -1,7 +1,7 @@
 'use client'
 
 import { Field } from '@base-ui/react/field'
-import { ChevronLeft, ChevronRight, Eye, Plus, Trash2, Upload, X } from 'lucide-react'
+import { Upload, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { toast } from 'sonner'
@@ -14,9 +14,11 @@ import {
   isDesignerFieldValid,
 } from '@/components/admin/DesignerField'
 import { LogoStatusDropdown } from '@/components/admin/LogoStatusDropdown'
+import { ImageGallery } from '@/components/logo/ImageGallery'
 import { Button } from '@/components/ui/button'
 import { ConfirmDestructiveDialog } from '@/components/ui/confirm-destructive-dialog'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { DropZone } from '@/components/ui/drop-zone'
 import { InputField, InputGroup } from '@/components/ui/input-group'
 import { fontWeights } from '@/lib/font-weight'
 import { isStatusLocked, MANUAL_STATUSES } from '@/lib/logo-status'
@@ -235,7 +237,6 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
   const [_galleryImages, setGalleryImages] = useState<FilePreviewData[]>([])
   const [deletedGalleryIds, setDeletedGalleryIds] = useState<string[]>([])
   const [_tagChanges, setTagChanges] = useState<string[]>([])
-  const [previewOpen, setPreviewOpen] = useState<string | null>(null)
   const [_isDeleting, setIsDeleting] = useState(false)
   const [_deleteMainImage, _setDeleteMainImage] = useState(false)
   const [previewUrl, _setPreviewUrl] = useState<string | null>(null)
@@ -252,7 +253,6 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
 
   // Initialize gallery previews from memoized value
   const [galleryPreviews, setGalleryPreviews] = useState<FilePreviewData[]>(initialGalleryPreviews)
-  const [_currentGalleryIndex, setCurrentGalleryIndex] = useState(0)
   const mainImageInputRef = useRef<HTMLInputElement>(null)
   const galleryInputRef = useRef<HTMLInputElement>(null)
   const _router = useRouter()
@@ -327,7 +327,6 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
   // Reset preview when closing modal
   useEffect(() => {
     if (!isOpen) {
-      setPreviewOpen(null)
       setMainImage({ preview: null })
       setIsDeleting(false)
       setDiscardOpen(false)
@@ -663,8 +662,9 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
   }, [galleryPreviews, deletedGalleryIds])
 
   // Process gallery files separately
-  const processGalleryFiles = async (files: FileList) => {
-    console.log(`🔴 [LOGO-EDIT] Processing ${files.length} gallery files`)
+  const processGalleryFiles = async (files: FileList | File[]) => {
+    const fileList = Array.from(files)
+    console.log(`🔴 [LOGO-EDIT] Processing ${fileList.length} gallery files`)
 
     // Get current count of visible gallery images (not marked for deletion)
     const currentVisibleCount = galleryPreviews.filter(
@@ -677,9 +677,9 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
     )
 
     // Check if adding these files would exceed the maximum
-    if (files.length > availableSlots) {
+    if (fileList.length > availableSlots) {
       console.error(
-        `🔴 [LOGO-EDIT] Too many files selected: ${files.length} files, but only ${availableSlots} slots available`,
+        `🔴 [LOGO-EDIT] Too many files selected: ${fileList.length} files, but only ${availableSlots} slots available`,
       )
       toast.error(
         `You can only add ${availableSlots} more image(s). Maximum ${MAX_GALLERY_IMAGES} gallery images allowed.`,
@@ -689,7 +689,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
 
     const newPreviews: FilePreviewData[] = []
 
-    for (const file of Array.from(files)) {
+    for (const file of fileList) {
       try {
         console.log(`🔍 [LOGO-EDIT] Processing gallery file: ${file.name}`)
 
@@ -887,7 +887,6 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
 
     try {
       setIsDeleting(true)
-      setPreviewOpen(null) // Close preview if open
 
       // Clear the file input
       if (mainImageInputRef.current) {
@@ -916,67 +915,6 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
       setIsDeleting(false)
     }
   }
-
-  const handlePreviewOpen = useCallback<(previewUrl: string | null, index?: number) => void>(
-    (previewUrl, index = 0) => {
-      if (!previewUrl) return
-      try {
-        setPreviewOpen(previewUrl)
-        setCurrentGalleryIndex(index)
-      } catch (error) {
-        console.error('Failed to open preview:', error)
-        toast.error('Failed to open image preview')
-      }
-    },
-    [],
-  )
-
-  const handlePreviousImage = useCallback(() => {
-    const visiblePreviews = galleryPreviews.filter((p) => !deletedGalleryIds.includes(p.id))
-    if (visiblePreviews.length <= 1) return
-
-    setCurrentGalleryIndex((prev) => {
-      const newIndex = prev === 0 ? visiblePreviews.length - 1 : prev - 1
-      setPreviewOpen(visiblePreviews[newIndex].preview)
-      return newIndex
-    })
-  }, [galleryPreviews, deletedGalleryIds])
-
-  const handleNextImage = useCallback(() => {
-    const visiblePreviews = galleryPreviews.filter((p) => !deletedGalleryIds.includes(p.id))
-    if (visiblePreviews.length <= 1) return
-
-    setCurrentGalleryIndex((prev) => {
-      const newIndex = prev === visiblePreviews.length - 1 ? 0 : prev + 1
-      setPreviewOpen(visiblePreviews[newIndex].preview)
-      return newIndex
-    })
-  }, [galleryPreviews, deletedGalleryIds])
-
-  // Add keyboard navigation for gallery preview
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!previewOpen) return
-
-      switch (e.key) {
-        case 'ArrowLeft':
-          e.preventDefault()
-          handlePreviousImage()
-          break
-        case 'ArrowRight':
-          e.preventDefault()
-          handleNextImage()
-          break
-        case 'Escape':
-          e.preventDefault()
-          setPreviewOpen(null)
-          break
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [previewOpen, handlePreviousImage, handleNextImage])
 
   const handleSaveWithValidation = async () => {
     console.group('🚀 [LOGO-EDIT] Save Operation')
@@ -1445,26 +1383,10 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
   }, [isOpen, galleryPreviews, deletedGalleryIds])
 
   // Calculate visible gallery count (excluding deleted items)
-  const visibleGalleryCount = useMemo(() => {
-    // Get all gallery preview IDs
-    const allIds = galleryPreviews.map((p) => p.id)
-
-    // Filter out deleted IDs
-    const visibleIds = allIds.filter((id) => !deletedGalleryIds.includes(id))
-
-    // Count unique visible IDs
-    const uniqueVisibleIds = new Set(visibleIds)
-    const count = uniqueVisibleIds.size
-
-    console.log('🔢 [LOGO-EDIT] Visible gallery count calculation:', {
-      total: galleryPreviews.length,
-      deleted: deletedGalleryIds.length,
-      visible: count,
-      available: MAX_GALLERY_IMAGES - count,
-    })
-
-    return count
-  }, [galleryPreviews, deletedGalleryIds])
+  const visibleGalleryItems = useMemo(
+    () => galleryPreviews.filter((p) => !deletedGalleryIds.includes(p.id)),
+    [galleryPreviews, deletedGalleryIds],
+  )
 
   // Force UI update when gallery state changes
   useEffect(() => {
@@ -1527,8 +1449,8 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
             <X className="h-4 w-4" />
           </Button>
 
-          <div className="container mx-auto px-4 py-20 sm:py-24">
-            <div className="mx-auto max-w-xl">
+          <div className="flex min-h-full justify-center px-4 py-20 sm:py-24">
+            <div className="w-full min-w-0 max-w-[44rem]">
               <div className="mb-10 space-y-3 sm:mb-14">
                 <span className="block font-mono text-metadata uppercase text-foreground-subtle">
                   Edit logo
@@ -1542,7 +1464,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
               </div>
 
               <form
-                className="space-y-6"
+                className="w-full min-w-0 space-y-6"
                 onSubmit={(e) => {
                   e.preventDefault()
                   if (locked) {
@@ -1552,7 +1474,7 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   handleSaveWithValidation()
                 }}
               >
-                <fieldset disabled={locked} className="space-y-6 disabled:opacity-70">
+                <fieldset disabled={locked} className="min-w-0 space-y-6 disabled:opacity-70">
                   <InputGroup className="w-full">
                     <InputField
                       index={0}
@@ -1596,132 +1518,64 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                   />
 
                   <div className="space-y-2">
-                    <input
-                      type="file"
-                      className="hidden"
-                      ref={mainImageInputRef}
-                      accept="image/*"
-                      onChange={() => console.log('Native input change event - not used anymore')}
-                      aria-label="Upload main image"
-                    />
-
-                    {mainPreviewSrc ? (
-                      <div className="group relative overflow-hidden rounded-xl border border-border bg-card">
-                        <img src={mainPreviewSrc} alt="Logo preview" className="w-full" />
-                        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/40 opacity-0 transition-opacity duration-80 group-hover:opacity-100">
-                          <Button
-                            type="button"
-                            variant="tertiary"
-                            size="icon"
-                            onClick={triggerFileInput}
-                            aria-label="Replace main image"
-                          >
-                            <Upload className="h-4 w-4" />
-                          </Button>
+                    <span className="block text-caption text-foreground-muted">Main image</span>
+                    <DropZone
+                      active={!!mainPreviewSrc}
+                      disabled={locked}
+                      label="Drop main image or click to browse"
+                      hint="PNG, JPG, WEBP, or GIF"
+                      dropWhenFilled
+                      className={mainPreviewSrc ? '!p-0 overflow-hidden' : undefined}
+                      onBrowse={triggerFileInput}
+                      onDropFiles={(files) => {
+                        if (files[0]) void processMainImageFile(files[0])
+                      }}
+                    >
+                      {mainPreviewSrc ? (
+                        <div className="group relative aspect-video w-full">
+                          <img
+                            src={mainPreviewSrc}
+                            alt="Logo preview"
+                            className="h-full w-full object-cover"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/40 opacity-0 transition-opacity duration-80 group-hover:opacity-100">
+                            <Button
+                              type="button"
+                              variant="tertiary"
+                              size="icon"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                triggerFileInput()
+                              }}
+                              aria-label="Replace main image"
+                            >
+                              <Upload className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={triggerFileInput}
-                        aria-label="Upload image"
-                        className="relative flex w-full flex-col items-center justify-center gap-1 rounded-xl border border-border bg-card p-8 text-center transition-colors duration-80 hover:border-border-strong"
-                      >
-                        <Upload className="h-6 w-6 text-foreground-muted" />
-                        <p className="text-caption text-foreground-muted">
-                          Drop your image or click to browse
-                        </p>
-                      </button>
-                    )}
+                      ) : null}
+                    </DropZone>
                   </div>
 
                   <div className="space-y-2">
-                    <input
-                      id="gallery-images-input"
-                      type="file"
-                      className="hidden"
-                      ref={galleryInputRef}
-                      accept="image/*"
-                      multiple
-                      onChange={() => console.log('Native gallery input change - not used anymore')}
-                      aria-label="Gallery images upload"
+                    <span className="block text-caption text-foreground-muted">Gallery</span>
+                    <ImageGallery
+                      images={visibleGalleryItems.map((item) => item.preview)}
+                      title={displayTitle || 'Gallery'}
+                      editable
+                      maxImages={MAX_GALLERY_IMAGES}
+                      disabled={locked}
+                      onAdd={triggerGalleryInput}
+                      onDropFiles={(files) => {
+                        void processGalleryFiles(files)
+                      }}
+                      onDelete={(index) => {
+                        const item = visibleGalleryItems[index]
+                        if (!item) return
+                        if (item.fileInfo) handleDeleteNewGalleryImage(item.id)
+                        else handleDeleteGalleryImage(item.id)
+                      }}
                     />
-                    <div className="flex items-center justify-between">
-                      <span
-                        id="gallery-images-label"
-                        aria-label="Gallery images count"
-                        role="status"
-                        className="block text-caption text-foreground-muted"
-                      >
-                        Gallery Images ({visibleGalleryCount}/{MAX_GALLERY_IMAGES})
-                        {deletedGalleryIds.length > 0 && (
-                          <span className="ml-2 text-metadata text-foreground-subtle">
-                            ({deletedGalleryIds.length} marked for deletion)
-                          </span>
-                        )}
-                      </span>
-                      {visibleGalleryCount < MAX_GALLERY_IMAGES && (
-                        <span className="text-metadata text-foreground-subtle">
-                          {MAX_GALLERY_IMAGES - visibleGalleryCount} slot
-                          {MAX_GALLERY_IMAGES - visibleGalleryCount !== 1 ? 's' : ''} available
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      role="group"
-                      aria-labelledby="gallery-images-label"
-                      className="grid grid-cols-2 gap-2 sm:grid-cols-3"
-                    >
-                      {galleryPreviews
-                        .filter((item) => !deletedGalleryIds.includes(item.id))
-                        .map((item) => (
-                          <div
-                            key={item.id}
-                            className="group relative aspect-square overflow-hidden rounded-lg border border-border bg-card"
-                          >
-                            <img
-                              src={item.preview}
-                              alt={`Gallery pic ${item.id}`}
-                              className="h-full w-full object-cover"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/40 opacity-0 transition-opacity duration-80 group-hover:opacity-100">
-                              <Button
-                                type="button"
-                                variant="tertiary"
-                                size="icon"
-                                onClick={() => handlePreviewOpen(item.preview)}
-                                aria-label={`Preview gallery image ${item.id}`}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="tertiary"
-                                size="icon"
-                                onClick={() =>
-                                  item.fileInfo
-                                    ? handleDeleteNewGalleryImage(item.id)
-                                    : handleDeleteGalleryImage(item.id)
-                                }
-                                aria-label={`Delete gallery image ${item.id}`}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        ))}
-
-                      {visibleGalleryCount < MAX_GALLERY_IMAGES && (
-                        <button
-                          type="button"
-                          onClick={triggerGalleryInput}
-                          className="flex aspect-square items-center justify-center rounded-lg border border-dashed border-border text-foreground-muted transition-colors duration-80 hover:border-border-strong hover:text-foreground"
-                          aria-label="Add gallery image"
-                        >
-                          <Plus className="h-6 w-6" />
-                        </button>
-                      )}
-                    </div>
                   </div>
 
                   <div>
@@ -1776,56 +1630,6 @@ const LogoEditModal = memo(({ logo, isOpen, onClose }: LogoEditModalProps) => {
                 )}
               </form>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={!!previewOpen} onOpenChange={(open) => !open && setPreviewOpen(null)}>
-        <DialogContent
-          hideClose
-          className="max-w-3xl border border-border bg-background p-0 shadow-none"
-        >
-          <DialogTitle className="sr-only">Image preview</DialogTitle>
-          <div className="relative">
-            <Button
-              type="button"
-              variant="tertiary"
-              size="icon"
-              aria-label="Close preview"
-              onClick={() => setPreviewOpen(null)}
-              className="absolute right-3 top-3 z-10"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-
-            {visibleGalleryCount > 1 && (
-              <>
-                <Button
-                  type="button"
-                  variant="tertiary"
-                  size="icon"
-                  aria-label="Previous image"
-                  onClick={handlePreviousImage}
-                  className="absolute left-3 top-1/2 z-10 -translate-y-1/2"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="tertiary"
-                  size="icon"
-                  aria-label="Next image"
-                  onClick={handleNextImage}
-                  className="absolute right-3 top-1/2 z-10 -translate-y-1/2"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </>
-            )}
-
-            {previewOpen && (
-              <img src={previewOpen} alt="Preview" className="w-full object-contain" />
-            )}
           </div>
         </DialogContent>
       </Dialog>

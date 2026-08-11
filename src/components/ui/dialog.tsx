@@ -61,7 +61,7 @@ interface DialogContentProps extends ComponentPropsWithoutRef<typeof DialogPrimi
   /**
    * Where the panel sits.
    * - `center` — default modal
-   * - `right` — floating panel docked to the right edge
+   * - `right` — top-right dock by the header CTA (bottom sheet on mobile)
    * - `fullscreen` — edge-to-edge takeover (submit / success flows)
    */
   placement?: 'center' | 'right' | 'fullscreen'
@@ -92,12 +92,29 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
     const substrate = useSurface()
     const dialogLevel = Math.min(substrate + DIALOG_OFFSET, 8)
     const [mounted, setMounted] = useState(false)
+    // Right panels become bottom sheets below `sm` so they sit near the
+    // thumb / CTA edge on phones; desktop keeps a top-right dock by the header.
+    const [sheetBottom, setSheetBottom] = useState(() =>
+      typeof window !== 'undefined' ? window.matchMedia('(max-width: 639px)').matches : false,
+    )
     const isRight = placement === 'right'
     const isFullscreen = placement === 'fullscreen'
 
     useEffect(() => {
       if (open) setMounted(true)
     }, [open])
+
+    useEffect(() => {
+      if (!isRight) {
+        setSheetBottom(false)
+        return
+      }
+      const mq = window.matchMedia('(max-width: 639px)')
+      const update = () => setSheetBottom(mq.matches)
+      update()
+      mq.addEventListener('change', update)
+      return () => mq.removeEventListener('change', update)
+    }, [isRight])
 
     // Fallback release for the deferred unmount: onAnimationComplete on the
     // panel is the primary signal, but rAF-driven animation callbacks can
@@ -115,6 +132,13 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
     }
 
     if (!mounted) return null
+
+    const rightInitial = sheetBottom
+      ? { opacity: 0, x: 0, y: 24 }
+      : { opacity: 0, x: 20, y: 0 }
+    const rightAnimate = sheetBottom
+      ? { opacity: open ? 1 : 0, x: 0, y: open ? 0 : 24 }
+      : { opacity: open ? 1 : 0, x: open ? 0 : 20, y: 0 }
 
     return (
       <DialogPrimitive.Portal forceMount container={container ?? undefined}>
@@ -141,7 +165,9 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
               !isFullscreen && 'p-6',
               isFullscreen &&
                 'inset-0 h-[100dvh] w-screen max-w-none overflow-y-auto rounded-none border-0 bg-background p-0 shadow-none',
-              isRight && 'right-4 top-1/2 w-[min(100%-2rem,28rem)] sm:right-6',
+              // Mobile: bottom sheet. Desktop: top-right, under the header CTA.
+              isRight &&
+                'inset-x-4 bottom-4 top-auto max-h-[min(85dvh,40rem)] w-auto overflow-y-auto sm:inset-x-auto sm:bottom-auto sm:right-4 sm:top-20 sm:w-[min(100%-2rem,28rem)]',
               !isRight && !isFullscreen && 'left-1/2 top-1/2 w-[calc(100%-2rem)]',
               !isRight && !isFullscreen && size === 'sm' && 'max-w-[400px]',
               !isRight && !isFullscreen && size === 'lg' && 'max-w-[540px]',
@@ -152,18 +178,14 @@ const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
               isFullscreen
                 ? { opacity: 0 }
                 : isRight
-                  ? { opacity: 0, x: 20, y: '-50%' }
+                  ? rightInitial
                   : { opacity: 0, scale: 0.97, x: '-50%', y: '-50%' }
             }
             animate={
               isFullscreen
                 ? { opacity: open ? 1 : 0 }
                 : isRight
-                  ? {
-                      opacity: open ? 1 : 0,
-                      x: open ? 0 : 20,
-                      y: '-50%',
-                    }
+                  ? rightAnimate
                   : {
                       opacity: open ? 1 : 0,
                       scale: open ? 1 : 0.97,

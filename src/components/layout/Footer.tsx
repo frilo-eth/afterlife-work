@@ -59,7 +59,7 @@ export const Footer = () => {
                 About
               </button>
               <button type="button" className={linkClass} onClick={() => setIsSubmitOpen(true)}>
-                Submit
+                Submit a logo
               </button>
             </nav>
 

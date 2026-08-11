@@ -117,7 +117,7 @@ export function TeaserClient() {
                 size="sm"
                 onPress={() => setIsSubmitOpen(true)}
               >
-                Submit Logo
+                Submit a logo
               </Button>
               <Link href="/" className="text-sm text-foreground-subtle hover:text-foreground">
                 Visit Main App
