@@ -5,6 +5,7 @@ import { SubmissionConfirmationEmail } from '@/components/emails/SubmissionConfi
 import { REPLY_TO_EMAIL } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 import { allocateLogoSlug } from '@/lib/slug'
+import { trackEvent } from '@/lib/track-event'
 import { uploadFile } from '@/lib/uploadFile'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -123,6 +124,12 @@ export async function POST(request: Request) {
       } else {
         console.error('ADMIN_EMAIL is not configured; skipping submission emails')
       }
+
+      void trackEvent({
+        name: 'submit_complete',
+        logoId: logo.id,
+        props: { designerEmail: email },
+      })
 
       return NextResponse.json({
         success: true,

@@ -1,6 +1,6 @@
 'use client'
 
-import { LayoutDashboard, Package, Receipt, Users } from 'lucide-react'
+import { Activity, LayoutDashboard, Package, Receipt, Users } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { AdminNav } from '@/components/AdminNav'
@@ -11,6 +11,7 @@ const SECTIONS = [
   { key: 'logos', label: 'Logos', href: '/admin/logos', icon: Package },
   { key: 'orders', label: 'Orders', href: '/admin/orders', icon: Receipt },
   { key: 'designers', label: 'Designers', href: '/admin/designers', icon: Users },
+  { key: 'analytics', label: 'Analytics', href: '/admin/analytics', icon: Activity },
 ] as const
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

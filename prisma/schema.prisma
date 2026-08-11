@@ -75,6 +75,25 @@ model CheckoutLog {
   updatedAt DateTime @updatedAt
 }
 
+/// First-party product events for funnels and engagement (admin analytics).
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  /// e.g. logo_view, submit_open, submit_complete, checkout_started
+  name      String
+  /// Anonymous client session (localStorage), Stripe session, or server id
+  sessionId String?
+  logoId    String?
+  path      String?
+  /// Small JSON bag: tier, amount, referrer, etc.
+  props     Json?
+  createdAt DateTime @default(now())
+
+  @@index([name, createdAt])
+  @@index([logoId, createdAt])
+  @@index([createdAt])
+  @@map("analytics_events")
+}
+
 model LogoGallery {
   id        String   @id @default(cuid())
   logoId    String

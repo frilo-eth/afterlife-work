@@ -1,18 +1,24 @@
 import { errorResponse, successResponse } from '@/lib/api-utils'
+import { logCheckoutEvent } from '@/lib/checkout-logger'
 import { ensureDbConnection } from '@/lib/db-utils'
 import { calculatePrice, type PriceTier } from '@/lib/price-constants'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
+import { trackEvent } from '@/lib/track-event'
 
 export async function POST(req: Request) {
+  let logoId: string | undefined
+  let tier: string | undefined
+
   try {
-    // Ensure DB connection
     await ensureDbConnection()
 
     const body = await req.json()
     console.log('Creating checkout with:', body)
 
-    const { logoId, tier, options } = body
+    logoId = body.logoId
+    tier = body.tier
+    const { options } = body
 
     if (!logoId || !tier) {
       return errorResponse(
@@ -34,13 +40,12 @@ export async function POST(req: Request) {
       )
     }
 
-    // Debug log the environment
     console.log('Environment check:', {
       hasStripeKey: !!process.env.STRIPE_SECRET_KEY,
       keyLength: process.env.STRIPE_SECRET_KEY?.length,
       hasUrl: !!process.env.NEXT_PUBLIC_URL,
       tier,
-      logoId: logoId.substring(0, 8), // Log partial ID for privacy
+      logoId: logoId.substring(0, 8),
     })
 
     const logo = await prisma.logo.findUnique({
@@ -100,12 +105,41 @@ export async function POST(req: Request) {
       hasUrl: !!session.url,
     })
 
+    void logCheckoutEvent({
+      type: 'CHECKOUT_STARTED',
+      logoId,
+      tier,
+      amount: Math.round(amount * 100),
+      sessionId: session.id,
+    }).catch(() => {})
+
+    void trackEvent({
+      name: 'checkout_started',
+      logoId,
+      sessionId: session.id,
+      props: { tier, amount: Math.round(amount * 100) },
+    })
+
     return successResponse({
       url: session.url,
       sessionId: session.id,
     })
   } catch (error) {
     console.error('Checkout error:', error)
+    if (logoId && tier) {
+      void logCheckoutEvent({
+        type: 'CHECKOUT_FAILED',
+        logoId,
+        tier,
+        amount: 0,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      }).catch(() => {})
+      void trackEvent({
+        name: 'checkout_failed',
+        logoId,
+        props: { tier, error: error instanceof Error ? error.message : 'Unknown' },
+      })
+    }
     return errorResponse(
       {
         message: 'Checkout failed',

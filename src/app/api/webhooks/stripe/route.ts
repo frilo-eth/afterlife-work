@@ -2,9 +2,11 @@ import { LogoStatus } from '@prisma/client'
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import type Stripe from 'stripe'
+import { logCheckoutEvent } from '@/lib/checkout-logger'
 import { db } from '@/lib/db'
 import { handleOrderFulfillment } from '@/lib/order-fulfillment'
 import { handleWebhook } from '@/lib/stripe'
+import { trackEvent } from '@/lib/track-event'
 
 export async function POST(request: Request) {
   try {
@@ -64,6 +66,21 @@ export async function POST(request: Request) {
             data: { status: LogoStatus.SOLD },
           }),
         ])
+
+        void logCheckoutEvent({
+          type: 'CHECKOUT_COMPLETED',
+          logoId,
+          tier,
+          amount: order.amount,
+          sessionId: session.id,
+        }).catch(() => {})
+
+        void trackEvent({
+          name: 'checkout_completed',
+          logoId,
+          sessionId: session.id,
+          props: { tier, amount: order.amount },
+        })
 
         // The payment has been taken and the order is recorded. A fulfilment
         // failure past this point must not fail the webhook: returning an

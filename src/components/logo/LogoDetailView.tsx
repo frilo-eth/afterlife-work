@@ -1,12 +1,13 @@
 'use client'
 
 import { loadStripe } from '@stripe/stripe-js'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DesignerHoverCard } from '@/components/logo/DesignerHoverCard'
 import { ImageGallery } from '@/components/logo/ImageGallery'
 import { PricingSelectorTabs } from '@/components/ui/PricingSelectorTabs'
 import type { LogoDetail } from '@/lib/catalog'
 import { AFTERLIFE_PRICE_LABEL } from '@/lib/price-constants'
+import { track } from '@/lib/track'
 import { generatePublicReference } from '@/lib/utils'
 
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
@@ -36,6 +37,11 @@ interface LogoDetailViewProps {
 export function LogoDetailView({ logo }: LogoDetailViewProps) {
   const [checkoutError, setCheckoutError] = useState('')
   const [isRedirecting, setIsRedirecting] = useState(false)
+
+  useEffect(() => {
+    if (window.location.pathname.startsWith('/admin')) return
+    track('logo_view', { logoId: logo.id })
+  }, [logo.id])
 
   const handleSelect = async (
     tier: 'summon' | 'revival' | 'afterlife',

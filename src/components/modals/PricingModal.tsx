@@ -89,7 +89,7 @@ export const PricingModal = ({ isOpen, onClose }: PricingModalProps) => {
                   <div className="mb-8">
                     <div className="text-3xl font-bold">$5,000</div>
                     <p className="text-sm text-foreground-muted mt-2">
-                      Full editable files. Delivery in 2-3 days.
+                      Full editable files. Delivery in 2–3 work days.
                     </p>
                   </div>
                   <ul className="space-y-4">

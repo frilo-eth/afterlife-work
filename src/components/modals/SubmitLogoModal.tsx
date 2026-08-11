@@ -22,6 +22,7 @@ import { InputMessage } from '@/components/ui/input-message'
 import { useIcon } from '@/lib/icon-context'
 import { useShape } from '@/lib/shape-context'
 import { spring } from '@/lib/springs'
+import { track } from '@/lib/track'
 import { cn } from '@/lib/utils'
 import { SuccessScreen } from './SuccessScreen'
 
@@ -133,6 +134,11 @@ export const SubmitLogoModal = ({ isOpen, onClose }: SubmitLogoModalProps) => {
       phase !== 'questions'
     )
   }, [designerName, email, twitterRaw, story, logoFile, mockups.length, phase])
+
+  useEffect(() => {
+    if (!isOpen) return
+    track('submit_open')
+  }, [isOpen])
 
   const reset = useCallback(() => {
     setPhase('questions')
